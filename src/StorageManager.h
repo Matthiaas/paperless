@@ -9,6 +9,7 @@
 #include "Element.h"
 
 class StorageManager {
+public:
   void flushToDisk(const MemoryTable&);
   void readFromDisk(Element);
 };
