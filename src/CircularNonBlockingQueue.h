@@ -17,6 +17,7 @@ public:
   void push_back(T&&);
   const T& front();
   void pop_front();
+  bool empty();
 
 };
 
