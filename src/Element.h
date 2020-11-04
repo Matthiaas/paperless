@@ -11,7 +11,6 @@
 class Element {
 public:
   Element(char* v, size_t len) : value(v), len(len) {}
-private:
   const char* value;
   const size_t len;
 };
