@@ -9,7 +9,7 @@
 #include "Element.h"
 
 class StorageManager {
-  void flushToDisk(const MemoryTable);
+  void flushToDisk(const MemoryTable&);
   void readFromDisk(Element);
 };
 
