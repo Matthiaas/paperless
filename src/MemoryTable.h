@@ -19,17 +19,23 @@ public:
 
   // Whats about the tombstone bit?=
   void put(Element key, Element val);
-  void get(Element key);
+  Element get(Element key);
+
 
   // Required for flushing to disk in the StorageManager
   class iterator {
+   public:
     iterator(const iterator&);
     ~iterator();
     iterator& operator=(const iterator&);
     iterator& operator++(); //prefix increment
-    Element operator*() const;
+    bool operator==(const iterator&);
+    bool operator!=(const iterator&);
+    std::pair<Element, Element> operator*() const;
     friend void swap(iterator& lhs, iterator& rhs);
   };
+  iterator begin() const;
+  iterator end() const;
 
 private:
   std::function<int(Element,Element)> comparator_;

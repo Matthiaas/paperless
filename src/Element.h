@@ -10,7 +10,7 @@
 // We might want to rename that.
 class Element {
 public:
-  Element(char* v, size_t len) : value(v), len(len) {}
+  Element(const char* v, size_t len) : value(v), len(len) {}
   const char* value;
   const size_t len;
 };
