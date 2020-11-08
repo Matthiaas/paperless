@@ -6,14 +6,25 @@
 #define PAPERLESS_ELEMENT_H
 
 #include <cstddef>
+#include <cstring>
 
 // We might want to rename that.
 class Element {
 public:
-  Element(const char* v, size_t len) : value(v), len(len) {}
-  const char* value;
+  Element(char* v, size_t len) : value(v), len(len) {}
+  char* value;
   const size_t len;
+
+
+  static Element copyElementContent(Element e) {
+    Element res(static_cast<char *>(malloc(e.len)), e.len);
+    std::memcpy(res.value, e.value, e.len);
+    return res;
+  }
 };
+
+
+
 
 
 #endif //PAPERLESS_ELEMENT_H

@@ -26,7 +26,7 @@ public:
     mtbl_writer_options_destroy(&writer_options_);
   };
   void flushToDisk(const MemoryTable&);
-  Element readFromDisk(Element);
+  std::optional<Element> readFromDisk(Element);
 };
 
 

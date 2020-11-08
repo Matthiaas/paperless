@@ -29,6 +29,6 @@ void StorageManager::flushToDisk(const MemoryTable &mem_table) {
   mtbl_writer_destroy(&mtbl_writer);
 }
 
-Element StorageManager::readFromDisk(Element) {
-  return Element{nullptr, 0};
+std::optional<Element> StorageManager::readFromDisk(Element) {
+  return std::nullopt;
 }
