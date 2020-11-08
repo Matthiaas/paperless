@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS -lmtbl) # sudo apt install libmtbl-dev
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(third_party)
+include_directories(/usr/include/mpi/)
 #include_directories(src)
 
 
