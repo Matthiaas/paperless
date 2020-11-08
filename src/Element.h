@@ -6,6 +6,7 @@
 #define PAPERLESS_ELEMENT_H
 
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 
 // We might want to rename that.
@@ -17,7 +18,7 @@ public:
 
 
   static Element copyElementContent(Element e) {
-    Element res(static_cast<char *>(malloc(e.len)), e.len);
+    Element res(static_cast<char *>(std::malloc(e.len)), e.len);
     std::memcpy(res.value, e.value, e.len);
     return res;
   }
