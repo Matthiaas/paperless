@@ -8,7 +8,6 @@
 #include <cstddef>
 #include <functional>
 #include "Element.h"
-#include "Status.h"
 
 // Should this be a pure virtual class? So we can extend it as a RBTree Memory table?
 // We could also not make this virtual and just manually enforce the interface this is better for performance!
@@ -20,7 +19,7 @@ public:
 
   // Whats about the tombstone bit?=
   void put(Element key, Element val);
-  StatusOr<Element> get(Element key);
+  std::optional<Element> get(Element key);
 
 
   // Required for flushing to disk in the StorageManager
