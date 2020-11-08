@@ -5,8 +5,11 @@ set(CMAKE_CXX_FLAGS -lmtbl) # sudo apt install libmtbl-dev
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
+find_package(MPI REQUIRED)
+include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+
 include_directories(third_party)
-include_directories(/usr/include/mpi/)
 #include_directories(src)
 
 
@@ -43,4 +46,5 @@ add_executable(tests
         )
 
 target_link_libraries(main PUBLIC paperless)
+target_link_libraries(main PRIVATE ${MPI_C_LIBRARIES})
 target_link_libraries(tests mtbl)
