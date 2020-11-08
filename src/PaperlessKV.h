@@ -51,10 +51,14 @@ class PaperlessKV {
 
   void compact();
   void dispatch();
-  void respond();
+  void respond_get();
+  void respond_put();
+
+  void sendElement(Element key, int target, int tag);
+  std::optional<Element> receiveElement(int source, int tag, MPI_Status* status);
+  int receiveElement(Element buff, int source, int tag, MPI_Status status);
 
   std::optional<Element>  localGet(Element key, Hash hash);
-
   std::optional<Element> remoteGetRelaxed(Element key, Hash hash);
   std::optional<Element> remoteGetNow(Element key, Hash hash);
 
@@ -71,7 +75,8 @@ class PaperlessKV {
 
   std::thread compactor_;
   std::thread dispatcher_;
-  std::thread responder_;
+  std::thread get_responder_;
+  std::thread put_responder_;
 
   StorageManager storage_manager_;
 
@@ -80,7 +85,6 @@ class PaperlessKV {
   int rank_;
   int rank_size_;
   MPI_Comm comm;
-
 
   class Tagger {
    public:
@@ -97,8 +101,6 @@ class PaperlessKV {
   };
 
   Tagger get_value_tagger;
-
-
 
 };
 
