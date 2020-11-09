@@ -23,6 +23,16 @@ class StatusOr {
     if (hasValue()) value().T::~T();
   }
 
+  StatusOr(StatusOr<T, Status>&& t) {
+    if(t.hasValue())
+      build(std::move(t.value()));
+  }
+
+  StatusOr(const StatusOr<T, Status>& t) {
+    if( t.hasValue() )
+      build(t.value());
+  }
+
   T& value() {
     return static_cast<T&>(*std::launder(reinterpret_cast<T*>(&storage_)));
   }
