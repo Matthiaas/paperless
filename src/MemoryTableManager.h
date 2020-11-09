@@ -17,8 +17,8 @@ public:
   MemoryTableManager(int rankcount);
   void put(Element key, Element value, Hash hash, Owner owner);
   // @ roman lets use std::optional for now and change that later.
-  std::optional<Element> get(Element key, Hash hash, Owner owner);
-  Status get(Element key, Hash hash, Owner owner, Element buffer);
+  QueryResult get(Element key, Hash hash, Owner owner);
+  QueryStatus get(Element key, Hash hash, Owner owner, Element buffer);
 
 
   // Shouold be blocking ig there is no data.

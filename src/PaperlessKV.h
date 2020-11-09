@@ -44,7 +44,7 @@ class PaperlessKV {
   void deleteKey(char* key, size_t key_len);
 
   void put(Element key, Element value);
-  std::optional<Element> get(Element key);
+  QueryResult get(Element key);
   void deleteKey(Element key);
 
  private:
@@ -55,12 +55,12 @@ class PaperlessKV {
   void respond_put();
 
   void sendElement(Element key, int target, int tag);
-  std::optional<Element> receiveElement(int source, int tag, MPI_Status* status);
+  QueryResult receiveElement(int source, int tag, MPI_Status* status);
   int receiveElement(Element buff, int source, int tag, MPI_Status status);
 
-  std::optional<Element>  localGet(Element key, Hash hash);
-  std::optional<Element> remoteGetRelaxed(Element key, Hash hash);
-  std::optional<Element> remoteGetNow(Element key, Hash hash);
+  QueryResult localGet(Element key, Hash hash);
+  QueryResult remoteGetRelaxed(Element key, Hash hash);
+  QueryResult remoteGetNow(Element key, Hash hash);
 
   std::string id_;
 

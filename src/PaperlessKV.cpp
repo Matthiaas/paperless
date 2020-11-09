@@ -56,7 +56,7 @@ void PaperlessKV::dispatch() {
 void PaperlessKV::respond_get() {
   while(!shutdown_) {
     MPI_Status status;
-    std::optional<Element> key = receiveElement(MPI_ANY_SOURCE, MPI_ANY_TAG, &status);
+    QueryResult key = receiveElement(MPI_ANY_SOURCE, MPI_ANY_TAG, &status);
     if(!key) {
       continue;
     }
@@ -91,7 +91,7 @@ void PaperlessKV::put(Element key, Element value) {
   }
 }
 
-std::optional<Element> PaperlessKV::get(Element key) {
+QueryResult PaperlessKV::get(Element key) {
   Hash hash = hash_function_(key.value, key.len);
   Owner o = hash % rank_size_;
   if (o == rank_) {
@@ -105,12 +105,12 @@ std::optional<Element> PaperlessKV::get(Element key) {
   }
 }
 
-std::optional<Element> PaperlessKV::localGet(Element key, Hash hash) {
-  std::optional<Element> e_cache = local_cache_.get(key);
+QueryResult PaperlessKV::localGet(Element key, Hash hash) {
+  QueryResult e_cache = local_cache_.get(key);
   if (e_cache) {
     return Element::copyElementContent(*e_cache);
   } else {
-    std::optional<Element> el = local_.get(key, hash, rank_);
+    QueryResult el = local_.get(key, hash, rank_);
     if (el) {
       return el;
     } else {
@@ -119,12 +119,12 @@ std::optional<Element> PaperlessKV::localGet(Element key, Hash hash) {
   }
 }
 
-std::optional<Element> PaperlessKV::remoteGetRelaxed(Element key, Hash hash) {
-  std::optional<Element> e_cache = remote_cache_.get(key);
+QueryResult PaperlessKV::remoteGetRelaxed(Element key, Hash hash) {
+  QueryResult e_cache = remote_cache_.get(key);
   if (e_cache) {
     return Element::copyElementContent(*e_cache);
   } else {
-    std::optional<Element> el = remote_.get(key, hash, rank_);
+    QueryResult el = remote_.get(key, hash, rank_);
     if (el) {
       return el;
     } else {
@@ -133,7 +133,7 @@ std::optional<Element> PaperlessKV::remoteGetRelaxed(Element key, Hash hash) {
   }
 }
 
-std::optional<Element> PaperlessKV::remoteGetNow(Element key, Hash hash) {
+QueryResult PaperlessKV::remoteGetNow(Element key, Hash hash) {
   Owner o = hash & rank_size_;
   int tag = get_value_tagger.getNextTag();
   sendElement(key, o, tag);
@@ -158,13 +158,13 @@ void PaperlessKV::sendElement(Element key, int target, int tag) {
   MPI_Send(key.value, key.len, MPI_CHAR, target, tag, comm);
 }
 
-std::optional<Element> PaperlessKV::receiveElement(int source, int tag, MPI_Status* status) {
+QueryResult PaperlessKV::receiveElement(int source, int tag, MPI_Status* status) {
   int value_size;
   MPI_Probe(source, tag, comm, status);
   MPI_Get_count(status, MPI_INT, &value_size);
   if(value_size == 0) {
     MPI_Recv(nullptr, 0, MPI_CHAR, source, tag,comm, status);
-    return std::nullopt;
+    return QueryStatus ::NOT_FOUND;
   }
   char* value_buff = static_cast<char*>(std::malloc(value_size));
   MPI_Recv(value_buff, value_size, MPI_CHAR,

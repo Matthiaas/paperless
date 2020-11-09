@@ -25,7 +25,7 @@ set(LIB_SOURCES
         src/CircularNonBlockingQueue.h
         src/MemoryTableManager.cpp
         src/MemoryTableManager.h
-        src/Types.h src/StatusOr.cpp
+        src/Types.h
         src/StatusOr.h
         src/Status.h
         )

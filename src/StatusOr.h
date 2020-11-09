@@ -53,7 +53,7 @@ class StatusOr {
 
   bool hasValue() { return has_value_; }
 
-  explicit operator bool() const { return hasValue(); }
+  explicit operator bool() /* cons */{ return hasValue(); }
 
   const T* operator->() const { return &value(); }
 
