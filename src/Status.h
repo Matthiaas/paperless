@@ -6,8 +6,11 @@
 #define PAPERLESS_STATUS_H
 
 #include "StatusOr.h"
-class Status {
-  int state_;
+
+enum QueryStatus {
+  NOT_FOUND, DELETED
 };
+
+using QueryResult = StatusOr<Element, QueryStatus>;
 
 #endif //PAPERLESS_STATUS_H
