@@ -21,8 +21,6 @@ set(LIB_SOURCES
         src/StorageManager.cpp
         src/StorageManager.h
         src/Element.h
-        src/CircularNonBlockingQueue.cpp
-        src/CircularNonBlockingQueue.h
         src/MemoryTableManager.cpp
         src/MemoryTableManager.h
         src/Types.h
