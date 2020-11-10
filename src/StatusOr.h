@@ -65,7 +65,32 @@ class StatusOr {
 
   T&& operator*() && { return value(); }
 
- private:
+
+  bool operator==(const StatusOr<T, Status>& o) {
+    if(has_value_ && o.has_value_) {
+      return value() == o.value();
+    } else if( !has_value_ && !o.has_value_) {
+      return status_ == o.status_;
+    }
+    return false;
+  }
+
+  bool operator==(const Status& o) {
+    if(has_value_) {
+      return false;
+    }
+    return status_== o;
+  }
+
+  bool operator!=(const Status& o) {
+    if(has_value_) {
+      return true;
+    }
+    return status_!= o;
+  }
+
+
+private:
   template <typename... ArgsT>
   void build(ArgsT&&... Args) {
     new (reinterpret_cast<void*>(&storage_)) T(std::forward<ArgsT>(Args)...);
@@ -76,5 +101,10 @@ class StatusOr {
   std::aligned_storage_t<sizeof(T), alignof(T)> storage_;
   Status status_;
 };
+
+template <class T, class Status>
+bool operator==(const StatusOr<T, Status>& lhs, const StatusOr<T, Status>& rhs) {
+
+}
 
 #endif  // PAPERLESS_STATUSOR_H
