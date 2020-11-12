@@ -15,6 +15,7 @@
 
 #include "Element.h"
 #include "MemoryTableManager.h"
+#include "RBTreeMemoryTable.h"
 #include "StorageManager.h"
 #include "Types.h"
 
@@ -23,7 +24,7 @@ class DUMMY {
   class Handler {
    public:
     void clear();
-    MemoryTable get();
+    RBTreeMemoryTable get();
   };
 };
 
@@ -70,8 +71,8 @@ class PaperlessKV {
   MemoryTableManager<DUMMY> local_;
   MemoryTableManager<DUMMY> remote_;
 
-  MemoryTable local_cache_;
-  MemoryTable remote_cache_;
+  RBTreeMemoryTable local_cache_;
+  RBTreeMemoryTable remote_cache_;
 
   std::thread compactor_;
   std::thread dispatcher_;

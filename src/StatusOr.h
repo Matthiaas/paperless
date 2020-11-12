@@ -51,7 +51,7 @@ class StatusOr {
         *std::launder(reinterpret_cast<T const*>(&storage_)));
   }
 
-  bool hasValue() { return has_value_; }
+  bool hasValue() const { return has_value_; }
 
   explicit operator bool() /* cons */{ return hasValue(); }
 

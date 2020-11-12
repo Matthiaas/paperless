@@ -1,13 +1,18 @@
 cmake_minimum_required(VERSION 3.10)
 project(paperless)
 
+# Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
+find_package(MPI REQUIRED)
+include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 set(CMAKE_CXX_FLAGS -lmtbl) # sudo apt install libmtbl-dev
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
-find_package(MPI REQUIRED)
-include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+
 
 include_directories(third_party)
 #include_directories(src)
@@ -16,7 +21,6 @@ include_directories(third_party)
 set(LIB_SOURCES
         src/PaperlessKV.cpp
         src/PaperlessKV.h
-        src/MemoryTable.cpp
         src/MemoryTable.h
         src/StorageManager.cpp
         src/StorageManager.h
@@ -26,23 +30,25 @@ set(LIB_SOURCES
         src/Types.h
         src/StatusOr.h
         src/Status.h
-        )
+        src/RBTreeMemoryTable.cpp
+        src/RBTreeMemoryTable.h)
 
 set(TEST_SOURCES
         src/tests/tests_main.cpp
         src/tests/ElementTests.cpp
-        )
+        src/tests/RBTreeMemoryTableTests.cpp)
 
 add_library(paperless STATIC ${LIB_SOURCES})
+target_link_libraries(paperless PRIVATE ${MPI_C_LIBRARIES})
+target_link_libraries(paperless PRIVATE Threads::Threads)
 
 add_executable(main main.cpp)
 add_executable(tests
         ${TEST_SOURCES}
-        src/Element.h # TODO: Remove this line and uncomment next line when the other
-        # stuff starts compiling!
-        # ${LIB_SOURCES}
+        src/RBTreeMemoryTable.cpp
+#        ${LIB_SOURCES} # TODO: uncomment when other stuff compiles.
         )
 
 target_link_libraries(main PUBLIC paperless)
-target_link_libraries(main PRIVATE ${MPI_C_LIBRARIES})
-target_link_libraries(tests mtbl)
+
+target_link_libraries(tests mtbl ${MPI_C_LIBRARIES} Threads::Threads)
