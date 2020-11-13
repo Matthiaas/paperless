@@ -18,6 +18,10 @@ QueryResult RBTreeMemoryTable::get(Element key) {
   }
 }
 
+int RBTreeMemoryTable::size() const {
+  return container.size();
+}
+
 RBTreeMemoryTable::const_iterator RBTreeMemoryTable::begin() const {
   return container.begin();
 }

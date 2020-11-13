@@ -5,6 +5,7 @@
 #ifndef PAPERLESS_STATUS_H
 #define PAPERLESS_STATUS_H
 
+#include "Element.h"
 #include "StatusOr.h"
 
 enum QueryStatus {

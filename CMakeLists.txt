@@ -25,7 +25,6 @@ set(LIB_SOURCES
         src/StorageManager.cpp
         src/StorageManager.h
         src/Element.h
-        src/MemoryTableManager.cpp
         src/MemoryTableManager.h
         src/Types.h
         src/StatusOr.h
@@ -36,6 +35,9 @@ set(LIB_SOURCES
 set(TEST_SOURCES
         src/tests/tests_main.cpp
         src/tests/ElementTests.cpp
+        src/tests/ListWriteBufferTests.cpp
+        src/tests/MemoryTableManagerTests.cpp
+        src/tests/StatusOrTests.cpp
         src/tests/RBTreeMemoryTableTests.cpp)
 
 add_library(paperless STATIC ${LIB_SOURCES})

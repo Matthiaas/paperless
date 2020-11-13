@@ -15,6 +15,11 @@ class RBTreeMemoryTable {
 
   void put(Element key, Element value, bool tombstone);
 
+  // TODO: This is a hotfix so that MemoryTableManager compiles.
+  // MemoryTableManager allocates new memory table if size
+  // of the current one goes above some threshold.
+  int size() const;
+
   QueryResult get(Element key);
 
   const_iterator begin() const;
