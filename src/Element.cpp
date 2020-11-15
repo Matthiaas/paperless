@@ -8,7 +8,8 @@
 bool operator==(const NonOwningElement& lhs, const NonOwningElement& rhs)  {
   if (lhs.Length() != rhs.Length() ) return false;
   for (size_t i = 0; i < lhs.Length() ; i++) {
-    if (lhs.Value()[i] != rhs.Value()[i]) return false;
+    if (lhs.Value()[i] != rhs.Value()[i])
+      return false;
   }
   return true;
 }

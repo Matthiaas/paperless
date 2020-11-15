@@ -36,11 +36,10 @@ TEST_CASE("Compare Owning and NonOwningElement") {
   int len = 17;
   NonOwningElement e(bytes, len);
   Element eo(bytes, len);
-  NonOwningElement e1(bytes, len);
-  Element eo1(bytes, len);
+  NonOwningElement e1(bytes1, len);
+  Element eo1(bytes1, len);
   CHECK(eo == e);
-  CHECK(eo1 == e1);
-  bool b = (eo == e1);
-  CHECK(b);
+  CHECK(eo == e);
+  CHECK(!(eo == e1));
   CHECK(!(eo == e1));
 }
