@@ -8,8 +8,11 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <utility>
 
 class Element;
+
+
 
 
 class NonOwningElement {
@@ -25,28 +28,13 @@ class NonOwningElement {
     return value;
   }
 
-  size_t Length() {
+  size_t Length() const {
     return len;
   }
 
-  bool operator==(const NonOwningElement& rhs) const {
-    if (len != rhs.len) return false;
-    for (size_t i = 0; i < len; i++) {
-      if (value[i] != rhs.value[i]) return false;
-    }
-    return true;
-  }
-
-  bool operator<(const NonOwningElement& other) const {
-    if (len != other.len) return len < other.len;
-    for (size_t i = 0; i < len; i++) {
-      if (value[i] != other.value[i])
-        return value[i] < other.value[i];
-    }
-    return false;
-  }
-
  private:
+  friend bool operator==(const NonOwningElement& lhs, const NonOwningElement& rhs);
+  friend bool operator<(const NonOwningElement& lhs, const NonOwningElement& rhs);
   friend Element;
   char* value;
   size_t len;
@@ -82,13 +70,6 @@ class Element {
     return res;
   }
 
-  bool operator==(const Element& rhs) const {
-    return el_ == rhs.el_;
-  }
-  bool operator<(const Element& other) const {
-    return el_ < other.el_;
-  }
-
   char* Value() const {
     return el_.value;
   }
@@ -98,33 +79,15 @@ class Element {
   }
 
  private:
+  friend bool operator<(const Element& lhs, const Element& rhs);
   friend bool operator<(const NonOwningElement& lhs, const Element& rhs);
   friend bool operator<(const Element& lhs, const NonOwningElement& rhs);
   friend bool operator==(const Element& lhs, const NonOwningElement& rhs);
   friend bool operator==(const NonOwningElement& lhs, const Element& rhs);
+  friend bool operator==(const Element& lhs, const Element& rhs);
   NonOwningElement el_;
 };
 
-/*
-// I do not understand why this gives a compile time error.
-
-bool operator<(const NonOwningElement& lhs, const Element& rhs)  {
-  return lhs < rhs.el_;
-}
-
-bool operator<(const Element& lhs, const NonOwningElement& rhs)  {
-  return lhs.el_ < rhs;
-}
-
-bool operator==(const NonOwningElement& lhs, const Element& rhs)  {
-  return lhs == rhs.el_;
-}
-
-bool operator==(const Element& lhs, const NonOwningElement& rhs)  {
-  return lhs.el_ == rhs;
-}
-
- */
 
 class Tomblement {
  public:
@@ -195,6 +158,18 @@ class Tomblement {
   char* value_;
   size_t len_;
 };
+
+bool operator<(const NonOwningElement& lhs, const NonOwningElement& rhs);
+bool operator<(const Element& lhs, const Element& rhs);
+bool operator<(const NonOwningElement& lhs, const Element& rhs);
+bool operator<(const Element& lhs, const NonOwningElement& rhs);
+bool operator==(const NonOwningElement& lhs, const NonOwningElement& rhs);
+bool operator==(const Element& lhs, const Element& rhs);
+bool operator==(const Element& lhs, const NonOwningElement& rhs);
+bool operator==(const NonOwningElement& lhs, const Element& rhs);
+
+
+
 
 /*
 class ElementWithTombstone {

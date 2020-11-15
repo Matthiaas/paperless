@@ -25,12 +25,13 @@ set(LIB_SOURCES
         src/StorageManager.cpp
         src/StorageManager.h
         src/Element.h
+        src/Element.cpp
         src/MemoryTableManager.h
         src/Types.h
         src/StatusOr.h
         src/Status.h
         src/RBTreeMemoryTable.cpp
-        src/RBTreeMemoryTable.h)
+        src/RBTreeMemoryTable.h )
 
 set(TEST_SOURCES
         src/tests/tests_main.cpp

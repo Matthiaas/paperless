@@ -2,4 +2,4 @@
 #   e.g. $ ./build.sh tests
 rm -r build
 mkdir build
-cd build && cmake .. && make $1
+cd build && cmake .. && make -j4 $1

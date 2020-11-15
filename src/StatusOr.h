@@ -10,7 +10,10 @@
 template <class T, class Status>
 class StatusOr {
  public:
-  StatusOr(const Status& s) { status_ = s; }
+  StatusOr(const Status& s) {
+    status_ = s;
+    has_value_ = false;
+  }
 
   StatusOr(Status&& s) {
     status_ = std::move(s);
@@ -28,12 +31,12 @@ class StatusOr {
 
   StatusOr(StatusOr<T, Status>&& t) {
     if(t.hasValue())
-      build(std::move(t.value()));
+      build(std::move(t.Value()));
   }
 
   StatusOr(const StatusOr<T, Status>& t) {
     if(t.hasValue() )
-      build(t.value());
+      build(t.Value());
   }
 
 
@@ -69,11 +72,15 @@ class StatusOr {
 
   bool operator==(const StatusOr<T, Status>& o) const {
     if(has_value_ && o.has_value_) {
-      return Value() == o.value();
+      return Value() == o.Value();
     } else if( !has_value_ && !o.has_value_) {
       return status_ == o.status_;
     }
     return false;
+  }
+
+  bool operator!=(const StatusOr<T, Status>& o) const {
+    return !(*this == o);
   }
 
   bool operator==(const Status& o) const {
@@ -88,6 +95,20 @@ class StatusOr {
       return true;
     }
     return status_!= o;
+  }
+
+  bool operator==(const T& o) const {
+    if(!has_value_) {
+      return false;
+    }
+    return Value() == o;
+  }
+
+  bool operator!=(const T& o) const {
+    if(!has_value_) {
+      return true;
+    }
+    return Value() != o;
   }
 
 
