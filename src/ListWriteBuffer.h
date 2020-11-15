@@ -23,15 +23,14 @@ public:
         return it_->get();
       }
       void clear() {
+        std::lock_guard<std::mutex> lock(wbuffer_->mutex_);
         wbuffer_->list_.erase(it_);
-        // Only dummy entry is left.
-        if (wbuffer_->list_.size() == 1) {
+        if (wbuffer_->list_.size() == 1) {  // Only dummy entry is left.
           wbuffer_->all_processed_cv_.notify_one();
         }
       }
     private:
-      // The `wbuffer` must outlive the handle.
-      ListWriteBuffer<MemoryTable> *wbuffer_;
+      ListWriteBuffer<MemoryTable> *wbuffer_; // Must outlive the Chunk.
       ListIterator it_;
   };
 
@@ -40,7 +39,7 @@ public:
   }
 
   // Enqueues a MemoryTable.
-  void enqueue(std::unique_ptr<MemoryTable>&& mtable) {
+  void enqueue(std::unique_ptr<MemoryTable> mtable) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto new_it = list_.insert(tail_dummy_, std::move(mtable));
     if (next_dequeue_ == tail_dummy_) {
@@ -57,9 +56,11 @@ public:
   }
 
   // Gets element, allocates memory for result.
-  QueryResult get(Element key, Hash hash, Owner owner) const {
+  QueryResult get(const NonOwningElement& key, Hash hash, Owner owner) const {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto const& mtable : list_) {
+      // Skip the dummy entry.
+      if (mtable == nullptr) continue;
       auto result = mtable->get(key);
       if (result != QueryStatus::NOT_FOUND) return result;
     }
@@ -67,7 +68,7 @@ public:
   }
 
   // Gets element, stores result in the user-provided `buffer`.
-  QueryStatus get(Element key, Hash hash, Owner owner, Element buffer) const {
+  QueryStatus get(const NonOwningElement& key, Hash hash, Owner owner, Element buffer) const {
     throw "Hey you smartass, implement me.";
   }
 

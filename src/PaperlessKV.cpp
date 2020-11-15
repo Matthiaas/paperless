@@ -37,7 +37,7 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
 
 PaperlessKV::~PaperlessKV() { shutdown_ = true; }
 
-void PaperlessKV::deleteKey(Element key) {
+void PaperlessKV::deleteKey(const NonOwningElement& key) {
   // TODO: Implement me.
 }
 
@@ -85,7 +85,7 @@ void PaperlessKV::respond_put() {
   // TODO: Implement me.
 }
 
-void PaperlessKV::put(Element key, Tomblement value) {
+void PaperlessKV::put(const NonOwningElement& key, Tomblement value) {
 /*
   Hash hash = hash_function_(key->value, key->len);
   Owner o = hash % rank_size_;
@@ -103,7 +103,7 @@ void PaperlessKV::put(Element key, Tomblement value) {
 */
 }
 
-QueryResult PaperlessKV::get(Element key) {
+QueryResult PaperlessKV::get(const NonOwningElement& key) {
   /*
   Hash hash = hash_function_(key.Value(), key.Length());
   Owner o = hash % rank_size_;
@@ -119,7 +119,7 @@ QueryResult PaperlessKV::get(Element key) {
    */
 }
 
-QueryResult PaperlessKV::localGet(Element key, Hash hash) {
+QueryResult PaperlessKV::localGet(const NonOwningElement& key, Hash hash) {
   /*
   QueryResult e_cache = local_cache_.get(key);
   if (e_cache == QueryStatus::NOT_FOUND) {
@@ -135,7 +135,7 @@ QueryResult PaperlessKV::localGet(Element key, Hash hash) {
    */
 }
 
-QueryResult PaperlessKV::remoteGetRelaxed(Element key, Hash hash) {
+QueryResult PaperlessKV::remoteGetRelaxed(const NonOwningElement& key, Hash hash) {
   /*
   QueryResult e_cache = remote_cache_.get(key);
   if (e_cache == QueryStatus::NOT_FOUND) {
@@ -151,7 +151,7 @@ QueryResult PaperlessKV::remoteGetRelaxed(Element key, Hash hash) {
   */
 }
 
-QueryResult PaperlessKV::remoteGetValue(Element key, Hash hash) {
+QueryResult PaperlessKV::remoteGetValue(const NonOwningElement& key, Hash hash) {
   /*
   Owner o = hash & rank_size_;
   int tag = get_value_tagger.getNextTag();
@@ -163,16 +163,16 @@ QueryResult PaperlessKV::remoteGetValue(Element key, Hash hash) {
 
 void PaperlessKV::put(char *key, size_t key_len, char *value,
                       size_t value_len) {
-  put(Element(key, key_len),
+  put(NonOwningElement(key, key_len),
       Tomblement(value, value_len));
 }
 
 void PaperlessKV::get(char *key, size_t key_len) {
-  get(Element(key, key_len));
+  get(NonOwningElement(key, key_len));
 }
 
 void PaperlessKV::deleteKey(char *key, size_t key_len) {
-  deleteKey(Element(key, key_len));
+  deleteKey(NonOwningElement(key, key_len));
 }
 /*
 void PaperlessKV::sendElement(Element key, int target, int tag) {

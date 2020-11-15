@@ -109,6 +109,11 @@ class Tomblement {
     value_ = other.value_;
     len_= other.len_;
     other.value_ = nullptr;
+    other.len_ = 0;
+  }
+
+  Element ToElement() {
+    return Element(Value(), len_);
   }
 
   static Tomblement getATombstone() {

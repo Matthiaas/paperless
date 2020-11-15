@@ -1,8 +1,8 @@
 #include "RBTreeMemoryTable.h"
 
 
-void RBTreeMemoryTable::put(Element&& key, Tomblement&& value) {
-  container.emplace(std::move(key), std::move(value));
+void RBTreeMemoryTable::put(const NonOwningElement& key, Tomblement&& value) {
+  container.emplace(Element::copyElementContent(key), std::move(value));
 }
 
 QueryResult RBTreeMemoryTable::get(const NonOwningElement& key) {
@@ -16,7 +16,7 @@ QueryResult RBTreeMemoryTable::get(const NonOwningElement& key) {
     if (entry.Tombstone()) { // Check tombstone bit.
       return QueryStatus::DELETED;
     } else { // Return the value.
-      return entry;
+      return entry.ToElement();
     }
   }
 }

@@ -27,7 +27,7 @@ public:
   }
 
   // Inserts element.
-  void put(Element key, Tomblement value, Hash hash, Owner owner) {
+  void put(const NonOwningElement& key, Tomblement value, Hash hash, Owner owner) {
     // Faster implementation that doesn't require locking the whole memory table.
     // auto cur_mtable = mtable_;
     // cur_mtable_->writers++;
@@ -39,28 +39,28 @@ public:
     // wbuffer_->enqueue(cur_mtable);
     // mtable_ = x;
     std::lock_guard<std::mutex> lock(mtable_mutex_);
-    mtable_->put(key, value);
+    mtable_->put(key, std::move(value));
     if (mtable_->size() > max_mtable_size_) {
       wbuffer_.enqueue(std::move(mtable_));
       mtable_ = std::make_unique<MemoryTable>();
     }
   }
 
-  // Gets element, allocates memory for result.
-  QueryResult get(Element key, Hash hash, Owner owner) const {
+  // Gets element, MemoryTable allocates memory for the result.
+  QueryResult get(const NonOwningElement& key, Hash hash, Owner owner) const {
     {
       std::lock_guard<std::mutex> lock(mtable_mutex_);
-      auto result = mtable_->get(key);
+      QueryResult result = mtable_->get(key);
       if (result != QueryStatus::NOT_FOUND) return result;
     }
-    auto result = wbuffer_.get(key, hash, owner);
+    QueryResult result = wbuffer_.get(key, hash, owner);
     if (result != QueryStatus::NOT_FOUND) return result;
 
     return QueryStatus::NOT_FOUND;
   }
 
   // Gets element, stores result in the user-provided `buffer`.
-  QueryStatus get(Element key, Hash hash, Owner owner, Element buffer) const {
+  QueryStatus get(const NonOwningElement& key, Hash hash, Owner owner, Element buffer) const {
     throw "Shape that diamond and implement me.";
   }
 

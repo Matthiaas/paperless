@@ -13,7 +13,7 @@ enum QueryStatus {
 };
 
 using QueryResult
-  = StatusOr<Tomblement, QueryStatus>;
+  = StatusOr<Element, QueryStatus>;
 
 
 
