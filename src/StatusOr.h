@@ -124,9 +124,4 @@ private:
   Status status_;
 };
 
-template <class T, class Status>
-bool operator==(const StatusOr<T, Status>& lhs, const StatusOr<T, Status>& rhs) {
-
-}
-
 #endif  // PAPERLESS_STATUSOR_H
