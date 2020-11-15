@@ -27,7 +27,7 @@ public:
   }
 
   // Inserts element.
-  void put(Element key, Element value, Hash hash, Owner owner, bool tombstone) {
+  void put(std::shared_ptr<Element> key, std::shared_ptr<ElementWithTombstone>  value, Hash hash, Owner owner, bool tombstone) {
     // Faster implementation that doesn't require locking the whole memory table.
     // auto cur_mtable = mtable_;
     // cur_mtable_->writers++;
@@ -47,7 +47,7 @@ public:
   }
 
   // Gets element, allocates memory for result.
-  QueryResult get(Element key, Hash hash, Owner owner) const {
+  QueryResult get(std::shared_ptr<Element> key, Hash hash, Owner owner) const {
     {
       std::lock_guard<std::mutex> lock(mtable_mutex_);
       auto result = mtable_->get(key);
@@ -60,7 +60,7 @@ public:
   }
 
   // Gets element, stores result in the user-provided `buffer`.
-  QueryStatus get(Element key, Hash hash, Owner owner, Element buffer) const {
+  QueryStatus get(std::shared_ptr<Element> key, Hash hash, Owner owner, Element buffer) const {
     throw "Shape that diamond and implement me.";
   }
 

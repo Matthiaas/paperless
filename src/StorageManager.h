@@ -26,7 +26,7 @@ public:
     mtbl_writer_options_destroy(&writer_options_);
   };
   void flushToDisk(const RBTreeMemoryTable&);
-  QueryResult readFromDisk(Element);
+  QueryResult readFromDisk(std::shared_ptr<Element>);
 };
 
 

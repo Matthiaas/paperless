@@ -13,11 +13,11 @@ void StorageManager::flushToDisk(const RBTreeMemoryTable &mem_table) {
 
   auto mtbl_writer = mtbl_writer_init(file_path.c_str(), writer_options_);
 
-  for (auto pair : mem_table) {
+    for (const auto& pair : mem_table) {
     // TODO: Handle tombstone bits!
     auto res = mtbl_writer_add(mtbl_writer,
                     reinterpret_cast<const uint8_t *>(pair.first.value), pair.first.len,
-                    reinterpret_cast<const uint8_t *>(pair.second.element.value), pair.second.element.len);
+                    reinterpret_cast<const uint8_t *>(pair.second->GetBuffer()), pair.second->GetBufferLen());
     if (res == mtbl_res_failure) {
       // FIXME: handle error!
       std::cerr << "ERROR: " << __FILE__ << " " << __LINE__ << ": " << "mtbl_writer_add failed (FIXME: handle ERROR & replace this with Logging)\n";
@@ -30,6 +30,6 @@ void StorageManager::flushToDisk(const RBTreeMemoryTable &mem_table) {
   mtbl_writer_destroy(&mtbl_writer);
 }
 
-QueryResult StorageManager::readFromDisk(Element) {
+QueryResult StorageManager::readFromDisk(std::shared_ptr<Element>) {
   return QueryStatus::NOT_FOUND;
 }

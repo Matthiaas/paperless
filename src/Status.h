@@ -12,6 +12,7 @@ enum QueryStatus {
   NOT_FOUND, DELETED
 };
 
-using QueryResult = StatusOr<Element, QueryStatus>;
+using QueryResult
+  = StatusOr<std::shared_ptr<ElementWithTombstone> , QueryStatus>;
 
 #endif //PAPERLESS_STATUS_H

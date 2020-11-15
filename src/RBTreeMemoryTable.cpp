@@ -1,19 +1,20 @@
 #include "RBTreeMemoryTable.h"
 
-void RBTreeMemoryTable::put(Element key, Element value, bool tombstone) {
-  container.emplace(key, ElementWithTombstone(value, tombstone));
+
+void RBTreeMemoryTable::put(std::shared_ptr<Element> key, std::shared_ptr<ElementWithTombstone> value) {
+  container.emplace(key, value);
 }
 
-QueryResult RBTreeMemoryTable::get(Element key) {
+QueryResult RBTreeMemoryTable::get(std::shared_ptr<Element> key) {
   auto it = container.find(key);
   if (it == container.end()) {
     return QueryStatus::NOT_FOUND;
   } else {
     auto entry = it->second;
-    if (entry.tombstone) { // Check tombstone bit.
+    if (entry->Tombstone()) { // Check tombstone bit.
       return QueryStatus::DELETED;
     } else { // Return the value.
-      return entry.element;
+      return entry;
     }
   }
 }

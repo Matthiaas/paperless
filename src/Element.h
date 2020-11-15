@@ -45,6 +45,56 @@ class Element {
 
 class ElementWithTombstone {
  public:
+  ElementWithTombstone(char* v, size_t len) : len_(len) {
+    value_ = static_cast<char*>(std::malloc(len_ + 1));
+    value_[0] = 0;
+    std::memcpy(value_ + 1, value_, len);
+  }
+
+  ~ElementWithTombstone() {
+    free(value_);
+  }
+
+  ElementWithTombstone() :
+      ElementWithTombstone(nullptr, 0) {};
+
+  ElementWithTombstone(const ElementWithTombstone& other) = delete;
+  ElementWithTombstone(ElementWithTombstone&& other) = default;
+
+  static ElementWithTombstone getATombstone() {
+    ElementWithTombstone res;
+    res.value_[0] = false;
+    return res;
+  }
+
+  char* Value() const {
+    return value_ + 1;
+  }
+
+  size_t Length() const {
+    return len_;
+  }
+
+  bool Tombstone() const {
+    return value_[0];
+  }
+
+  char* GetBuffer() const {
+    return value_;
+  }
+
+  size_t GetBufferLen() const {
+    return len_ + 1;
+  }
+
+ private:
+  char* value_;
+  size_t len_;
+};
+
+/*
+class ElementWithTombstone {
+ public:
   ElementWithTombstone(Element element, bool tombstone)
       : element(element), tombstone(tombstone) {}
 
@@ -54,5 +104,7 @@ class ElementWithTombstone {
   Element element;
   bool tombstone;
 };
+
+ */
 
 #endif  // PAPERLESS_ELEMENT_H

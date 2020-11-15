@@ -14,6 +14,7 @@
 #include <thread>
 
 #include "Element.h"
+#include "ListWriteBuffer.h"
 #include "MemoryTableManager.h"
 #include "RBTreeMemoryTable.h"
 #include "StorageManager.h"
@@ -21,11 +22,16 @@
 
 class DUMMY {
  public:
-  class Handler {
-   public:
-    void clear();
+  class Chunk {
+    public:
+        void clear();
     RBTreeMemoryTable get();
   };
+  Chunk getChunk() { return {};};
+  Chunk dequeue() {}
+  Chunk enqueue() {}
+  Chunk WaitUntilEmpty() {}
+  QueryResult get() {}
 };
 
 class PaperlessKV {
@@ -50,6 +56,11 @@ class PaperlessKV {
 
  private:
 
+  using MemTable = RBTreeMemoryTable;
+  using MemQueu = ListWriteBuffer<MemTable>;
+  using RBTreeMemoryManager =
+      MemoryTableManager<MemTable, MemQueu>;
+
   void compact();
   void dispatch();
   void respond_get();
@@ -70,8 +81,8 @@ class PaperlessKV {
   Consistency consistency_;
   HashFunction hash_function_;
 
-  MemoryTableManager<DUMMY> local_;
-  MemoryTableManager<DUMMY> remote_;
+  RBTreeMemoryManager local_;
+  RBTreeMemoryManager remote_;
 
   RBTreeMemoryTable local_cache_;
   RBTreeMemoryTable remote_cache_;

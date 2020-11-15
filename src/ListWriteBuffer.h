@@ -57,7 +57,7 @@ public:
   }
 
   // Gets element, allocates memory for result.
-  QueryResult get(Element key, Hash hash, Owner owner) const {
+  QueryResult get(std::shared_ptr<Element> key, Hash hash, Owner owner) const {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto const& mtable : list_) {
       auto result = mtable->get(key);
@@ -67,7 +67,7 @@ public:
   }
 
   // Gets element, stores result in the user-provided `buffer`.
-  QueryStatus get(Element key, Hash hash, Owner owner, Element buffer) const {
+  QueryStatus get(std::shared_ptr<Element> key, Hash hash, Owner owner, Element buffer) const {
     throw "Hey you smartass, implement me.";
   }
 
