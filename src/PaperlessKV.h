@@ -59,9 +59,9 @@ class PaperlessKV {
   using RBTreeMemoryManager =
       MemoryTableManager<MemTable, MemQueue>;
 
-  void put(const NonOwningElement& key, Tomblement value);
-  QueryResult get(const NonOwningElement& key);
-  void deleteKey(const NonOwningElement& key);
+  void put(const Element& key, Tomblement value);
+  QueryResult get(const Element& key);
+  void deleteKey(const Element& key);
 
   void compact();
   void dispatch();
@@ -70,17 +70,17 @@ class PaperlessKV {
 
 
 
-  void sendKey(const NonOwningElement& key, int target, int tag);
-  void sendValue(const NonOwningElement& key, int target, int tag);
-  int receiveKey(const NonOwningElement& buff, int source, int tag, MPI_Status status);
-  int receiveValue(const NonOwningElement& buff, int source, int tag, MPI_Status status);
+  void sendKey(const Element& key, int target, int tag);
+  void sendValue(const Element& key, int target, int tag);
+  int receiveKey(const Element& buff, int source, int tag, MPI_Status status);
+  int receiveValue(const Element& buff, int source, int tag, MPI_Status status);
   QueryResult receiveKey(int source, int tag, MPI_Status* status);
   QueryResult receiveValue(int source, int tag, MPI_Status* status);
 
 
-  QueryResult localGet(const NonOwningElement& key, Hash hash);
-  QueryResult remoteGetRelaxed(const NonOwningElement& key, Hash hash);
-  QueryResult remoteGetValue(const NonOwningElement& key, Hash hash);
+  QueryResult localGet(const Element& key, Hash hash);
+  QueryResult remoteGetRelaxed(const Element& key, Hash hash);
+  QueryResult remoteGetValue(const Element& key, Hash hash);
 
   std::string id_;
 

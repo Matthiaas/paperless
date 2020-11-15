@@ -10,82 +10,80 @@
 #include <cstring>
 #include <utility>
 
-class Element;
-
-
-
-
-class NonOwningElement {
- public:
-  NonOwningElement(char* v, size_t len) : value(v), len(len) {}
-  NonOwningElement() : value(nullptr), len(0){};
-  NonOwningElement(const NonOwningElement& other) = delete;
-  NonOwningElement(NonOwningElement&& other) = default;
-  NonOwningElement& operator=(const NonOwningElement&) = default;
-  NonOwningElement& operator=(NonOwningElement&&) = default;
-
-  char* Value() const {
-    return value;
-  }
-
-  size_t Length() const {
-    return len;
-  }
-
- private:
-  friend bool operator==(const NonOwningElement& lhs, const NonOwningElement& rhs);
-  friend bool operator<(const NonOwningElement& lhs, const NonOwningElement& rhs);
-  friend Element;
-  char* value;
-  size_t len;
-
-};
+class OwningElement;
 
 class Element {
  public:
-  Element(char* v, size_t len) {
-    el_.value = static_cast<char*>(std::malloc(len));
-    el_.len = len;
-    std::memcpy(el_.value, v, len);
-  }
+  Element(char* v, size_t len) : value_(v), len_(len) {}
+  Element() : value_(nullptr), len_(0){};
+  // TODO: Shouldn't all of these just use defualt implementation? (roman)
   Element(const Element& other) = delete;
-  Element(Element&& other) {
+  Element(Element&& other) = default;
+  Element& operator=(const Element&) = default;
+  Element& operator=(Element&&) = default;
+
+  char* Value() const {
+    return value_;
+  }
+
+  size_t Length() const {
+    return len_;
+  }
+
+ private:
+  friend bool operator==(const Element& lhs, const Element& rhs);
+  friend bool operator<(const Element& lhs, const Element& rhs);
+  friend OwningElement;
+  char* value_;
+  size_t len_;
+
+};
+
+class OwningElement {
+ public:
+  OwningElement(char* v, size_t len) {
+    el_.value_ = static_cast<char*>(std::malloc(len));
+    el_.len_ = len;
+    std::memcpy(el_.value_, v, len);
+  }
+  OwningElement(const OwningElement& other) = delete;
+  OwningElement(OwningElement&& other) {
     el_ = std::move(other.el_);
-    other.el_.value = nullptr;
+    other.el_.value_ = nullptr;
   };
 
-  ~Element() {
-    free(el_.value);
+  ~OwningElement() {
+    free(el_.value_);
   }
 
-  static Element copyElementContent(const NonOwningElement& e) {
-    Element res(static_cast<char*>(std::malloc(e.len)), e.len);
-    std::memcpy(res.Value(), e.value, e.len);
+  static OwningElement copyElementContent(const Element& e) {
+    OwningElement res(static_cast<char*>(std::malloc(e.len_)), e.len_);
+    std::memcpy(res.Value(), e.value_, e.len_);
     return res;
   }
 
-  static Element copyElementContent(const Element& e) {
-    Element res(static_cast<char*>(std::malloc(e.Length())), e.Length());
+  static OwningElement copyElementContent(const OwningElement& e) {
+    OwningElement res(static_cast<char*>(std::malloc(e.Length())), e.Length());
     std::memcpy(res.Value(), e.Value(), e.Length());
     return res;
   }
 
   char* Value() const {
-    return el_.value;
+    return el_.value_;
   }
 
   size_t Length() const {
-    return el_.len;
+    return el_.len_;
   }
 
  private:
-  friend bool operator<(const Element& lhs, const Element& rhs);
-  friend bool operator<(const NonOwningElement& lhs, const Element& rhs);
-  friend bool operator<(const Element& lhs, const NonOwningElement& rhs);
-  friend bool operator==(const Element& lhs, const NonOwningElement& rhs);
-  friend bool operator==(const NonOwningElement& lhs, const Element& rhs);
-  friend bool operator==(const Element& lhs, const Element& rhs);
-  NonOwningElement el_;
+  friend bool operator<(const OwningElement& lhs, const OwningElement& rhs);
+  friend bool operator<(const Element& lhs, const OwningElement& rhs);
+  friend bool operator<(const OwningElement& lhs, const Element& rhs);
+  friend bool operator==(const OwningElement& lhs, const Element& rhs);
+  friend bool operator==(const Element& lhs, const OwningElement& rhs);
+  friend bool operator==(const OwningElement& lhs, const OwningElement& rhs);
+  Element el_;
 };
 
 
@@ -112,8 +110,8 @@ class Tomblement {
     other.len_ = 0;
   }
 
-  Element ToElement() {
-    return Element(Value(), len_);
+  OwningElement ToElement() {
+    return OwningElement(Value(), len_);
   }
 
   static Tomblement getATombstone() {
@@ -164,28 +162,28 @@ class Tomblement {
   size_t len_;
 };
 
-bool operator<(const NonOwningElement& lhs, const NonOwningElement& rhs);
 bool operator<(const Element& lhs, const Element& rhs);
-bool operator<(const NonOwningElement& lhs, const Element& rhs);
-bool operator<(const Element& lhs, const NonOwningElement& rhs);
-bool operator==(const NonOwningElement& lhs, const NonOwningElement& rhs);
+bool operator<(const OwningElement& lhs, const OwningElement& rhs);
+bool operator<(const Element& lhs, const OwningElement& rhs);
+bool operator<(const OwningElement& lhs, const Element& rhs);
 bool operator==(const Element& lhs, const Element& rhs);
-bool operator==(const Element& lhs, const NonOwningElement& rhs);
-bool operator==(const NonOwningElement& lhs, const Element& rhs);
+bool operator==(const OwningElement& lhs, const OwningElement& rhs);
+bool operator==(const OwningElement& lhs, const Element& rhs);
+bool operator==(const Element& lhs, const OwningElement& rhs);
 
 
 
 
 /*
-class ElementWithTombstone {
+class OwningElementWithTombstone {
  public:
-  ElementWithTombstone(Element element, bool tombstone)
-      : element(element), tombstone(tombstone) {}
+  OwningElementWithTombstone(Element OwningElement, bool tombstone)
+      : OwningElement(element), tombstone(tombstone) {}
 
-  ElementWithTombstone(char *val, size_t val_len, bool tombstone)
-      : element(Element(val, val_len)), tombstone(tombstone) {}
+  OwningElementWithTombstone(char *val, size_t val_len, bool tombstone)
+      : OwningElement(Element(val, val_len)), tombstone(tombstone) {}
 
-  Element element;
+  OwningElement OwningElement;
   bool tombstone;
 };
 

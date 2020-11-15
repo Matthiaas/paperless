@@ -27,7 +27,7 @@ public:
   }
 
   // Inserts element.
-  void put(const NonOwningElement& key, Tomblement value, Hash hash, Owner owner) {
+  void put(const Element& key, Tomblement value, Hash hash, Owner owner) {
     // Faster implementation that doesn't require locking the whole memory table.
     // auto cur_mtable = mtable_;
     // cur_mtable_->writers++;
@@ -47,7 +47,7 @@ public:
   }
 
   // Gets element, MemoryTable allocates memory for the result.
-  QueryResult get(const NonOwningElement& key, Hash hash, Owner owner) const {
+  QueryResult get(const Element& key, Hash hash, Owner owner) const {
     {
       std::lock_guard<std::mutex> lock(mtable_mutex_);
       QueryResult result = mtable_->get(key);
@@ -60,7 +60,7 @@ public:
   }
 
   // Gets element, stores result in the user-provided `buffer`.
-  QueryStatus get(const NonOwningElement& key, Hash hash, Owner owner, Element buffer) const {
+  QueryStatus get(const Element& key, Hash hash, Owner owner, Element buffer) const {
     throw "Shape that diamond and implement me.";
   }
 

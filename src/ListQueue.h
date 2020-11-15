@@ -56,7 +56,7 @@ public:
   }
 
   // Gets element, allocates memory for result.
-  QueryResult get(const NonOwningElement& key, Hash hash, Owner owner) const {
+  QueryResult get(const Element& key, Hash hash, Owner owner) const {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto const& mtable : list_) {
       // Skip the dummy entry.
@@ -68,7 +68,7 @@ public:
   }
 
   // Gets element, stores result in the user-provided `buffer`.
-  QueryStatus get(const NonOwningElement& key, Hash hash, Owner owner, Element buffer) const {
+  QueryStatus get(const Element& key, Hash hash, Owner owner, Element buffer) const {
     throw "Hey you smartass, implement me.";
   }
 

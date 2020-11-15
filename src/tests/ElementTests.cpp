@@ -3,10 +3,10 @@
 
 TEST_CASE("Example Test Case") {
 
-    Element e{nullptr, 0};
+    OwningElement e{nullptr, 0};
     REQUIRE(e.Length() == 0);
-    const auto result = Element::copyElementContent(e);
-    const Element expected{nullptr, 0};
+    const auto result = OwningElement::copyElementContent(e);
+    const OwningElement expected{nullptr, 0};
     CHECK(expected.Length() == result.Length());
 }
 
@@ -14,7 +14,7 @@ TEST_CASE("Example Test Case") {
 TEST_CASE("Element Constructor Copys Data") {
   char bytes[] = "ThisIsATestString";
   int len = 17;
-  Element e(bytes, len);
+  OwningElement e(bytes, len);
   CHECK(e.Length() == len);
   CHECK(e.Value() != bytes);
   for (size_t i = 0; i < len; i++) {
@@ -22,22 +22,22 @@ TEST_CASE("Element Constructor Copys Data") {
   }
 }
 
-TEST_CASE("Construct NonOwningElement") {
+TEST_CASE("Construct Element") {
   char bytes[] = "ThisIsATestString";
   int len = 17;
-  NonOwningElement e(bytes, len);
+  Element e(bytes, len);
   CHECK(e.Length() == len);
   CHECK(e.Value() == bytes);
 }
 
-TEST_CASE("Compare Owning and NonOwningElement") {
+TEST_CASE("Compare OwningElement and Element") {
   char bytes[] = "ThisIsATestString";
   char bytes1[] = "ThisIsATestStrinh";
   int len = 17;
-  NonOwningElement e(bytes, len);
-  Element eo(bytes, len);
-  NonOwningElement e1(bytes1, len);
-  Element eo1(bytes1, len);
+  Element e(bytes, len);
+  OwningElement eo(bytes, len);
+  Element e1(bytes1, len);
+  OwningElement eo1(bytes1, len);
   CHECK(eo == e);
   CHECK(eo == e);
   CHECK(!(eo == e1));

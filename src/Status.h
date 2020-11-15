@@ -13,8 +13,6 @@ enum QueryStatus {
 };
 
 using QueryResult
-  = StatusOr<Element, QueryStatus>;
-
-
+  = StatusOr<OwningElement, QueryStatus>;
 
 #endif //PAPERLESS_STATUS_H

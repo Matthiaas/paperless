@@ -8,9 +8,9 @@
 #include "../RBTreeMemoryTable.h"
 
 char key_bytes[] = "key";
-const NonOwningElement key{key_bytes, 3};
+const Element key{key_bytes, 3};
 char value_bytes[] = "value";
-const Element val_expected{value_bytes, 5};
+const OwningElement val_expected{value_bytes, 5};
 
 
 TEST_CASE("MemoryTableManager Get") {

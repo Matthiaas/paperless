@@ -5,7 +5,7 @@
 
 #include "Element.h"
 
-bool operator==(const NonOwningElement& lhs, const NonOwningElement& rhs)  {
+bool operator==(const Element& lhs, const Element& rhs)  {
   if (lhs.Length() != rhs.Length() ) return false;
   for (size_t i = 0; i < lhs.Length() ; i++) {
     if (lhs.Value()[i] != rhs.Value()[i])
@@ -16,35 +16,35 @@ bool operator==(const NonOwningElement& lhs, const NonOwningElement& rhs)  {
 
 
 
-bool operator<(const NonOwningElement& lhs, const NonOwningElement& rhs) {
-  if (lhs.len != rhs.len) return lhs.len < rhs.len;
-  for (size_t i = 0; i < lhs.len; i++) {
-    if (lhs.value[i] != rhs.value[i])
-      return lhs.value[i] < rhs.value[i];
+bool operator<(const Element& lhs, const Element& rhs) {
+  if (lhs.len_ != rhs.len_) return lhs.len_ < rhs.len_;
+  for (size_t i = 0; i < lhs.len_; i++) {
+    if (lhs.value_[i] != rhs.value_[i])
+      return lhs.value_[i] < rhs.value_[i];
   }
   return false;
 }
 
-bool operator<(const Element& lhs, const Element& rhs) {
+bool operator<(const OwningElement& lhs, const OwningElement& rhs) {
   return lhs.el_ < rhs.el_;
 }
 
-bool operator<(const NonOwningElement& lhs, const Element& rhs) {
+bool operator<(const Element& lhs, const OwningElement& rhs) {
   return lhs < rhs.el_;
 }
 
-bool operator<(const Element& lhs, const NonOwningElement& rhs)  {
+bool operator<(const OwningElement& lhs, const Element& rhs)  {
   return lhs.el_ < rhs;
 }
 
-bool operator==(const NonOwningElement& lhs, const Element& rhs)  {
+bool operator==(const Element& lhs, const OwningElement& rhs)  {
   return lhs == rhs.el_;
 }
 
-bool operator==(const Element& lhs, const NonOwningElement& rhs)  {
+bool operator==(const OwningElement& lhs, const Element& rhs)  {
   return lhs.el_ == rhs;
 }
 
-bool operator==(const Element& lhs, const Element& rhs) {
+bool operator==(const OwningElement& lhs, const OwningElement& rhs) {
   return lhs.el_ == rhs.el_;
 }

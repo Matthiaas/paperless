@@ -1,13 +1,13 @@
 #include "RBTreeMemoryTable.h"
 
 
-void RBTreeMemoryTable::put(const NonOwningElement& key, Tomblement&& value) {
-  container.emplace(Element::copyElementContent(key), std::move(value));
+void RBTreeMemoryTable::put(const Element& key, Tomblement value) {
+  container_.emplace(OwningElement::copyElementContent(key), std::move(value));
 }
 
-QueryResult RBTreeMemoryTable::get(const NonOwningElement& key) {
-  auto it = container.find(key);
-  if (it == container.end()) {
+QueryResult RBTreeMemoryTable::get(const Element& key) {
+  auto it = container_.find(key);
+  if (it == container_.end()) {
     return QueryStatus::NOT_FOUND;
   } else {
     auto& entry = it->second;
@@ -20,14 +20,14 @@ QueryResult RBTreeMemoryTable::get(const NonOwningElement& key) {
 }
 
 int RBTreeMemoryTable::size() const {
-  return container.size();
+  return container_.size();
 }
 
 RBTreeMemoryTable::const_iterator RBTreeMemoryTable::begin() const {
-  return container.begin();
+  return container_.begin();
 }
 
 RBTreeMemoryTable::const_iterator RBTreeMemoryTable::end() const {
-  return container.end();
+  return container_.end();
 }
 
