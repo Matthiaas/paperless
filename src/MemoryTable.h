@@ -17,7 +17,7 @@ class MemoryTable {
   MemoryTable();  // should define a standard comparator;
 
   virtual void put(std::shared_ptr<Element> key, std::shared_ptr<ElementWithTombstone> value, bool tombstone) = 0;
-  virtual QueryResult get(std::shared_ptr<Element> key) = 0;
+  virtual QueryResult get(Element key) = 0;
 
   // Required for flushing to disk in the StorageManager.
   class const_iterator {

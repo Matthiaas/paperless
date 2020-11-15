@@ -78,7 +78,7 @@ void PaperlessKV::respond_get() {
 }
 
 void PaperlessKV::put(Element key, Element value) {
-  /*
+
   Hash hash = hash_function_(key.value, key.len);
   Owner o = hash % rank_size_;
   if (o == rank_) {
@@ -92,7 +92,6 @@ void PaperlessKV::put(Element key, Element value) {
       // Directly dispatch data and wait for response.
     }
   }
-   */
 }
 
 QueryResult PaperlessKV::get(Element key) {
