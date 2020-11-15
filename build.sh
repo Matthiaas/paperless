@@ -1,3 +1,5 @@
+# Usage: $ ./build.sh <target>
+#   e.g. $ ./build.sh tests
 rm -r build
 mkdir build
-cd build && cmake .. && make
+cd build && cmake .. && make $1

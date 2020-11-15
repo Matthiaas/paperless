@@ -37,3 +37,6 @@ build/
 # clion
 .idea
 cmake-build-debug
+
+# vscode
+*.code-workspace

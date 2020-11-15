@@ -7,8 +7,8 @@
 
 #include <utility>
 
-#include "MemoryTable.h"
 #include "Element.h"
+#include "RBTreeMemoryTable.h"
 #include "mtbl.h"
 
 class StorageManager {
@@ -25,7 +25,7 @@ public:
   ~StorageManager(){
     mtbl_writer_options_destroy(&writer_options_);
   };
-  void flushToDisk(const MemoryTable&);
+  void flushToDisk(const RBTreeMemoryTable&);
   QueryResult readFromDisk(Element);
 };
 

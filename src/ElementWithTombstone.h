@@ -1,0 +1,11 @@
+/// Created by julia on 09.11.2020.
+//
+
+#ifndef PAPERLESS_ELEMENTWITHTOMBSTONE_H
+#define PAPERLESS_ELEMENTWITHTOMBSTONE_H
+
+#include "Element.h"
+
+
+
+#endif  // PAPERLESS_ELEMENTWITHTOMBSTONE_H

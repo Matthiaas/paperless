@@ -51,7 +51,7 @@ class StatusOr {
         *std::launder(reinterpret_cast<T const*>(&storage_)));
   }
 
-  bool hasValue() { return has_value_; }
+  bool hasValue() const { return has_value_; }
 
   explicit operator bool() /* cons */{ return hasValue(); }
 
@@ -66,7 +66,7 @@ class StatusOr {
   T&& operator*() && { return value(); }
 
 
-  bool operator==(const StatusOr<T, Status>& o) {
+  bool operator==(const StatusOr<T, Status>& o) const {
     if(has_value_ && o.has_value_) {
       return value() == o.value();
     } else if( !has_value_ && !o.has_value_) {
@@ -75,14 +75,14 @@ class StatusOr {
     return false;
   }
 
-  bool operator==(const Status& o) {
+  bool operator==(const Status& o) const {
     if(has_value_) {
       return false;
     }
     return status_== o;
   }
 
-  bool operator!=(const Status& o) {
+  bool operator!=(const Status& o) const {
     if(has_value_) {
       return true;
     }
