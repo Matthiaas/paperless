@@ -96,7 +96,8 @@ void PaperlessKV::put(Element key, Tomblement value) {
 }
 
 QueryResult PaperlessKV::get(Element key) {
-  Hash hash = hash_function_(key.value, key.len);
+  /*
+  Hash hash = hash_function_(key.Value(), key.Length());
   Owner o = hash % rank_size_;
   if (o == rank_) {
     return localGet(key, hash);
@@ -107,9 +108,11 @@ QueryResult PaperlessKV::get(Element key) {
       return remoteGetValue(key, hash);
     }
   }
+   */
 }
 
 QueryResult PaperlessKV::localGet(Element key, Hash hash) {
+  /*
   QueryResult e_cache = local_cache_.get(key);
   if (e_cache == QueryStatus::NOT_FOUND) {
     QueryResult el = local_.get(key, hash, rank_);
@@ -121,9 +124,11 @@ QueryResult PaperlessKV::localGet(Element key, Hash hash) {
   } else {
     return e_cache;
   }
+   */
 }
 
 QueryResult PaperlessKV::remoteGetRelaxed(Element key, Hash hash) {
+  /*
   QueryResult e_cache = remote_cache_.get(key);
   if (e_cache == QueryStatus::NOT_FOUND) {
     QueryResult el = remote_.get(key, hash, rank_);
@@ -135,7 +140,7 @@ QueryResult PaperlessKV::remoteGetRelaxed(Element key, Hash hash) {
   } else {
     return e_cache;
   }
-
+  */
 }
 
 QueryResult PaperlessKV::remoteGetValue(Element key, Hash hash) {

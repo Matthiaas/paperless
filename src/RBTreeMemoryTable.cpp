@@ -1,8 +1,8 @@
 #include "RBTreeMemoryTable.h"
 
 
-void RBTreeMemoryTable::put(Element key, Tomblement&& value) {
-  container.emplace(key, std::move(value));
+void RBTreeMemoryTable::put(Element&& key, Tomblement&& value) {
+  container.emplace(std::move(key), std::move(value));
 }
 
 QueryResult RBTreeMemoryTable::get(Element key) {

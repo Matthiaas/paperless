@@ -14,7 +14,7 @@ class RBTreeMemoryTable {
 
   RBTreeMemoryTable() = default;
 
-  void put(Element key, Tomblement&& value);
+  void put(Element&& key, Tomblement&& value);
 
   // TODO: This is a hotfix so that MemoryTableManager compiles.
   // MemoryTableManager allocates new memory table if size
