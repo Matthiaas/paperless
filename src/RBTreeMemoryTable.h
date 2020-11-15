@@ -21,7 +21,7 @@ class RBTreeMemoryTable {
   // of the current one goes above some threshold.
   int size() const;
 
-  QueryResult get(std::shared_ptr<Element> key);
+  QueryResult get(Element key);
 
   const_iterator begin() const;
 
