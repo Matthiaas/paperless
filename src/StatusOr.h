@@ -12,7 +12,10 @@ class StatusOr {
  public:
   StatusOr(const Status& s) { status_ = s; }
 
-  StatusOr(Status&& s) { status_ = std::move(s); }
+  StatusOr(Status&& s) {
+    status_ = std::move(s);
+    has_value_ = false;
+  }
 
   template <typename U = T>
   StatusOr(U&& t) {
@@ -20,7 +23,7 @@ class StatusOr {
   }
 
   ~StatusOr() {
-    if (hasValue()) value().T::~T();
+    if (hasValue()) Value().T::~T();
   }
 
   StatusOr(StatusOr<T, Status>&& t) {
@@ -29,13 +32,11 @@ class StatusOr {
   }
 
   StatusOr(const StatusOr<T, Status>& t) {
-    if( t.hasValue() )
+    if(t.hasValue() )
       build(t.value());
   }
 
-  T& value() {
-    return static_cast<T&>(*std::launder(reinterpret_cast<T*>(&storage_)));
-  }
+
   T& Value() & {
     return static_cast<T&>(*std::launder(reinterpret_cast<T*>(&storage_)));
   }
@@ -55,20 +56,20 @@ class StatusOr {
 
   explicit operator bool() /* cons */{ return hasValue(); }
 
-  const T* operator->() const { return &value(); }
+  const T* operator->() const { return &Value(); }
 
-  T* operator->() { return &value(); }
+  T* operator->() { return &Value(); }
 
-  T const& operator*() const& { return value(); }
+  T const& operator*() const& { return Value(); }
 
-  T& operator*() & { return value(); }
+  T& operator*() & { return Value(); }
 
-  T&& operator*() && { return value(); }
+  T&& operator*() && { return Value(); }
 
 
   bool operator==(const StatusOr<T, Status>& o) const {
     if(has_value_ && o.has_value_) {
-      return value() == o.value();
+      return Value() == o.value();
     } else if( !has_value_ && !o.has_value_) {
       return status_ == o.status_;
     }

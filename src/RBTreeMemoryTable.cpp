@@ -5,8 +5,10 @@ void RBTreeMemoryTable::put(Element&& key, Tomblement&& value) {
   container.emplace(std::move(key), std::move(value));
 }
 
-QueryResult RBTreeMemoryTable::get(Element key) {
-  auto it = container.find(key);
+QueryResult RBTreeMemoryTable::get(const NonOwningElement& key) {
+  // TODO: Dont copy here.
+  auto k = Element::copyElementContent(key);
+  auto it = container.find(k);
   if (it == container.end()) {
     return QueryStatus::NOT_FOUND;
   } else {

@@ -5,12 +5,15 @@
 TEST_CASE("Get & Put Test") {
   RBTreeMemoryTable memTable;
   char key_bytes[] = "key";
-  const Element key{key_bytes, 3};
+  NonOwningElement n_key {key_bytes, 3};
+  Element key{key_bytes, 3};
   char value_bytes[] = "value";
-  const Element val{value_bytes, 5};
+  Tomblement val_expected{value_bytes, 5};
+  Tomblement val{value_bytes, 5};
 
-  memTable.put(key, val, false);
-  const auto result = memTable.get(key);
+  memTable.put(std::move(key), std::move(val));
+  const auto result = memTable.get(n_key);
   CHECK(result.hasValue());
-  CHECK(val == result.Value());
+  bool a = val_expected == (*result);
+  CHECK(a);
 }

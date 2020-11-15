@@ -21,7 +21,7 @@ class RBTreeMemoryTable {
   // of the current one goes above some threshold.
   int size() const;
 
-  QueryResult get(Element key);
+  QueryResult get(const NonOwningElement& key);
 
   const_iterator begin() const;
 

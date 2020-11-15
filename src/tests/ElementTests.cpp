@@ -6,8 +6,8 @@ TEST_CASE("Example Test Case") {
     //  functionality.
 
     Element e{nullptr, 0};
-    REQUIRE(e.len == 0);
-    const auto result = e;
+    REQUIRE(e.Length() == 0);
+    const auto result = Element::copyElementContent(e);
     const Element expected{nullptr, 0};
-    CHECK(expected.len == result.len);
+    CHECK(expected.Length() == result.Length());
 }

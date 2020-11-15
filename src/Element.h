@@ -29,21 +29,6 @@ class NonOwningElement {
     return len;
   }
 
- private:
-  friend Element;
-  char* value;
-  size_t len;
-
-
-
-  /*
-  static Element copyElementContent(NonOwningElement e) {
-    Element res(static_cast<char*>(std::malloc(e.len)), e.len);
-    std::memcpy(res.value, e.value, e.len);
-    return res;
-  }
-   */
-
   bool operator==(const NonOwningElement& rhs) const {
     if (len != rhs.len) return false;
     for (size_t i = 0; i < len; i++) {
@@ -60,12 +45,21 @@ class NonOwningElement {
     }
     return false;
   }
+
+ private:
+  friend Element;
+  char* value;
+  size_t len;
+
 };
 
 class Element {
  public:
-  Element(char* v, size_t len) : el_(v, len) {}
-  Element() {};
+  Element(char* v, size_t len) {
+    el_.value = static_cast<char*>(std::malloc(len));
+    el_.len = len;
+    std::memcpy(el_.value, v, len);
+  }
   Element(const Element& other) = delete;
   Element(Element&& other) {
     el_ = std::move(other.el_);
@@ -74,6 +68,18 @@ class Element {
 
   ~Element() {
     free(el_.value);
+  }
+
+  static Element copyElementContent(const NonOwningElement& e) {
+    Element res(static_cast<char*>(std::malloc(e.len)), e.len);
+    std::memcpy(res.Value(), e.value, e.len);
+    return res;
+  }
+
+  static Element copyElementContent(const Element& e) {
+    Element res(static_cast<char*>(std::malloc(e.Length())), e.Length());
+    std::memcpy(res.Value(), e.Value(), e.Length());
+    return res;
   }
 
   bool operator==(const Element& rhs) const {
@@ -92,18 +98,40 @@ class Element {
   }
 
  private:
+  friend bool operator<(const NonOwningElement& lhs, const Element& rhs);
+  friend bool operator<(const Element& lhs, const NonOwningElement& rhs);
+  friend bool operator==(const Element& lhs, const NonOwningElement& rhs);
+  friend bool operator==(const NonOwningElement& lhs, const Element& rhs);
   NonOwningElement el_;
 };
 
+/*
+// I do not understand why this gives a compile time error.
 
+bool operator<(const NonOwningElement& lhs, const Element& rhs)  {
+  return lhs < rhs.el_;
+}
 
+bool operator<(const Element& lhs, const NonOwningElement& rhs)  {
+  return lhs.el_ < rhs;
+}
+
+bool operator==(const NonOwningElement& lhs, const Element& rhs)  {
+  return lhs == rhs.el_;
+}
+
+bool operator==(const Element& lhs, const NonOwningElement& rhs)  {
+  return lhs.el_ == rhs;
+}
+
+ */
 
 class Tomblement {
  public:
   Tomblement(char* v, size_t len) : len_(len) {
     value_ = static_cast<char*>(std::malloc(len_ + 1));
     value_[0] = 0;
-    std::memcpy(value_ + 1, value_, len);
+    std::memcpy(value_ + 1, v, len);
   }
 
   ~Tomblement() {
@@ -114,7 +142,11 @@ class Tomblement {
       Tomblement(nullptr, 0) {};
 
   Tomblement(const Tomblement& other) = delete;
-  Tomblement(Tomblement&& other) = default;
+  Tomblement(Tomblement&& other)  {
+    value_ = other.value_;
+    len_= other.len_;
+    other.value_ = nullptr;
+  }
 
   static Tomblement getATombstone() {
     Tomblement res;
@@ -140,6 +172,23 @@ class Tomblement {
 
   size_t GetBufferLen() const {
     return len_ + 1;
+  }
+
+  bool operator==(const Tomblement& rhs) const {
+    if (len_ != rhs.len_) return false;
+    for (size_t i = 0; i < len_ + 1; i++) {
+      if (value_[i] != rhs.value_[i]) return false;
+    }
+    return true;
+  }
+
+  bool operator<(const Tomblement& other) const {
+    if (len_ != other.len_) return len_ < other.len_;
+    for (size_t i = 0; i < len_ + 1; i++) {
+      if (value_[i] != other.value_[i])
+        return value_[i] < other.value_[i];
+    }
+    return false;
   }
 
  private:
