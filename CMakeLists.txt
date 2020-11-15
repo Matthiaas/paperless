@@ -48,8 +48,7 @@ target_link_libraries(paperless PRIVATE Threads::Threads)
 add_executable(main main.cpp)
 add_executable(tests
         ${TEST_SOURCES}
-        src/RBTreeMemoryTable.cpp
-#        ${LIB_SOURCES} # TODO: uncomment when other stuff compiles.
+        ${LIB_SOURCES}
         )
 
 target_link_libraries(main PUBLIC paperless)

@@ -37,6 +37,10 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
 
 PaperlessKV::~PaperlessKV() { shutdown_ = true; }
 
+void PaperlessKV::deleteKey(Element key) {
+  // TODO: Implement me.
+}
+
 void PaperlessKV::compact() {
   while (!shutdown_) {
     MemQueu::Chunk handler = local_.getChunk();
@@ -75,6 +79,10 @@ void PaperlessKV::respond_get() {
 
   }
    */
+}
+
+void PaperlessKV::respond_put() {
+  // TODO: Implement me.
 }
 
 void PaperlessKV::put(Element key, Tomblement value) {
