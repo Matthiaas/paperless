@@ -27,7 +27,7 @@ public:
   }
 
   // Inserts element.
-  void put(std::shared_ptr<Element> key, std::shared_ptr<ElementWithTombstone>  value, Hash hash, Owner owner, bool tombstone) {
+  void put(std::shared_ptr<Element> key, std::shared_ptr<ElementWithTombstone>  value, Hash hash, Owner owner) {
     // Faster implementation that doesn't require locking the whole memory table.
     // auto cur_mtable = mtable_;
     // cur_mtable_->writers++;
@@ -39,7 +39,7 @@ public:
     // wbuffer_->enqueue(cur_mtable);
     // mtable_ = x;
     std::lock_guard<std::mutex> lock(mtable_mutex_);
-    mtable_->put(key, value, tombstone);
+    mtable_->put(key, value);
     if (mtable_->size() > max_mtable_size_) {
       wbuffer_.enqueue(std::move(mtable_));
       mtable_ = std::make_unique<MemoryTable>();
