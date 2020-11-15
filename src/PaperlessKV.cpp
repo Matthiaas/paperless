@@ -14,13 +14,13 @@ int getCommSize(MPI_Comm comm) {
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm,
                          Consistency c = Consistency::RELAXED)
     : PaperlessKV(id, comm, 0, c) {
-  // TODO: Set default HashFunctino.
+  // TODO: Set default HashFunction.
 }
 
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
                          Consistency c = Consistency::RELAXED)
     : id_(id),
-      consistency(c),
+      consistency_(c),
       local_(getCommSize(comm)),
       remote_(getCommSize(comm)),
       hash_function_(hf),
@@ -82,7 +82,7 @@ void PaperlessKV::put(Element key, Element value) {
     // Local insert.
     local_.put(key, value, hash, rank_);
   } else {
-    if (consistency == RELAXED) {
+    if (consistency_ == RELAXED) {
       remote_.put(key, value, hash, rank_);
     } else {
       // TODO:
@@ -97,7 +97,7 @@ QueryResult PaperlessKV::get(Element key) {
   if (o == rank_) {
     return localGet(key, hash);
   } else {
-    if (consistency == RELAXED) {
+    if (consistency_ == RELAXED) {
       return remoteGetRelaxed(key, hash);
     } else {
       return remoteGetNow(key, hash);
@@ -107,29 +107,29 @@ QueryResult PaperlessKV::get(Element key) {
 
 QueryResult PaperlessKV::localGet(Element key, Hash hash) {
   QueryResult e_cache = local_cache_.get(key);
-  if (e_cache) {
-    return Element::copyElementContent(*e_cache);
-  } else {
+  if (e_cache == QueryStatus::NOT_FOUND) {
     QueryResult el = local_.get(key, hash, rank_);
-    if (el) {
-      return el;
-    } else {
+    if (el == QueryStatus::NOT_FOUND) {
       return storage_manager_.readFromDisk(key);
+    } else {
+      return el;
     }
+  } else {
+    return Element::copyElementContent(*e_cache);
   }
 }
 
 QueryResult PaperlessKV::remoteGetRelaxed(Element key, Hash hash) {
   QueryResult e_cache = remote_cache_.get(key);
-  if (e_cache) {
-    return Element::copyElementContent(*e_cache);
-  } else {
+  if (e_cache == QueryStatus::NOT_FOUND) {
     QueryResult el = remote_.get(key, hash, rank_);
-    if (el) {
-      return el;
-    } else {
+    if (el == QueryStatus::NOT_FOUND) {
       return remoteGetNow(key, hash);
+    } else {
+      return el;
     }
+  } else {
+    return Element::copyElementContent(*e_cache);
   }
 }
 
@@ -164,7 +164,7 @@ QueryResult PaperlessKV::receiveElement(int source, int tag, MPI_Status* status)
   MPI_Get_count(status, MPI_INT, &value_size);
   if(value_size == 0) {
     MPI_Recv(nullptr, 0, MPI_CHAR, source, tag,comm, status);
-    return QueryStatus ::NOT_FOUND;
+    return QueryStatus::NOT_FOUND;
   }
   char* value_buff = static_cast<char*>(std::malloc(value_size));
   MPI_Recv(value_buff, value_size, MPI_CHAR,

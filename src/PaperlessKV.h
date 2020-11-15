@@ -54,6 +54,8 @@ class PaperlessKV {
   void respond_get();
   void respond_put();
 
+
+
   void sendElement(Element key, int target, int tag);
   QueryResult receiveElement(int source, int tag, MPI_Status* status);
   int receiveElement(Element buff, int source, int tag, MPI_Status status);
@@ -64,7 +66,7 @@ class PaperlessKV {
 
   std::string id_;
 
-  Consistency consistency;
+  Consistency consistency_;
   HashFunction hash_function_;
 
   MemoryTableManager<DUMMY> local_;
@@ -89,7 +91,7 @@ class PaperlessKV {
   class Tagger {
    public:
     Tagger(int min, int max)
-      : max_get_key(max), min_get_key(min) {
+      : min_get_key(min), max_get_key(max) {
     }
     int getNextTag() {
       return  min_get_key + (cur_get_key++ % max_get_key);
