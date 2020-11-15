@@ -77,9 +77,9 @@ void PaperlessKV::respond_get() {
    */
 }
 
-void PaperlessKV::put(Element key, Element value) {
-  /*
-  Hash hash = hash_function_(key.value, key.len);
+void PaperlessKV::put(Element key, Tomblement value) {
+/*
+  Hash hash = hash_function_(key->value, key->len);
   Owner o = hash % rank_size_;
   if (o == rank_) {
     // Local insert.
@@ -92,7 +92,7 @@ void PaperlessKV::put(Element key, Element value) {
       // Directly dispatch data and wait for response.
     }
   }
-   */
+*/
 }
 
 QueryResult PaperlessKV::get(Element key) {
@@ -104,13 +104,12 @@ QueryResult PaperlessKV::get(Element key) {
     if (consistency_ == RELAXED) {
       return remoteGetRelaxed(key, hash);
     } else {
-      return remoteGetNow(key, hash);
+      return remoteGetValue(key, hash);
     }
   }
 }
 
 QueryResult PaperlessKV::localGet(Element key, Hash hash) {
-  /*
   QueryResult e_cache = local_cache_.get(key);
   if (e_cache == QueryStatus::NOT_FOUND) {
     QueryResult el = local_.get(key, hash, rank_);
@@ -120,28 +119,26 @@ QueryResult PaperlessKV::localGet(Element key, Hash hash) {
       return el;
     }
   } else {
-    return Element::copyElementContent(*e_cache);
+    return e_cache;
   }
-   */
 }
 
 QueryResult PaperlessKV::remoteGetRelaxed(Element key, Hash hash) {
-  /*
   QueryResult e_cache = remote_cache_.get(key);
   if (e_cache == QueryStatus::NOT_FOUND) {
     QueryResult el = remote_.get(key, hash, rank_);
     if (el == QueryStatus::NOT_FOUND) {
-      return remoteGetNow(key, hash);
+      return remoteGetValue(key, hash);
     } else {
       return el;
     }
   } else {
-    return Element::copyElementContent(*e_cache);
+    return e_cache;
   }
-   */
+
 }
 
-QueryResult PaperlessKV::remoteGetNow(Element key, Hash hash) {
+QueryResult PaperlessKV::remoteGetValue(Element key, Hash hash) {
   /*
   Owner o = hash & rank_size_;
   int tag = get_value_tagger.getNextTag();
@@ -153,7 +150,8 @@ QueryResult PaperlessKV::remoteGetNow(Element key, Hash hash) {
 
 void PaperlessKV::put(char *key, size_t key_len, char *value,
                       size_t value_len) {
-  put(Element(key, key_len), Element(value, value_len));
+  put(Element(key, key_len),
+      Tomblement(value, value_len));
 }
 
 void PaperlessKV::get(char *key, size_t key_len) {
@@ -163,7 +161,7 @@ void PaperlessKV::get(char *key, size_t key_len) {
 void PaperlessKV::deleteKey(char *key, size_t key_len) {
   deleteKey(Element(key, key_len));
 }
-
+/*
 void PaperlessKV::sendElement(Element key, int target, int tag) {
   MPI_Send(key.value, key.len, MPI_CHAR, target, tag, comm);
 }
@@ -181,5 +179,7 @@ QueryResult PaperlessKV::receiveElement(int source, int tag, MPI_Status* status)
   MPI_Recv(value_buff, value_size, MPI_CHAR,
            status->MPI_SOURCE, status->MPI_TAG,comm, status);
   return Element(value_buff, value_size);
-   */
+   *
 }
+
+*/

@@ -50,9 +50,7 @@ class PaperlessKV {
   void get(char* key, size_t key_len);
   void deleteKey(char* key, size_t key_len);
 
-  void put(Element key, Element value);
-  QueryResult get(Element key);
-  void deleteKey(Element key);
+
 
  private:
 
@@ -61,6 +59,10 @@ class PaperlessKV {
   using RBTreeMemoryManager =
       MemoryTableManager<MemTable, MemQueu>;
 
+  void put(Element key, Tomblement value);
+  QueryResult get(Element key);
+  void deleteKey(Element key);
+
   void compact();
   void dispatch();
   void respond_get();
@@ -68,13 +70,17 @@ class PaperlessKV {
 
 
 
-  void sendElement(Element key, int target, int tag);
-  QueryResult receiveElement(int source, int tag, MPI_Status* status);
-  int receiveElement(Element buff, int source, int tag, MPI_Status status);
+  void sendKey(Element key, int target, int tag);
+  void sendValue(Element key, int target, int tag);
+  int receiveKey(Element buff, int source, int tag, MPI_Status status);
+  int receiveValue(Element buff, int source, int tag, MPI_Status status);
+  QueryResult receiveKey(int source, int tag, MPI_Status* status);
+  QueryResult receiveValue(int source, int tag, MPI_Status* status);
+
 
   QueryResult localGet(Element key, Hash hash);
   QueryResult remoteGetRelaxed(Element key, Hash hash);
-  QueryResult remoteGetNow(Element key, Hash hash);
+  QueryResult remoteGetValue(Element key, Hash hash);
 
   std::string id_;
 

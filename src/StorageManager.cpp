@@ -16,8 +16,8 @@ void StorageManager::flushToDisk(const RBTreeMemoryTable &mem_table) {
     for (const auto& pair : mem_table) {
     // TODO: Handle tombstone bits!
     auto res = mtbl_writer_add(mtbl_writer,
-                    reinterpret_cast<const uint8_t *>(pair.first->value), pair.first->len,
-                    reinterpret_cast<const uint8_t *>(pair.second->GetBuffer()), pair.second->GetBufferLen());
+                    reinterpret_cast<const uint8_t *>(pair.first.value), pair.first.len,
+                    reinterpret_cast<const uint8_t *>(pair.second.GetBuffer()), pair.second.GetBufferLen());
     if (res == mtbl_res_failure) {
       // FIXME: handle error!
       std::cerr << "ERROR: " << __FILE__ << " " << __LINE__ << ": " << "mtbl_writer_add failed (FIXME: handle ERROR & replace this with Logging)\n";

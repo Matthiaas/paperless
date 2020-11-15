@@ -27,7 +27,7 @@ public:
   }
 
   // Inserts element.
-  void put(std::shared_ptr<Element> key, std::shared_ptr<ElementWithTombstone>  value, Hash hash, Owner owner) {
+  void put(Element key, Tomblement value, Hash hash, Owner owner) {
     // Faster implementation that doesn't require locking the whole memory table.
     // auto cur_mtable = mtable_;
     // cur_mtable_->writers++;
