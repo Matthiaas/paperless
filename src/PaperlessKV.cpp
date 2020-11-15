@@ -43,7 +43,7 @@ void PaperlessKV::deleteKey(const NonOwningElement& key) {
 
 void PaperlessKV::compact() {
   while (!shutdown_) {
-    MemQueu::Chunk handler = local_.getChunk();
+    MemQueue::Chunk handler = local_.getChunk();
     // v  storage_manager_.flushToDisk(handler.get());
     handler.clear();
   }
@@ -51,7 +51,7 @@ void PaperlessKV::compact() {
 
 void PaperlessKV::dispatch() {
   while (!shutdown_) {
-    MemQueu::Chunk handler = remote_.getChunk();
+    MemQueue::Chunk handler = remote_.getChunk();
     // TODO: Dispatch Data.
     handler.clear();
   }

@@ -4,7 +4,7 @@
 
 #include "../Status.h"
 #include "../MemoryTableManager.h"
-#include "../ListWriteBuffer.h"
+#include "../ListQueue.h"
 #include "../RBTreeMemoryTable.h"
 
 char key_bytes[] = "key";
@@ -14,7 +14,7 @@ const Element val_expected{value_bytes, 5};
 
 
 TEST_CASE("MemoryTableManager Get") {
-  MemoryTableManager<RBTreeMemoryTable, ListWriteBuffer<RBTreeMemoryTable>>
+  MemoryTableManager<RBTreeMemoryTable, ListQueue<RBTreeMemoryTable>>
     manager(/*rank_size=*/1, /*max_mtable_size=*/10);
   Tomblement val{value_bytes, 5};
   manager.put(key, std::move(val), /*hash=*/1, /*owner=*/0);
@@ -23,7 +23,7 @@ TEST_CASE("MemoryTableManager Get") {
 }
 
 TEST_CASE("MemoryTableManager Dequeue") {
-  MemoryTableManager<RBTreeMemoryTable, ListWriteBuffer<RBTreeMemoryTable>> 
+  MemoryTableManager<RBTreeMemoryTable, ListQueue<RBTreeMemoryTable>> 
     manager(/*rank_size=*/1, /*max_mtable_size=*/0);
   Tomblement val{value_bytes, 5};
   // Enqueues memory table.

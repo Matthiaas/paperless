@@ -15,9 +15,9 @@
 
 // MemoryTableManager operates the in-memory layers of Paperless. Entries are
 // stored in MemoryTable and once it overflows, the whole MemoryTable is enqueued
-// to WriteBuffer and a new MemoryTable gets allocates. 
+// to Queue and a new MemoryTable gets allocates. 
 // Thread-safe.
-template <typename MemoryTable, typename WriteBuffer>
+template <typename MemoryTable, typename Queue>
 class MemoryTableManager {
 public:
   MemoryTableManager(int rank_size, int max_mtable_size)
@@ -65,7 +65,7 @@ public:
   }
 
   // Retrieves part of `wbuffer_` that can be flushed. Blocking.
-  typename WriteBuffer::Chunk getChunk() {
+  typename Queue::Chunk getChunk() {
     return wbuffer_.dequeue();
   }
 
@@ -77,7 +77,7 @@ public:
 
 private:
   std::unique_ptr<MemoryTable> mtable_;
-  WriteBuffer wbuffer_;
+  Queue wbuffer_;
 
   const int rank_size_;
   const int max_mtable_size_;

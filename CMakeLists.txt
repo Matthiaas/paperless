@@ -36,7 +36,7 @@ set(LIB_SOURCES
 set(TEST_SOURCES
         src/tests/tests_main.cpp
         src/tests/ElementTests.cpp
-        src/tests/ListWriteBufferTests.cpp
+        src/tests/ListQueueTests.cpp
         src/tests/MemoryTableManagerTests.cpp
         src/tests/StatusOrTests.cpp
         src/tests/RBTreeMemoryTableTests.cpp)

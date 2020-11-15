@@ -1,5 +1,5 @@
-#ifndef PAPERLESS_LISTWRITEBUFFER_H
-#define PAPERLESS_LISTWRITEBUFFER_H
+#ifndef PAPERLESS_LISTQUEUE_H
+#define PAPERLESS_LISTQUEUE_H
 
 #include <list>
 #include <memory>
@@ -10,7 +10,7 @@
 #include "Status.h"
 
 template <typename MemoryTable>
-class ListWriteBuffer {
+class ListQueue {
 private:
   using List = typename std::list<std::unique_ptr<MemoryTable>>;
   using ListIterator = typename List::iterator;
@@ -18,7 +18,7 @@ private:
 public:
   class Chunk {
     public:
-      Chunk(ListWriteBuffer<MemoryTable> *wbuffer, ListIterator it) : wbuffer_(wbuffer), it_(it) {}
+      Chunk(ListQueue<MemoryTable> *wbuffer, ListIterator it) : wbuffer_(wbuffer), it_(it) {}
       MemoryTable* get() {
         return it_->get();
       }
@@ -30,11 +30,11 @@ public:
         }
       }
     private:
-      ListWriteBuffer<MemoryTable> *wbuffer_; // Must outlive the Chunk.
+      ListQueue<MemoryTable> *wbuffer_; // Must outlive the Chunk.
       ListIterator it_;
   };
 
-  ListWriteBuffer() {
+  ListQueue() {
     next_dequeue_ = tail_dummy_ = list_.insert(list_.begin(), nullptr);
   }
 
@@ -89,4 +89,4 @@ private:
   ListIterator tail_dummy_;
 };
 
-#endif //PAPERLESS_LISTWRITEBUFFER_H
+#endif //PAPERLESS_LISTQUEUE_H

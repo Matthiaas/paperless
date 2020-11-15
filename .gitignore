@@ -40,3 +40,4 @@ cmake-build-debug
 
 # vscode
 *.code-workspace
+.vscode

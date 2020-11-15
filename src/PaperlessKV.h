@@ -14,7 +14,7 @@
 #include <thread>
 
 #include "Element.h"
-#include "ListWriteBuffer.h"
+#include "ListQueue.h"
 #include "MemoryTableManager.h"
 #include "RBTreeMemoryTable.h"
 #include "StorageManager.h"
@@ -55,9 +55,9 @@ class PaperlessKV {
  private:
 
   using MemTable = RBTreeMemoryTable;
-  using MemQueu = ListWriteBuffer<MemTable>;
+  using MemQueue = ListQueue<MemTable>;
   using RBTreeMemoryManager =
-      MemoryTableManager<MemTable, MemQueu>;
+      MemoryTableManager<MemTable, MemQueue>;
 
   void put(const NonOwningElement& key, Tomblement value);
   QueryResult get(const NonOwningElement& key);
