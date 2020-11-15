@@ -28,7 +28,20 @@ class RBTreeMemoryTable {
   const_iterator end() const;
 
  private:
-  std::map<Element, Tomblement> container;
+  struct Comparator
+  {
+    using is_transparent = std::true_type;
+    bool operator()(const Element& lhs, const Element& rhs) const {
+      return lhs < rhs;
+    }
+    bool operator()(const Element& lhs, const NonOwningElement& rhs) const {
+      return lhs < rhs;
+    }
+    bool operator()(const NonOwningElement& lhs, const Element& rhs) const {
+      return lhs < rhs;
+    }
+  };
+  std::map<Element, Tomblement, Comparator> container;
 };
 
 #endif  // PAPERLESS_RBTREEMEMORYTABLE_H
