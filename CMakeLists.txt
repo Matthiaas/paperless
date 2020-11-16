@@ -42,7 +42,7 @@ set(TEST_SOURCES
         src/tests/RBTreeMemoryTableTests.cpp)
 
 add_library(paperless STATIC ${LIB_SOURCES})
-target_link_libraries(paperless PRIVATE ${MPI_C_LIBRARIES})
+target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})
 target_link_libraries(paperless PRIVATE Threads::Threads)
 
 add_executable(main main.cpp)
@@ -53,4 +53,4 @@ add_executable(tests
 
 target_link_libraries(main PUBLIC paperless)
 
-target_link_libraries(tests mtbl ${MPI_C_LIBRARIES} Threads::Threads)
+target_link_libraries(tests mtbl ${MPI_CXX_LIBRARIES} Threads::Threads)
