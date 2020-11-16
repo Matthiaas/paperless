@@ -7,15 +7,15 @@
 
 #include <new>
 
-template <class T, class Status>
+template <class T, class St>
 class StatusOr {
  public:
-  StatusOr(const Status& s) {
+  StatusOr(const St& s) {
     status_ = s;
     has_value_ = false;
   }
 
-  StatusOr(Status&& s) {
+  StatusOr(St&& s) {
     status_ = std::move(s);
     has_value_ = false;
   }
@@ -29,12 +29,12 @@ class StatusOr {
     if (hasValue()) Value().T::~T();
   }
 
-  StatusOr(StatusOr<T, Status>&& t) {
+  StatusOr(StatusOr<T, St>&& t) {
     if(t.hasValue())
       build(std::move(t.Value()));
   }
 
-  StatusOr(const StatusOr<T, Status>& t) {
+  StatusOr(const StatusOr<T, St>& t) {
     if(t.hasValue() )
       build(t.Value());
   }
@@ -43,21 +43,33 @@ class StatusOr {
   T& Value() & {
     return static_cast<T&>(*std::launder(reinterpret_cast<T*>(&storage_)));
   }
-  T const& Value() const& {
+  const T& Value() const& {
     return static_cast<T const&>(
-        *std::launder(reinterpret_cast<T const*>(&storage_)));
+        *std::launder(reinterpret_cast<const T*>(&storage_)));
   }
   T&& Value() && noexcept {
     return static_cast<T&&>(*std::launder(reinterpret_cast<T*>(&storage_)));
   }
-  T const&& Value() const&& {
-    return static_cast<T const&&>(
+  const T&& Value() const&& {
+    return static_cast<const T&&>(
         *std::launder(reinterpret_cast<T const*>(&storage_)));
+  }
+
+  St& Status() & {
+    return static_cast<St&>(status_);
+  }
+
+  const St&  Status() const& {
+    return static_cast<const St&>(status_);
+  }
+
+  const T&& Status() const&& {
+    return static_cast<St&&>(status_);
   }
 
   bool hasValue() const { return has_value_; }
 
-  explicit operator bool() /* cons */{ return hasValue(); }
+  explicit operator bool()  const { return hasValue(); }
 
   const T* operator->() const { return &Value(); }
 
@@ -70,7 +82,7 @@ class StatusOr {
   T&& operator*() && { return Value(); }
 
 
-  bool operator==(const StatusOr<T, Status>& o) const {
+  bool operator==(const StatusOr<T, St>& o) const {
     if(has_value_ && o.has_value_) {
       return Value() == o.Value();
     } else if( !has_value_ && !o.has_value_) {
@@ -79,18 +91,18 @@ class StatusOr {
     return false;
   }
 
-  bool operator!=(const StatusOr<T, Status>& o) const {
+  bool operator!=(const StatusOr<T, St>& o) const {
     return !(*this == o);
   }
 
-  bool operator==(const Status& o) const {
+  bool operator==(const St& o) const {
     if(has_value_) {
       return false;
     }
     return status_== o;
   }
 
-  bool operator!=(const Status& o) const {
+  bool operator!=(const St& o) const {
     if(has_value_) {
       return true;
     }
@@ -119,9 +131,9 @@ private:
     has_value_ = true;
   }
 
-  bool has_value_;
+  bool has_value_ = false;
   std::aligned_storage_t<sizeof(T), alignof(T)> storage_;
-  Status status_;
+  St status_;
 };
 
 #endif  // PAPERLESS_STATUSOR_H

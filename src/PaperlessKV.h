@@ -71,10 +71,10 @@ class PaperlessKV {
 
 
   void sendKey(const Element& key, int target, int tag);
-  void sendValue(const Element& key, int target, int tag);
+  void sendValue(const QueryResult& key, int target, int tag);
   int receiveKey(const Element& buff, int source, int tag, MPI_Status status);
   int receiveValue(const Element& buff, int source, int tag, MPI_Status status);
-  QueryResult receiveKey(int source, int tag, MPI_Status* status);
+  OwningElement receiveKey(int source, int tag, MPI_Status* status);
   QueryResult receiveValue(int source, int tag, MPI_Status* status);
 
 

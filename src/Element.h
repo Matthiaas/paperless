@@ -56,6 +56,13 @@ class OwningElement {
     free(el_.value_);
   }
 
+  static OwningElement createFromBuffWithoutCopy(char* v, size_t len) {
+    OwningElement res;
+    res.el_.value_ = v;
+    res.el_.len_ = len;
+    return res;
+  }
+
   static OwningElement copyElementContent(const Element& e) {
     return OwningElement(e.Value(), e.Length());
   }
@@ -73,6 +80,7 @@ class OwningElement {
   }
 
  private:
+  OwningElement() {};
   friend bool operator<(const OwningElement& lhs, const OwningElement& rhs);
   friend bool operator<(const Element& lhs, const OwningElement& rhs);
   friend bool operator<(const OwningElement& lhs, const Element& rhs);
