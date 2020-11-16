@@ -20,20 +20,6 @@
 #include "StorageManager.h"
 #include "Types.h"
 
-class DUMMY {
- public:
-  class Chunk {
-    public:
-        void clear();
-    RBTreeMemoryTable get();
-  };
-  Chunk getChunk() { return {};};
-  Chunk dequeue() {}
-  Chunk enqueue() {}
-  Chunk WaitUntilEmpty() {}
-  QueryResult get() {}
-};
-
 class PaperlessKV {
  public:
   enum Consistency { SEQUENTIAL, RELAXED };
@@ -115,8 +101,8 @@ class PaperlessKV {
       return  min_get_key + (cur_get_key++ % max_get_key);
     }
    private:
-    const int max_get_key;
     const int min_get_key;
+    const int max_get_key;
     std::atomic<int> cur_get_key;
   };
 

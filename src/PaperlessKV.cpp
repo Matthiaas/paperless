@@ -21,9 +21,9 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
                          Consistency c = Consistency::RELAXED)
     : id_(id),
       consistency_(c),
+      hash_function_(hf),
       local_(getCommSize(comm),10),
       remote_(getCommSize(comm), 10),
-      hash_function_(hf),
       compactor_(&PaperlessKV::compact, this),
       dispatcher_(&PaperlessKV::dispatch, this),
       get_responder_(&PaperlessKV::respond_get, this),
@@ -90,10 +90,10 @@ void PaperlessKV::put(const Element& key, Tomblement value) {
   Owner o = hash % rank_size_;
   if (o == rank_) {
     // Local insert.
-    local_.put(key, std::move(value), hash, rank_);
+    local_.Put(key, std::move(value), hash, rank_);
   } else {
     if (consistency_ == RELAXED) {
-      remote_.put(key, std::move(value), hash, rank_);
+      remote_.Put(key, std::move(value), hash, rank_);
     } else {
       // TODO:
       // Directly dispatch data and wait for response.
@@ -118,7 +118,7 @@ QueryResult PaperlessKV::get(const Element& key) {
 QueryResult PaperlessKV::localGet(const Element& key, Hash hash) {
   QueryResult e_cache = local_cache_.get(key);
   if (e_cache == QueryStatus::NOT_FOUND) {
-    QueryResult el = local_.get(key, hash, rank_);
+    QueryResult el = local_.Get(key, hash, rank_);
     if (el == QueryStatus::NOT_FOUND) {
       return storage_manager_.readFromDisk(key);
     } else {
@@ -132,7 +132,7 @@ QueryResult PaperlessKV::localGet(const Element& key, Hash hash) {
 QueryResult PaperlessKV::remoteGetRelaxed(const Element& key, Hash hash) {
   QueryResult e_cache = remote_cache_.get(key);
   if (e_cache == QueryStatus::NOT_FOUND) {
-    QueryResult el = remote_.get(key, hash, rank_);
+    QueryResult el = remote_.Get(key, hash, rank_);
     if (el == QueryStatus::NOT_FOUND) {
       return remoteGetValue(key, hash);
     } else {
@@ -220,7 +220,7 @@ void PaperlessKV::sendElement(Element key, int target, int tag) {
 }
 
 QueryResult PaperlessKV::receiveElement(int source, int tag, MPI_Status* status) {
-  /*
+
   int value_size;
   MPI_Probe(source, tag, comm, status);
   MPI_Get_count(status, MPI_INT, &value_size);
