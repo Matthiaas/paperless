@@ -7,8 +7,8 @@
 
 TEST_CASE("Let's see if it compiles") {
   ListQueue<RBTreeMemoryTable> buffer;
-  buffer.enqueue(std::make_unique<RBTreeMemoryTable>());
-  auto chunk = buffer.dequeue();
-  chunk.get();
-  chunk.clear();
+  buffer.Enqueue(std::make_unique<RBTreeMemoryTable>());
+  auto chunk = buffer.Dequeue();
+  chunk.Get();
+  chunk.Clear();
 }

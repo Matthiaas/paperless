@@ -8,7 +8,7 @@ include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-set(CMAKE_CXX_FLAGS -lmtbl) # sudo apt install libmtbl-dev
+set(CMAKE_CXX_FLAGS "-lmtbl -Wall") # sudo apt install libmtbl-dev
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -42,7 +42,7 @@ set(TEST_SOURCES
         src/tests/RBTreeMemoryTableTests.cpp)
 
 add_library(paperless STATIC ${LIB_SOURCES})
-target_link_libraries(paperless PRIVATE ${MPI_C_LIBRARIES})
+target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})
 target_link_libraries(paperless PRIVATE Threads::Threads)
 
 add_executable(main main.cpp)
@@ -53,4 +53,4 @@ add_executable(tests
 
 target_link_libraries(main PUBLIC paperless)
 
-target_link_libraries(tests mtbl ${MPI_C_LIBRARIES} Threads::Threads)
+target_link_libraries(tests mtbl ${MPI_CXX_LIBRARIES} Threads::Threads)

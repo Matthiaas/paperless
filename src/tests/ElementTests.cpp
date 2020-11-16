@@ -1,13 +1,14 @@
+#include <vector>
+
 #include <catch.hpp>
 #include "../Element.h"
 
 TEST_CASE("Example Test Case") {
-
-    OwningElement e{nullptr, 0};
-    REQUIRE(e.Length() == 0);
-    const auto result = OwningElement::copyElementContent(e);
-    const OwningElement expected{nullptr, 0};
-    CHECK(expected.Length() == result.Length());
+  OwningElement e{nullptr, 0};
+  REQUIRE(e.Length() == 0);
+  const auto result = OwningElement::copyElementContent(e);
+  const OwningElement expected{nullptr, 0};
+  CHECK(expected.Length() == result.Length());
 }
 
 

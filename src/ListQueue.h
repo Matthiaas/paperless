@@ -19,16 +19,20 @@ public:
   class Chunk {
     public:
       Chunk(ListQueue<MemoryTable> *wbuffer, ListIterator it) : wbuffer_(wbuffer), it_(it) {}
-      MemoryTable* get() {
+      MemoryTable* Get() {
         return it_->get();
       }
-      void clear() {
+      void Clear() {
         std::lock_guard<std::mutex> lock(wbuffer_->mutex_);
         wbuffer_->list_.erase(it_);
         if (wbuffer_->list_.size() == 1) {  // Only dummy entry is left.
-          wbuffer_->all_processed_cv_.notify_one();
+          wbuffer_->all_processed_cv_.notify_all();
         }
       }
+      bool IsPoisonPill() {
+        return *it_ == nullptr;
+      }
+
     private:
       ListQueue<MemoryTable> *wbuffer_; // Must outlive the Chunk.
       ListIterator it_;
@@ -39,24 +43,30 @@ public:
   }
 
   // Enqueues a MemoryTable.
-  void enqueue(std::unique_ptr<MemoryTable> mtable) {
+  void Enqueue(std::unique_ptr<MemoryTable> mtable) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto new_it = list_.insert(tail_dummy_, std::move(mtable));
     if (next_dequeue_ == tail_dummy_) {
       next_dequeue_ = new_it;
-      can_dequeue_cv_.notify_one();
     }
+    can_dequeue_cv_.notify_one();
+  }
+
+  // Enqueues `count` poison pills into the queue.
+  void EnqueuePoisonPills(int count) {
+    for (int i = 0; i < count; ++i) Enqueue(nullptr);
   }
 
   // Dequeues a MemoryTable. Blocking.
-  Chunk dequeue() {
+  Chunk Dequeue() {
     std::unique_lock<std::mutex> lock(mutex_);
     can_dequeue_cv_.wait(lock, [this]{return next_dequeue_ != tail_dummy_;});
+    // std::cout << next_dequeue_->get()->begin()->first.Value() << std::endl;
     return Chunk(this, next_dequeue_++);
   }
 
   // Gets element, allocates memory for result.
-  QueryResult get(const Element& key, Hash hash, Owner owner) const {
+  QueryResult Get(const Element& key, Hash hash, Owner owner) const {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto const& mtable : list_) {
       // Skip the dummy entry.
@@ -68,7 +78,7 @@ public:
   }
 
   // Gets element, stores result in the user-provided `buffer`.
-  QueryStatus get(const Element& key, Hash hash, Owner owner, Element buffer) const {
+  QueryStatus Get(const Element& key, Hash hash, Owner owner, Element buffer) const {
     throw "Hey you smartass, implement me.";
   }
 
@@ -77,6 +87,12 @@ public:
     std::unique_lock<std::mutex> lock(mutex_);
     // Wait until the list contains only the dummy entry.
     all_processed_cv_.wait(lock, [this]{return list_.size() == 1;});
+  }
+
+  size_t Size() {
+    std::unique_lock<std::mutex> lock(mutex_);
+    // Decrement to account for the dummy tail.
+    return list_.size() - 1;
   }
 
 private:

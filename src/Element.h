@@ -50,6 +50,7 @@ class OwningElement {
   OwningElement(OwningElement&& other) {
     el_ = std::move(other.el_);
     other.el_.value_ = nullptr;
+    other.el_.len_ = 0;
   };
 
   ~OwningElement() {
@@ -114,8 +115,14 @@ class Tomblement {
     other.len_ = 0;
   }
 
-  OwningElement ToElement() {
+  OwningElement ToElement() const {
     return OwningElement(Value(), len_);
+  }
+
+  Tomblement Clone() const {
+    Tomblement ret(Value(), Length());
+    ret.value_[0] = value_[0];
+    return ret;
   }
 
   static Tomblement getATombstone() {
