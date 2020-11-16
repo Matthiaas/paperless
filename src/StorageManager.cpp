@@ -30,6 +30,6 @@ void StorageManager::flushToDisk(const RBTreeMemoryTable &mem_table) {
   mtbl_writer_destroy(&mtbl_writer);
 }
 
-QueryResult StorageManager::readFromDisk(Element key) {
+QueryResult StorageManager::readFromDisk(const Element& key) {
   return QueryStatus::NOT_FOUND;
 }
