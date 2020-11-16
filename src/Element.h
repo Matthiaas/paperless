@@ -57,15 +57,11 @@ class OwningElement {
   }
 
   static OwningElement copyElementContent(const Element& e) {
-    OwningElement res(static_cast<char*>(std::malloc(e.len_)), e.len_);
-    std::memcpy(res.Value(), e.value_, e.len_);
-    return res;
+    return OwningElement(e.Value(), e.Length());
   }
 
   static OwningElement copyElementContent(const OwningElement& e) {
-    OwningElement res(static_cast<char*>(std::malloc(e.Length())), e.Length());
-    std::memcpy(res.Value(), e.Value(), e.Length());
-    return res;
+    return OwningElement(e.Value(), e.Length());
   }
 
   char* Value() const {
