@@ -8,7 +8,7 @@ include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-set(CMAKE_CXX_FLAGS -lmtbl) # sudo apt install libmtbl-dev
+set(CMAKE_CXX_FLAGS "-lmtbl -Wall") # sudo apt install libmtbl-dev
 
 set(CMAKE_CXX_STANDARD 17)
 
