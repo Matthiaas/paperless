@@ -39,7 +39,8 @@ set(TEST_SOURCES
         src/tests/ListQueueTests.cpp
         src/tests/MemoryTableManagerTests.cpp
         src/tests/StatusOrTests.cpp
-        src/tests/RBTreeMemoryTableTests.cpp)
+        src/tests/RBTreeMemoryTableTests.cpp
+        src/tests/PaperlessKVTest.cpp)
 
 add_library(paperless STATIC ${LIB_SOURCES})
 target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})

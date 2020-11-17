@@ -22,8 +22,8 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
     : id_(id),
       consistency_(c),
       hash_function_(hf),
-      local_(getCommSize(comm),10),
-      remote_(getCommSize(comm), 10),
+      local_(getCommSize(comm),10000),
+      remote_(getCommSize(comm), 10000),
       compactor_(&PaperlessKV::compact, this),
       dispatcher_(&PaperlessKV::dispatch, this),
       get_responder_(&PaperlessKV::respond_get, this),
@@ -35,23 +35,39 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
   MPI_Comm_size(comm, &rank_size_);
 }
 
-PaperlessKV::~PaperlessKV() { shutdown_ = true; }
+PaperlessKV::~PaperlessKV() {
+  shutdown_ = true;
+  local_.Shutdown();
+  remote_.Shutdown();
+  compactor_.join();
+  dispatcher_.join();
+  get_responder_.join();
+  put_responder_.join();
+}
 
 void PaperlessKV::deleteKey(const Element& key) {
   // TODO: Implement me.
 }
 
 void PaperlessKV::compact() {
-  while (!shutdown_) {
+  while (true) {
     MemQueue::Chunk handler = local_.GetChunk();
+    if(handler.IsPoisonPill()) {
+      handler.Clear();
+      return;
+    }
     // v  storage_manager_.flushToDisk(handler.get());
     handler.Clear();
   }
 }
 
 void PaperlessKV::dispatch() {
-  while (!shutdown_) {
+  while (true) {
     MemQueue::Chunk handler = remote_.GetChunk();
+    if(handler.IsPoisonPill()) {
+      handler.Clear();
+      return;
+    }
     // TODO: Dispatch Data.
     handler.Clear();
   }
@@ -151,14 +167,13 @@ QueryResult PaperlessKV::remoteGetValue(const Element& key, Hash hash) {
   return receiveValue(o, tag, &status);
 }
 
-void PaperlessKV::put(char *key, size_t key_len, char *value,
+void PaperlessKV::put(const char *key, size_t key_len,const char *value,
                       size_t value_len) {
-  put(Element(key, key_len),
-      Tomblement(value, value_len));
+  put(Element(key, key_len), Tomblement(value, value_len));
 }
 
-void PaperlessKV::get(char *key, size_t key_len) {
-  get(Element(key, key_len));
+QueryResult PaperlessKV::get(const char *key, size_t key_len) {
+  return get(Element(key, key_len));
 }
 
 void PaperlessKV::deleteKey(char *key, size_t key_len) {

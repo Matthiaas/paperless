@@ -14,7 +14,8 @@ class OwningElement;
 
 class Element {
  public:
-  Element(char* v, size_t len) : value_(v), len_(len) {}
+  Element(const char* v, size_t len)
+    : value_(const_cast<char*>(v)), len_(len) {}
   Element() : value_(nullptr), len_(0){};
   // TODO: Shouldn't all of these just use defualt implementation? (roman)
   Element(const Element& other) = delete;
@@ -41,7 +42,7 @@ class Element {
 
 class OwningElement {
  public:
-  OwningElement(char* v, size_t len) {
+  OwningElement(const char* v, const size_t len) {
     el_.value_ = static_cast<char*>(std::malloc(len));
     el_.len_ = len;
     std::memcpy(el_.value_, v, len);
@@ -94,7 +95,7 @@ class OwningElement {
 
 class Tomblement {
  public:
-  Tomblement(char* v, size_t len) : len_(len) {
+  Tomblement(const char* v, const size_t len) : len_(len) {
     value_ = static_cast<char*>(std::malloc(len_ + 1));
     value_[0] = 0;
     std::memcpy(value_ + 1, v, len);

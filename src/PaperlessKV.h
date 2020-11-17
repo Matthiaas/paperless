@@ -32,8 +32,8 @@ class PaperlessKV {
 
   ~PaperlessKV();
 
-  void put(char* key, size_t key_len, char* value, size_t value_len);
-  void get(char* key, size_t key_len);
+  void put(const char* key, size_t key_len,const char* value, size_t value_len);
+  QueryResult get(const char* key, size_t key_len);
   void deleteKey(char* key, size_t key_len);
 
 
