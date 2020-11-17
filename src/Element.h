@@ -121,6 +121,7 @@ class Tomblement {
     len_= other.len_;
     other.value_ = nullptr;
     other.len_ = 0;
+    return *this;
   }
 
   OwningElement ToElement() const {
