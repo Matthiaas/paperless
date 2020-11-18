@@ -28,7 +28,7 @@ class RBTreeMemoryTable {
 
   RBTreeMemoryTable() : total_bytes(0){};
 
-  void put(const Element& key, Tomblement value);
+  void put(const Element& key, Tomblement&& value);
 
   size_t size() const;
 

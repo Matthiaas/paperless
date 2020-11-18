@@ -1,6 +1,6 @@
 #include "RBTreeMemoryTable.h"
 
-void RBTreeMemoryTable::put(const Element& key, Tomblement value) {
+void RBTreeMemoryTable::put(const Element& key, Tomblement&& value) {
   total_bytes += value.Length();
   auto emplace_result = container_.try_emplace(
       OwningElement::copyElementContent(key), std::move(value));
