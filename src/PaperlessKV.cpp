@@ -279,6 +279,12 @@ void PaperlessKV::FenceAndSetConsistency(PaperlessKV::Consistency c) {
   MPI_Barrier(comm_);
 }
 
+void PaperlessKV::FenceAndCheckPoint() {
+  Sync();
+  local_.Flush();
+  MPI_Barrier(comm_);
+}
+
 void PaperlessKV::Sync() {
   remote_.Flush();
   fence_calls_received = 0;
@@ -293,3 +299,5 @@ void PaperlessKV::Sync() {
     fence_wait.wait(lck);
   }
 }
+
+

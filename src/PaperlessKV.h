@@ -48,6 +48,7 @@ class PaperlessKV {
 
   // Same as fence but it allows to change the Consistency
   void FenceAndSetConsistency(Consistency c);
+  void FenceAndCheckPoint();
 
  private:
 
