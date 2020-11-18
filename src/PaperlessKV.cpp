@@ -29,6 +29,7 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
       get_value_tagger(0,100000000) {
   MPI_Comm_rank(comm_, &rank_);
   MPI_Comm_size(comm_, &rank_size_);
+  MPI_Barrier(comm);
 }
 
 PaperlessKV::~PaperlessKV() {
@@ -118,9 +119,7 @@ void PaperlessKV::RespondPut() {
 
     // TODO: change interfaces and avoid some copies
     OwningElement key = ReceiveKey( status.MPI_SOURCE, KEY_PUT_TAG, &status);
-    std::cout << "Key RECIVE" << std::endl << std::flush;
     OwningElement value = ReceiveKey( status.MPI_SOURCE, VALUE_PUT_TAG, &status);
-    std::cout << "Value RECIVE" << std::endl << std::flush;
     Hash hash = hash_function_(key.Value(), key.Length());
     Owner o = hash % rank_size_;
     local_.Put(key.GetView(), Tomblement(value.Value(), value.Length()),
@@ -148,7 +147,6 @@ QueryResult PaperlessKV::Get(const Element& key) {
   Hash hash = hash_function_(key.Value(), key.Length());
   Owner o = hash % rank_size_;
   if (o == rank_) {
-    std::cout << "LOCAL GET" << std::endl << std::flush;
     return LocalGet(key, hash);
   } else {
     if (consistency_ == RELAXED) {
@@ -280,5 +278,7 @@ void PaperlessKV::Fence() {
   if(fence_calls_received != rank_size_ - 1) {
     fence_wait.wait(lck);
   }
+
+  MPI_Barrier(comm_);
 
 }

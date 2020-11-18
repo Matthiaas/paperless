@@ -83,9 +83,7 @@ TEST_CASE("RemoteGet", "[2rank]")
   if(rank == 1) {
     paper.put(key1, klen1, value1, vlen1);
   }
-
   paper.Fence();
-
 
   if(rank == 1) {
     QueryResult qr = paper.get(key1, klen1);
@@ -99,18 +97,19 @@ TEST_CASE("RemoteGet", "[2rank]")
     CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
   }
 
-
   paper.Fence();
+
 }
 
 
 TEST_CASE("RemotePutAndGet SEQUENTIAL", "[2rank]")
 {
 
+
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
   PaperlessKV paper("TestDB", MPI_COMM_WORLD, hash_fun, PaperlessKV::SEQUENTIAL);
+
   if(rank == 0) {
     paper.put(key1, klen1, value1, vlen1);
   }
@@ -128,11 +127,13 @@ TEST_CASE("RemotePutAndGet SEQUENTIAL", "[2rank]")
 TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
 {
 
+
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   PaperlessKV paper("TestDB", MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
   if(rank == 0) {
+
     paper.put(key1, klen1, value1, vlen1);
   }
   paper.Fence();
@@ -149,3 +150,6 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
 
   paper.Fence();
 }
+
+
+
