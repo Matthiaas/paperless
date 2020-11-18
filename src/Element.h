@@ -73,7 +73,7 @@ class OwningElement {
     return OwningElement(e.Value(), e.Length());
   }
 
-  const Element& GetView() {
+  const Element& GetView() const {
     return el_;
   }
 
@@ -164,7 +164,7 @@ class Tomblement {
     return len_ + 1;
   }
 
-  Element GetView() {
+  Element GetView() const {
     return Element(value_ + 1, len_);
   }
 

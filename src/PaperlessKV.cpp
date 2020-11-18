@@ -66,7 +66,6 @@ void PaperlessKV::Compact() {
 }
 
 void PaperlessKV::Dispatch() {
-
   while (true) {
     MemQueue::Chunk handler = remote_.GetChunk();
     if(handler.IsPoisonPill()) {
@@ -74,9 +73,12 @@ void PaperlessKV::Dispatch() {
       return;
     }
     // TODO: Dispatch Data.
+    for(const auto& [key, value] : *handler.Get()) {
+      Hash hash = hash_function_(key.Value(), key.Length());
+      RemotePut(key.GetView(), hash, value.GetView());
+    }
     handler.Clear();
   }
-
 }
 
 void PaperlessKV::RespondGet() {
@@ -265,16 +267,20 @@ OwningElement PaperlessKV::ReceiveKey(int source, int tag, MPI_Status* status) {
            status->MPI_SOURCE, status->MPI_TAG,comm_, status);
   return OwningElement::createFromBuffWithoutCopy(value_buff, value_size);
 }
+
 void PaperlessKV::Fence() {
   Sync();
   MPI_Barrier(comm_);
 }
+
 void PaperlessKV::FenceAndSetConsistency(PaperlessKV::Consistency c) {
   Sync();
   consistency_ = c;
   MPI_Barrier(comm_);
 }
+
 void PaperlessKV::Sync() {
+  remote_.Flush();
   fence_calls_received = 0;
   MPI_Barrier(comm_);
   for(int i = 0; i < rank_size_; i++) {
