@@ -1,13 +1,2 @@
-#define CATCH_CONFIG_RUNNER
+#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
-
-
-#include <mpi.h>
-
-int main(int argc, char *argv[])
-{
-  MPI_Init(&argc, &argv);
-  int result = Catch::Session().run(argc, argv);
-  MPI_Finalize();
-  return result;
-}

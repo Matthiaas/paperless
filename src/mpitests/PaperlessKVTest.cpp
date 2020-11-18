@@ -1,9 +1,9 @@
-#include <catch.hpp>
+#include <mpi_catch.hpp>
 
 #include <mpi.h>
+#include <zconf.h>
+#include <iostream>
 #include "../PaperlessKV.h"
-
-
 
 std::function<uint64_t(const char*,const size_t)> hash_fun =
     [] (const char* v, const size_t) -> uint64_t {
@@ -72,20 +72,27 @@ TEST_CASE("LocalOverride", "[1rank]")
 }
 
 // TODO: Test with 2 ranks
-TEST_CASE("RemotePut", "[2rank]")
+TEST_CASE("RemoteGet", "[2rank]")
 {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  PaperlessKV paper("TestDB", MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
-  if(rank == 0) {
-    paper.put(key1, klen1, value1, vlen1);
-  }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  PaperlessKV paper("TestDB", MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+
+
+  if(rank == 1) {
+    paper.put(key1, klen1, value1, vlen1);
+  } else {
+
+  }
+  sleep(1);
+
 
   QueryResult qr = paper.get(key1, klen1);
+  REQUIRE(qr.hasValue());
   CHECK(qr->Length() == vlen1);
   CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
 
+  sleep(1);
 }

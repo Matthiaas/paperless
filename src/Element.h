@@ -73,6 +73,10 @@ class OwningElement {
     return OwningElement(e.Value(), e.Length());
   }
 
+  const Element& GetView() {
+    return el_;
+  }
+
   char* Value() const {
     return el_.value_;
   }

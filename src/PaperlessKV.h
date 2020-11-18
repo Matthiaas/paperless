@@ -20,6 +20,9 @@
 #include "StorageManager.h"
 #include "Types.h"
 
+#define  KEY_TAG 1
+#define VALUE_TAG 2
+
 class PaperlessKV {
  public:
   enum Consistency { SEQUENTIAL, RELAXED };
@@ -79,18 +82,20 @@ class PaperlessKV {
   RBTreeMemoryTable local_cache_;
   RBTreeMemoryTable remote_cache_;
 
-  std::thread compactor_;
-  std::thread dispatcher_;
-  std::thread get_responder_;
-  std::thread put_responder_;
-
   StorageManager storage_manager_;
 
   std::atomic<bool> shutdown_;
 
   int rank_;
   int rank_size_;
-  MPI_Comm comm;
+  MPI_Comm comm_;
+
+  std::thread compactor_;
+  std::thread dispatcher_;
+  std::thread get_responder_;
+  std::thread put_responder_;
+
+
 
   class Tagger {
    public:
@@ -103,7 +108,7 @@ class PaperlessKV {
    private:
     const int min_get_key;
     const int max_get_key;
-    std::atomic<int> cur_get_key;
+    std::atomic<int> cur_get_key = 0;
   };
 
   Tagger get_value_tagger;
