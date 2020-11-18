@@ -20,8 +20,11 @@
 #include "StorageManager.h"
 #include "Types.h"
 
+#define SYNC_TAG 0
 #define  KEY_TAG 1
 #define VALUE_TAG 2
+#define  KEY_PUT_TAG 3
+#define VALUE_PUT_TAG 4
 
 class PaperlessKV {
  public:
@@ -39,7 +42,7 @@ class PaperlessKV {
   QueryResult get(const char* key, size_t key_len);
   void deleteKey(char* key, size_t key_len);
 
-
+  void Fence();
 
  private:
 
@@ -48,28 +51,29 @@ class PaperlessKV {
   using RBTreeMemoryManager =
       MemoryTableManager<MemTable, MemQueue>;
 
-  void put(const Element& key, Tomblement value);
-  QueryResult get(const Element& key);
+  void Put(const Element& key, Tomblement&& value);
+  QueryResult Get(const Element& key);
   void deleteKey(const Element& key);
 
-  void compact();
-  void dispatch();
-  void respond_get();
-  void respond_put();
+  void Compact();
+  void Dispatch();
+  void RespondGet();
+  void RespondPut();
 
 
 
-  void sendKey(const Element& key, int target, int tag);
-  void sendValue(const QueryResult& key, int target, int tag);
+  void SendKey(const Element& key, int target, int tag);
+  void SendValue(const QueryResult& key, int target, int tag);
   int receiveKey(const Element& buff, int source, int tag, MPI_Status status);
   int receiveValue(const Element& buff, int source, int tag, MPI_Status status);
-  OwningElement receiveKey(int source, int tag, MPI_Status* status);
-  QueryResult receiveValue(int source, int tag, MPI_Status* status);
+  OwningElement ReceiveKey(int source, int tag, MPI_Status* status);
+  QueryResult ReceiveValue(int source, int tag, MPI_Status* status);
 
 
-  QueryResult localGet(const Element& key, Hash hash);
-  QueryResult remoteGetRelaxed(const Element& key, Hash hash);
-  QueryResult remoteGetValue(const Element& key, Hash hash);
+  QueryResult LocalGet(const Element& key, Hash hash);
+  QueryResult RemoteGetRelaxed(const Element& key, Hash hash);
+  QueryResult RemoteGetValue(const Element& key, Hash hash);
+  void RemotePut(const Element& key, Hash hash, const Element& value);
 
   std::string id_;
 
@@ -112,6 +116,10 @@ class PaperlessKV {
   };
 
   Tagger get_value_tagger;
+
+  volatile int fence_calls_received;
+  std::mutex fence_mutex;
+  std::condition_variable fence_wait;
 
 };
 

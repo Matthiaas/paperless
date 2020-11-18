@@ -164,6 +164,10 @@ class Tomblement {
     return len_ + 1;
   }
 
+  Element GetView() {
+    return Element(value_ + 1, len_);
+  }
+
   bool operator==(const Tomblement& rhs) const {
     if (len_ != rhs.len_) return false;
     for (size_t i = 0; i < len_ + 1; i++) {
@@ -185,6 +189,7 @@ class Tomblement {
   char* value_;
   size_t len_;
 };
+
 
 bool operator<(const Element& lhs, const Element& rhs);
 bool operator<(const OwningElement& lhs, const OwningElement& rhs);

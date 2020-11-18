@@ -27,7 +27,7 @@ public:
   }
 
   // Inserts element.
-  void Put(const Element& key, Tomblement value, Hash hash, Owner owner) {
+  void Put(const Element& key, Tomblement&& value, Hash hash, Owner owner) {
     // Faster implementation that doesn't require locking the whole memory table.
     // auto cur_mtable = mtable_;
     // cur_mtable_->writers++;
