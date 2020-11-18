@@ -22,7 +22,6 @@ TEST_CASE("StatusOr HasValue") {
   StatusOr<int, QueryStatus> res1(1);
   CHECK(res1.hasValue() == true);
 
-  const auto status = 1;
   StatusOr<int, QueryStatus> res2(1);
   CHECK(res2.hasValue() == true);
 }

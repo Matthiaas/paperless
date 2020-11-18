@@ -25,8 +25,8 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
       compactor_(&PaperlessKV::Compact, this),
       dispatcher_(&PaperlessKV::Dispatch, this),
       get_responder_(&PaperlessKV::RespondGet, this),
-      put_responder_(&PaperlessKV::RespondPut, this),
-      get_value_tagger(0,100000000) {
+      put_responder_(&PaperlessKV::RespondPut, this)
+      /*get_value_tagger(0,100000000)*/ {
   MPI_Comm_rank(comm_, &rank_);
   MPI_Comm_size(comm_, &rank_size_);
   MPI_Barrier(comm);
@@ -188,7 +188,7 @@ QueryResult PaperlessKV::RemoteGetRelaxed(const Element& key, Hash hash) {
 
 QueryResult PaperlessKV::RemoteGetValue(const Element& key, Hash hash) {
   Owner o = hash % rank_size_;
-  int tag = get_value_tagger.getNextTag();
+  //int tag = get_value_tagger.getNextTag();
   SendKey(key, o, KEY_TAG);
   MPI_Status status;
   return ReceiveValue(o, VALUE_TAG, &status);
@@ -266,9 +266,17 @@ OwningElement PaperlessKV::ReceiveKey(int source, int tag, MPI_Status* status) {
   return OwningElement::createFromBuffWithoutCopy(value_buff, value_size);
 }
 void PaperlessKV::Fence() {
+  Sync();
+  MPI_Barrier(comm_);
+}
+void PaperlessKV::FenceAndSetConsistency(PaperlessKV::Consistency c) {
+  Sync();
+  consistency_ = c;
+  MPI_Barrier(comm_);
+}
+void PaperlessKV::Sync() {
   fence_calls_received = 0;
   MPI_Barrier(comm_);
-
   for(int i = 0; i < rank_size_; i++) {
     if(i == rank_) continue;
     MPI_Send(nullptr, 0, MPI_CHAR, i, KEY_PUT_TAG, comm_);
@@ -278,7 +286,4 @@ void PaperlessKV::Fence() {
   if(fence_calls_received != rank_size_ - 1) {
     fence_wait.wait(lck);
   }
-
-  MPI_Barrier(comm_);
-
 }
