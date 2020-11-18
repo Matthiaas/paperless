@@ -26,14 +26,11 @@ class RBTreeMemoryTable {
   using container_t = std::map<OwningElement, Tomblement, Comparator>;
   using const_iterator = typename container_t::const_iterator;
 
-  RBTreeMemoryTable() = default;
+  RBTreeMemoryTable() : total_bytes(0){};
 
   void put(const Element& key, Tomblement value);
 
-  // TODO: This is a hotfix so that MemoryTableManager compiles.
-  // MemoryTableManager allocates new memory table if size
-  // of the current one goes above some threshold.
-  int size() const;
+  size_t size() const;
 
   QueryResult get(const Element& key);
 
@@ -43,7 +40,7 @@ class RBTreeMemoryTable {
 
  private:
   container_t container_;
-
+  size_t total_bytes;
 };
 
 #endif  // PAPERLESS_RBTREEMEMORYTABLE_H

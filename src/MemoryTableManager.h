@@ -104,7 +104,7 @@ private:
   Queue wbuffer_;
 
   const int consumer_count_;
-  const int max_mtable_size_;
+  const size_t max_mtable_size_;
   mutable std::mutex mtable_mutex_;
 };
 

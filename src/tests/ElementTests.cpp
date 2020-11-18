@@ -14,7 +14,7 @@ TEST_CASE("Example Test Case") {
 
 TEST_CASE("Element Constructor Copys Data") {
   char bytes[] = "ThisIsATestString";
-  int len = 17;
+  size_t len = 17;
   OwningElement e(bytes, len);
   CHECK(e.Length() == len);
   CHECK(e.Value() != bytes);
@@ -25,7 +25,7 @@ TEST_CASE("Element Constructor Copys Data") {
 
 TEST_CASE("Construct Element") {
   char bytes[] = "ThisIsATestString";
-  int len = 17;
+  size_t len = 17;
   Element e(bytes, len);
   CHECK(e.Length() == len);
   CHECK(e.Value() == bytes);
@@ -34,7 +34,7 @@ TEST_CASE("Construct Element") {
 TEST_CASE("Compare OwningElement and Element") {
   char bytes[] = "ThisIsATestString";
   char bytes1[] = "ThisIsATestStrinh";
-  int len = 17;
+  size_t len = 17;
   Element e(bytes, len);
   OwningElement eo(bytes, len);
   Element e1(bytes1, len);

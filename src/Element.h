@@ -120,6 +120,14 @@ class Tomblement {
     other.len_ = 0;
   }
 
+  Tomblement& operator=(Tomblement&& other)  noexcept {
+    value_ = other.value_;
+    len_= other.len_;
+    other.value_ = nullptr;
+    other.len_ = 0;
+    return *this;
+  }
+
   OwningElement ToElement() const {
     return OwningElement(Value(), len_);
   }
