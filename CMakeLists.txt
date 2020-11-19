@@ -8,10 +8,11 @@ include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-set(CMAKE_CXX_FLAGS "-lmtbl -Wall -rdynamic") # sudo apt install libmtbl-dev
-
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_CXX_FLAGS "-lmtbl -rdynamic") # sudo apt install libmtbl-dev
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 
 include_directories(third_party)
@@ -29,7 +30,9 @@ set(LIB_SOURCES
         src/StatusOr.h
         src/Status.h
         src/RBTreeMemoryTable.cpp
-        src/RBTreeMemoryTable.h )
+        src/RBTreeMemoryTable.h
+        src/BloomFilter.cpp
+        src/BloomFilter.h)
 
 set(TEST_SOURCES
         src/tests/tests_main.cpp
@@ -37,7 +40,10 @@ set(TEST_SOURCES
         src/tests/ListQueueTests.cpp
         src/tests/MemoryTableManagerTests.cpp
         src/tests/StatusOrTests.cpp
-        src/tests/RBTreeMemoryTableTests.cpp)
+        src/tests/RBTreeMemoryTableTests.cpp
+        src/tests/BloomFilterTests.cpp)
+
+add_subdirectory(third_party/smhasher)
 
 set(MPI_TEST_SOURCES
         src/mpitests/mpi_tests_main.cpp
@@ -46,6 +52,8 @@ set(MPI_TEST_SOURCES
 add_library(paperless STATIC ${LIB_SOURCES})
 target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})
 target_link_libraries(paperless PRIVATE Threads::Threads)
+target_link_libraries(paperless PRIVATE smhasher)
+target_link_libraries(paperless PRIVATE stdc++fs)
 
 add_executable(main main.cpp)
 add_executable(tests
@@ -58,7 +66,7 @@ add_executable(mpi_tests
         ${LIB_SOURCES}
         )
 
-target_link_libraries(main PUBLIC paperless)
+target_link_libraries(main PUBLIC paperless mtbl)
 
 target_link_libraries(tests mtbl ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(mpi_tests mtbl ${MPI_CXX_LIBRARIES} Threads::Threads)
