@@ -3,13 +3,18 @@
 //
 
 #include "PaperlessKV.h"
+#include <smhasher/MurmurHash3.h>
 #include <iostream>
 #include "Element.h"
 
-PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm,
+PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed,
                          Consistency c = Consistency::RELAXED)
-    : PaperlessKV(id, comm, 0, c) {
-  // TODO: Set default HashFunction.
+    : PaperlessKV(id, comm, [hash_seed] (const char* value, size_t len) -> Hash {
+        uint32_t res;
+        MurmurHash3_x86_32(value, len, hash_seed, &res);
+        return static_cast<Hash>(res);
+      }, c) {
+
 }
 
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,

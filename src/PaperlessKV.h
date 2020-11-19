@@ -30,7 +30,7 @@ class PaperlessKV {
  public:
   enum Consistency { SEQUENTIAL, RELAXED };
 
-  explicit PaperlessKV(std::string id, MPI_Comm comm, Consistency);
+  PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed, Consistency);
   PaperlessKV(std::string id, MPI_Comm comm, HashFunction, Consistency);
 
   PaperlessKV(const PaperlessKV&) = delete;
