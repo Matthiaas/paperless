@@ -74,7 +74,7 @@ struct Consumer {
         break;
       }
       for (auto &kv : *chunk.Get()) {
-        keys->emplace_back(Element::Element(kv.first));
+        keys->emplace_back(Element::copyElementContent(kv.first));
         values->emplace_back(kv.second.Clone());
       }
       chunk.Clear();

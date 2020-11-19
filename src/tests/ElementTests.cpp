@@ -6,7 +6,7 @@
 TEST_CASE("Example Test Case") {
   Element e{nullptr, 0};
   REQUIRE(e.Length() == 0);
-  const auto result = Element::Element(e);
+  const auto result = Element::copyElementContent(e);
   const Element expected{nullptr, 0};
   CHECK(expected.Length() == result.Length());
 }
