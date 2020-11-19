@@ -58,18 +58,18 @@ class Element {
     free(el_.value_);
   }
 
-  static Element createFromBuffWithoutCopy(char* v, size_t len) {
+  [[nodiscard]]  static Element createFromBuffWithoutCopy(char* v, size_t len) {
     Element res;
     res.el_.value_ = v;
     res.el_.len_ = len;
     return res;
   }
 
-  static Element copyElementContent(const ElementView& e) {
+  [[nodiscard]]  static Element copyElementContent(const ElementView& e) {
     return Element(e.Value(), e.Length());
   }
 
-  static Element copyElementContent(const Element& e) {
+  [[nodiscard]]  static Element copyElementContent(const Element& e) {
     return Element(e.Value(), e.Length());
   }
 
@@ -128,7 +128,7 @@ class Tomblement {
     return *this;
   }
 
-  [[nodiscard]] Element ToElement() const {
+  [[nodiscard]] Element CopyToElement() const {
     return Element(Value(), len_);
   }
 

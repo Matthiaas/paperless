@@ -24,7 +24,7 @@ QueryResult RBTreeMemoryTable::get(const ElementView& key) {
     if (entry.Tombstone()) {  // Check tombstone bit.
       return QueryStatus::DELETED;
     } else {  // Return the value.
-      return entry.ToElement();
+      return entry.CopyToElement();
     }
   }
 }
