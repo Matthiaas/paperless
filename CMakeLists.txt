@@ -68,5 +68,5 @@ add_executable(mpi_tests
 
 target_link_libraries(main PUBLIC paperless mtbl)
 
-target_link_libraries(tests mtbl ${MPI_CXX_LIBRARIES} Threads::Threads)
-target_link_libraries(mpi_tests mtbl ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_link_libraries(tests mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_link_libraries(mpi_tests mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
