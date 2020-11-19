@@ -57,9 +57,9 @@ class PaperlessKV {
   using RBTreeMemoryManager =
       MemoryTableManager<MemTable, MemQueue>;
 
-  void Put(const Element& key, Tomblement&& value);
-  QueryResult Get(const Element& key);
-  void deleteKey(const Element& key);
+  void Put(const ElementView& key, Tomblement&& value);
+  QueryResult Get(const ElementView& key);
+  void deleteKey(const ElementView& key);
 
   // Called by the Compactor Thread to call the StorageManager with the data
   // given by the MemoryTableManager
@@ -79,27 +79,27 @@ class PaperlessKV {
   void Sync();
 
   // Sends a Key to specified target with specified tag.
-  void SendKey(const Element& key, int target, int tag);
+  void SendKey(const ElementView& key, int target, int tag);
   // Sends a QueryResult (StatusOr) to specified target with specified tag.
   void SendValue(const QueryResult& key, int target, int tag);
 
-  OwningElement ReceiveKey(int source, int tag, MPI_Status* status);
+  Element ReceiveKey(int source, int tag, MPI_Status* status);
   QueryResult ReceiveValue(int source, int tag, MPI_Status* status);
 
   // TODO: Implement this.
-  int receiveKey(const Element& buff, int source, int tag, MPI_Status status);
-  int receiveValue(const Element& buff, int source, int tag, MPI_Status status);
+  int receiveKey(const ElementView& buff, int source, int tag, MPI_Status status);
+  int receiveValue(const ElementView& buff, int source, int tag, MPI_Status status);
 
 
   // Performs a LocalGet operation, given that the key is owned by this rank.
-  QueryResult LocalGet(const Element& key, Hash hash);
+  QueryResult LocalGet(const ElementView& key, Hash hash);
   // Gets the remote value but relaxed it migh check caches and returns outdated
   // values.
-  QueryResult RemoteGetRelaxed(const Element& key, Hash hash);
+  QueryResult RemoteGetRelaxed(const ElementView& key, Hash hash);
   // Get a remote value immediately (used for SEQUENTIAL consistency).
-  QueryResult RemoteGetValue(const Element& key, Hash hash);
+  QueryResult RemoteGetValue(const ElementView& key, Hash hash);
   // Puts a single value to a remote rank immediately.
-  void RemotePut(const Element& key, Hash hash, const Element& value);
+  void RemotePut(const ElementView& key, Hash hash, const ElementView& value);
 
   std::string id_;
 

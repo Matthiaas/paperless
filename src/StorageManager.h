@@ -36,7 +36,7 @@ class StorageManager {
   };
 
   void flushToDisk(const RBTreeMemoryTable&);
-  QueryResult readFromDisk(const Element &key);
+  QueryResult readFromDisk(const ElementView &key);
 
  private:
   uint64_t cur_file_index_;

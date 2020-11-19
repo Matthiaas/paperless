@@ -1,9 +1,8 @@
 #include "RBTreeMemoryTable.h"
 
-void RBTreeMemoryTable::put(const Element& key, Tomblement&& value) {
+void RBTreeMemoryTable::put(const ElementView& key, Tomblement&& value) {
   total_bytes += value.Length();
-  auto emplace_result = container_.try_emplace(
-      OwningElement::copyElementContent(key), std::move(value));
+  auto emplace_result = container_.try_emplace(Element::copyElementContent(key), std::move(value));
 
   if (!emplace_result.second) {  // The key was in the map already.
     auto it = emplace_result.first;
@@ -16,7 +15,7 @@ void RBTreeMemoryTable::put(const Element& key, Tomblement&& value) {
   }
 }
 
-QueryResult RBTreeMemoryTable::get(const Element& key) {
+QueryResult RBTreeMemoryTable::get(const ElementView& key) {
   auto it = container_.find(key);
   if (it == container_.end()) {
     return QueryStatus::NOT_FOUND;

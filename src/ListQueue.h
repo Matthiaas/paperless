@@ -6,8 +6,8 @@
 #include <condition_variable>
 
 #include "Element.h"
-#include "Types.h"
 #include "Status.h"
+#include "Types.h"
 
 template <typename MemoryTable>
 class ListQueue {
@@ -66,7 +66,7 @@ public:
   }
 
   // Gets element, allocates memory for result.
-  QueryResult Get(const Element& key, Hash hash, Owner owner) const {
+  QueryResult Get(const ElementView& key, Hash hash, Owner owner) const {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto const& mtable : list_) {
       // Skip the dummy entry.
@@ -78,7 +78,8 @@ public:
   }
 
   // Gets element, stores result in the user-provided `buffer`.
-  QueryStatus Get(const Element& key, Hash hash, Owner owner, Element buffer) const {
+  QueryStatus Get(const ElementView& key, Hash hash, Owner owner,
+                  ElementView buffer) const {
     throw "Hey you smartass, implement me.";
   }
 

@@ -35,7 +35,7 @@ void StorageManager::flushToDisk(const RBTreeMemoryTable &mem_table) {
 //  filter.DumptoFile(filter_dir_path_ + "/" + file_name);
 }
 
-QueryResult StorageManager::readFromDisk(const Element &key) {
+QueryResult StorageManager::readFromDisk(const ElementView &key) {
   for (auto&[file_index, filter] : filters) {
     if (filter.contains(key)) {
       auto file_path = sstable_dir_path_ / std::to_string(file_index);
@@ -58,7 +58,7 @@ QueryResult StorageManager::readFromDisk(const Element &key) {
           mtbl_reader_destroy(&reader);
           return QueryStatus::DELETED;
         }
-        OwningElement result {(char *) res_ptr + 1, res_len - 1};
+        Element result {(char *) res_ptr + 1, res_len - 1};
         mtbl_iter_destroy(&iter);
         mtbl_reader_destroy(&reader);
         return result;

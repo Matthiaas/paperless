@@ -10,18 +10,18 @@
 #include <cstring>
 #include <utility>
 
-class OwningElement;
+class Element;
 
-class Element {
+class ElementView {
  public:
-  Element(const char* v, size_t len)
+  ElementView(const char* v, size_t len)
     : value_(const_cast<char*>(v)), len_(len) {}
-  Element() : value_(nullptr), len_(0){};
+  ElementView() : value_(nullptr), len_(0){};
   // TODO: Shouldn't all of these just use defualt implementation? (roman)
-  Element(const Element& other) = delete;
-  Element(Element&& other) = default;
-  Element& operator=(const Element&) = default;
-  Element& operator=(Element&&) = default;
+  ElementView(const ElementView& other) = delete;
+  ElementView(ElementView&& other) = default;
+  ElementView& operator=(const ElementView&) = default;
+  ElementView& operator=(ElementView&&) = default;
 
   [[nodiscard]] char* Value() const {
     return value_;
@@ -32,48 +32,48 @@ class Element {
   }
 
  private:
-  friend bool operator==(const Element& lhs, const Element& rhs);
-  friend bool operator<(const Element& lhs, const Element& rhs);
-  friend OwningElement;
+  friend bool operator==(const ElementView& lhs, const ElementView& rhs);
+  friend bool operator<(const ElementView& lhs, const ElementView& rhs);
+  friend Element;
   char* value_;
   size_t len_;
 
 };
 
-class OwningElement {
+class Element {
  public:
-  OwningElement(const char* v, const size_t len) {
+  Element(const char* v, const size_t len) {
     el_.value_ = static_cast<char*>(std::malloc(len));
     el_.len_ = len;
     std::memcpy(el_.value_, v, len);
   }
-  OwningElement(const OwningElement& other) = delete;
-  OwningElement(OwningElement&& other)  noexcept {
+  Element(const Element& other) = delete;
+  Element(Element&& other)  noexcept {
     el_ = std::move(other.el_);
     other.el_.value_ = nullptr;
     other.el_.len_ = 0;
   };
 
-  ~OwningElement() {
+  ~Element() {
     free(el_.value_);
   }
 
-  static OwningElement createFromBuffWithoutCopy(char* v, size_t len) {
-    OwningElement res;
+  static Element createFromBuffWithoutCopy(char* v, size_t len) {
+    Element res;
     res.el_.value_ = v;
     res.el_.len_ = len;
     return res;
   }
 
-  static OwningElement copyElementContent(const Element& e) {
-    return OwningElement(e.Value(), e.Length());
+  static Element copyElementContent(const ElementView& e) {
+    return Element(e.Value(), e.Length());
   }
 
-  static OwningElement copyElementContent(const OwningElement& e) {
-    return OwningElement(e.Value(), e.Length());
+  static Element copyElementContent(const Element& e) {
+    return Element(e.Value(), e.Length());
   }
 
-  [[nodiscard]] const Element& GetView() const {
+  [[nodiscard]] const ElementView& GetView() const {
     return el_;
   }
 
@@ -86,14 +86,14 @@ class OwningElement {
   }
 
  private:
-  OwningElement() = default;;
-  friend bool operator<(const OwningElement& lhs, const OwningElement& rhs);
-  friend bool operator<(const Element& lhs, const OwningElement& rhs);
-  friend bool operator<(const OwningElement& lhs, const Element& rhs);
-  friend bool operator==(const OwningElement& lhs, const Element& rhs);
-  friend bool operator==(const Element& lhs, const OwningElement& rhs);
-  friend bool operator==(const OwningElement& lhs, const OwningElement& rhs);
-  Element el_;
+  Element() = default;;
+  friend bool operator<(const Element& lhs, const Element& rhs);
+  friend bool operator<(const ElementView& lhs, const Element& rhs);
+  friend bool operator<(const Element& lhs, const ElementView& rhs);
+  friend bool operator==(const Element& lhs, const ElementView& rhs);
+  friend bool operator==(const ElementView& lhs, const Element& rhs);
+  friend bool operator==(const Element& lhs, const Element& rhs);
+  ElementView el_;
 };
 
 
@@ -128,8 +128,8 @@ class Tomblement {
     return *this;
   }
 
-  [[nodiscard]] OwningElement ToElement() const {
-    return OwningElement(Value(), len_);
+  [[nodiscard]] Element ToElement() const {
+    return Element(Value(), len_);
   }
 
   [[nodiscard]] Tomblement Clone() const {
@@ -164,8 +164,8 @@ class Tomblement {
     return len_ + 1;
   }
 
-  [[nodiscard]] Element GetView() const {
-    return Element(value_ + 1, len_);
+  [[nodiscard]] ElementView GetView() const {
+    return ElementView(value_ + 1, len_);
   }
 
   bool operator==(const Tomblement& rhs) const {
@@ -191,14 +191,14 @@ class Tomblement {
 };
 
 
+bool operator<(const ElementView& lhs, const ElementView& rhs);
 bool operator<(const Element& lhs, const Element& rhs);
-bool operator<(const OwningElement& lhs, const OwningElement& rhs);
-bool operator<(const Element& lhs, const OwningElement& rhs);
-bool operator<(const OwningElement& lhs, const Element& rhs);
+bool operator<(const ElementView& lhs, const Element& rhs);
+bool operator<(const Element& lhs, const ElementView& rhs);
+bool operator==(const ElementView& lhs, const ElementView& rhs);
 bool operator==(const Element& lhs, const Element& rhs);
-bool operator==(const OwningElement& lhs, const OwningElement& rhs);
-bool operator==(const OwningElement& lhs, const Element& rhs);
-bool operator==(const Element& lhs, const OwningElement& rhs);
+bool operator==(const Element& lhs, const ElementView& rhs);
+bool operator==(const ElementView& lhs, const Element& rhs);
 
 
 
@@ -206,13 +206,13 @@ bool operator==(const Element& lhs, const OwningElement& rhs);
 /*
 class OwningElementWithTombstone {
  public:
-  OwningElementWithTombstone(Element OwningElement, bool tombstone)
-      : OwningElement(element), tombstone(tombstone) {}
+  OwningElementWithTombstone(ElementView Element, bool tombstone)
+      : Element(element), tombstone(tombstone) {}
 
   OwningElementWithTombstone(char *val, size_t val_len, bool tombstone)
-      : OwningElement(Element(val, val_len)), tombstone(tombstone) {}
+      : Element(ElementView(val, val_len)), tombstone(tombstone) {}
 
-  OwningElement OwningElement;
+  Element Element;
   bool tombstone;
 };
 

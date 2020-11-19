@@ -11,28 +11,28 @@ class RBTreeMemoryTable {
  private:
   struct Comparator {
     using is_transparent = std::true_type;
-    bool operator()(const OwningElement& lhs, const OwningElement& rhs) const {
+    bool operator()(const Element& lhs, const Element& rhs) const {
       return lhs < rhs;
     }
-    bool operator()(const OwningElement& lhs, const Element& rhs) const {
+    bool operator()(const Element& lhs, const ElementView& rhs) const {
       return lhs < rhs;
     }
-    bool operator()(const Element& lhs, const OwningElement& rhs) const {
+    bool operator()(const ElementView& lhs, const Element& rhs) const {
       return lhs < rhs;
     }
   };
 
  public:
-  using container_t = std::map<OwningElement, Tomblement, Comparator>;
+  using container_t = std::map<Element, Tomblement, Comparator>;
   using const_iterator = typename container_t::const_iterator;
 
   RBTreeMemoryTable() : total_bytes(0){};
 
-  void put(const Element& key, Tomblement&& value);
+  void put(const ElementView& key, Tomblement&& value);
 
   size_t size() const;
 
-  QueryResult get(const Element& key);
+  QueryResult get(const ElementView& key);
 
   const_iterator begin() const;
 

@@ -24,7 +24,7 @@ inline uint64_t nthHash(uint8_t n,
   return (hashA + n * hashB) % filterSize;
 }
 
-void BloomFilter::insert(const Element &e) {
+void BloomFilter::insert(const ElementView &e) {
   auto hashes = hash(e.Value(), e.Length());
   for (int n = 0; n < num_hashes_; n++) {
     uint64_t index = nthHash(n, hashes[0], hashes[1], bits_.size());
@@ -32,7 +32,7 @@ void BloomFilter::insert(const Element &e) {
   }
 }
 
-bool BloomFilter::contains(const Element &e) const {
+bool BloomFilter::contains(const ElementView &e) const {
   auto hashes = hash(e.Value(), e.Length());
   for (int n = 0; n < num_hashes_; n++) {
     if (!bits_[nthHash(n, hashes[0], hashes[1], bits_.size())]) {

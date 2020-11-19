@@ -12,12 +12,12 @@
 // enforced anywhere.
 class MemoryTable {
  public:
-  explicit MemoryTable(std::function<int(Element, Element)> comparator);
+  explicit MemoryTable(std::function<int(ElementView, ElementView)> comparator);
 
   MemoryTable();  // should define a standard comparator;
 
-  virtual void put(Element key, Tomblement value, bool tombstone) = 0;
-  virtual QueryResult get(Element key) = 0;
+  virtual void put(ElementView key, Tomblement value, bool tombstone) = 0;
+  virtual QueryResult get(ElementView key) = 0;
 
   // Required for flushing to disk in the StorageManager.
   class const_iterator {
@@ -28,14 +28,14 @@ class MemoryTable {
     virtual const_iterator& operator++() = 0;  // prefix increment
     virtual bool operator==(const const_iterator&) = 0;
     virtual bool operator!=(const const_iterator&) = 0;
-    virtual std::pair<Element, Element> operator*() const = 0;
+    virtual std::pair<ElementView, ElementView> operator*() const = 0;
     friend void swap(const_iterator& lhs, const_iterator& rhs);
   };
   virtual const_iterator& begin() const = 0;
   virtual const_iterator& end() const = 0;
 
  private:
-  std::function<int(Element, Element)> comparator_;
+  std::function<int(ElementView, ElementView)> comparator_;
 };
 
 #endif  // PAPERLESS_MEMORYTABLE_H

@@ -18,8 +18,8 @@ using RBTreeMemoryManager =
 
 char kKeyBytes[] = "key";
 char kValueBytes[] = "value";
-const OwningElement kSampleValue{kValueBytes, 5};
-const Element kSampleKey{kKeyBytes, 3};
+const Element kSampleValue{kValueBytes, 5};
+const ElementView kSampleKey{kKeyBytes, 3};
 
 TEST_CASE("MemoryTableManager Simple Get") {
   RBTreeMemoryManager manager(/*consumer_count_=*/0, /*max_mtable_size=*/10);
@@ -56,17 +56,17 @@ std::string CreateIthValue(int i) {
 }
 
 struct Consumer {
-  std::unique_ptr<std::vector<OwningElement>> keys;
+  std::unique_ptr<std::vector<Element>> keys;
   std::unique_ptr<std::vector<Tomblement>> values;
   std::unique_ptr<std::thread> thread;
 
   Consumer(RBTreeMemoryManager *manager) {
-    keys = std::make_unique<std::vector<OwningElement>>();
+    keys = std::make_unique<std::vector<Element>>();
     values = std::make_unique<std::vector<Tomblement>>();
     thread = std::make_unique<std::thread>(&Consumer::Consume, manager, keys.get(), values.get());
   }
 
-  static void Consume(RBTreeMemoryManager *manager, std::vector<OwningElement> *keys, std::vector<Tomblement> *values) {
+  static void Consume(RBTreeMemoryManager *manager, std::vector<Element> *keys, std::vector<Tomblement> *values) {
     while (true) {
       auto chunk = manager->GetChunk();
       if (chunk.IsPoisonPill()) {
@@ -74,7 +74,7 @@ struct Consumer {
         break;
       }
       for (auto &kv : *chunk.Get()) {
-        keys->emplace_back(OwningElement::copyElementContent(kv.first));
+        keys->emplace_back(Element::Element(kv.first));
         values->emplace_back(kv.second.Clone());
       }
       chunk.Clear();
@@ -95,7 +95,7 @@ struct Producer {
     for (int i = start; i < start + count; ++i) {
       std::string key = CreateIthKey(i);
       std::string value = CreateIthValue(i);
-      Element key_elem(&key[0], key.size());
+      ElementView key_elem(&key[0], key.size());
       Tomblement value_tombl(&value[0], value.size());
       manager->Put(key_elem, std::move(value_tombl), /*hash=*/0, /*owner=*/0);
     }
@@ -131,11 +131,11 @@ TEST_CASE("MemoryTableManager Threaded Put/Dequeue") {
     }
   }
   
-  std::set<OwningElement> expected_keys, actual_keys;
+  std::set<Element> expected_keys, actual_keys;
   for (int i = 0; i < consumer_count; ++i) {
     for (int j = i * elems_per_thread; j < i * elems_per_thread + elems_per_thread; ++j) {
       std::string key = CreateIthKey(j);
-      expected_keys.insert(OwningElement(&key[0], key.size()));
+      expected_keys.insert(Element(&key[0], key.size()));
     }
   }
   for (auto &c : consumers) {

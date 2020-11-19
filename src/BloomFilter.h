@@ -34,8 +34,8 @@ class BloomFilter {
   BloomFilter(const BloomFilter &other) = default;
   BloomFilter(BloomFilter &&other) = default;
 
-  void insert(const Element &e);
-  [[nodiscard]] bool contains(const Element &e) const;
+  void insert(const ElementView &e);
+  [[nodiscard]] bool contains(const ElementView &e) const;
 
 
   [[nodiscard]] uint8_t GetNumHashes() const {
