@@ -34,7 +34,7 @@ class PaperlessKV {
   PaperlessKV(std::string id, MPI_Comm comm, HashFunction, Consistency);
 
   PaperlessKV(const PaperlessKV&) = delete;
-  PaperlessKV(PaperlessKV&&);
+  PaperlessKV(PaperlessKV&&) = delete;
 
   ~PaperlessKV();
 

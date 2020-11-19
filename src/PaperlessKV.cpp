@@ -14,7 +14,6 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed,
         MurmurHash3_x86_32(value, len, hash_seed, &res);
         return static_cast<Hash>(res);
       }, c) {
-
 }
 
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
@@ -24,7 +23,7 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
       hash_function_(hf),
       local_(1,10000),
       remote_(1, 10000),
-      storage_manager_("/tmp/..."),
+      storage_manager_(id),
       shutdown_(false),
       comm_(comm),
       compactor_(&PaperlessKV::Compact, this),
@@ -64,7 +63,7 @@ void PaperlessKV::Compact() {
       handler.Clear();
       return;
     }
-    // v  storage_manager_.flushToDisk(handler.get());
+    storage_manager_.flushToDisk(*handler.Get());
     handler.Clear();
   }
 
@@ -304,5 +303,4 @@ void PaperlessKV::Sync() {
     fence_wait.wait(lck);
   }
 }
-
 

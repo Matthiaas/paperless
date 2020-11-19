@@ -1,2 +1,13 @@
-mpiexec -n 1 ./build/mpi_tests [1rank]
-mpiexec -n 2 ./build/mpi_tests [2rank]
+for i in 1 2 4
+do
+  for ((j=0; j <$i; j++))
+  do
+    mkdir /tmp/PaperlessTest${j}
+  done
+  mpiexec -n $i ./build/mpi_tests [${i}rank]
+  for ((j=0; j <$i; j++))
+  do
+    rm -r /tmp/PaperlessTest${j}
+  done
+
+done
