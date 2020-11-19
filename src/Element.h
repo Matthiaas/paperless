@@ -23,11 +23,11 @@ class Element {
   Element& operator=(const Element&) = default;
   Element& operator=(Element&&) = default;
 
-  char* Value() const {
+  [[nodiscard]] char* Value() const {
     return value_;
   }
 
-  size_t Length() const {
+  [[nodiscard]] size_t Length() const {
     return len_;
   }
 
@@ -48,7 +48,7 @@ class OwningElement {
     std::memcpy(el_.value_, v, len);
   }
   OwningElement(const OwningElement& other) = delete;
-  OwningElement(OwningElement&& other) {
+  OwningElement(OwningElement&& other)  noexcept {
     el_ = std::move(other.el_);
     other.el_.value_ = nullptr;
     other.el_.len_ = 0;
@@ -73,20 +73,20 @@ class OwningElement {
     return OwningElement(e.Value(), e.Length());
   }
 
-  const Element& GetView() const {
+  [[nodiscard]] const Element& GetView() const {
     return el_;
   }
 
-  char* Value() const {
+  [[nodiscard]] char* Value() const {
     return el_.value_;
   }
 
-  size_t Length() const {
+  [[nodiscard]] size_t Length() const {
     return el_.len_;
   }
 
  private:
-  OwningElement() {};
+  OwningElement() = default;;
   friend bool operator<(const OwningElement& lhs, const OwningElement& rhs);
   friend bool operator<(const Element& lhs, const OwningElement& rhs);
   friend bool operator<(const OwningElement& lhs, const Element& rhs);
@@ -113,7 +113,7 @@ class Tomblement {
       Tomblement(nullptr, 0) {};
 
   Tomblement(const Tomblement& other) = delete;
-  Tomblement(Tomblement&& other)  {
+  Tomblement(Tomblement&& other)   noexcept {
     value_ = other.value_;
     len_= other.len_;
     other.value_ = nullptr;
@@ -128,11 +128,11 @@ class Tomblement {
     return *this;
   }
 
-  OwningElement ToElement() const {
+  [[nodiscard]] OwningElement ToElement() const {
     return OwningElement(Value(), len_);
   }
 
-  Tomblement Clone() const {
+  [[nodiscard]] Tomblement Clone() const {
     Tomblement ret(Value(), Length());
     ret.value_[0] = value_[0];
     return ret;
@@ -140,31 +140,31 @@ class Tomblement {
 
   static Tomblement getATombstone() {
     Tomblement res;
-    res.value_[0] = false;
+    res.value_[0] = true;
     return res;
   }
 
-  char* Value() const {
+  [[nodiscard]] char* Value() const {
     return value_ + 1;
   }
 
-  size_t Length() const {
+  [[nodiscard]] size_t Length() const {
     return len_;
   }
 
-  bool Tombstone() const {
+  [[nodiscard]] bool Tombstone() const {
     return value_[0];
   }
 
-  char* GetBuffer() const {
+  [[nodiscard]] char* GetBuffer() const {
     return value_;
   }
 
-  size_t GetBufferLen() const {
+  [[nodiscard]] size_t GetBufferLen() const {
     return len_ + 1;
   }
 
-  Element GetView() const {
+  [[nodiscard]] Element GetView() const {
     return Element(value_ + 1, len_);
   }
 
