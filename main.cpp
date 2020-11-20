@@ -2,6 +2,6 @@
 #include "src/StorageManager.h"
 
 int main() {
-  std::cout << "Hello, World!" << std::endl;
+  std::cout << "Welcome to Paperless\n";
   return 0;
 }

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Usage: $ ./build.sh <target>
 #   e.g. $ ./build.sh tests
 rm -r build
