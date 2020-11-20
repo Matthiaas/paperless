@@ -3,6 +3,7 @@
 //
 
 
+#include <algorithm>
 #include "Element.h"
 
 bool operator==(const ElementView& lhs, const ElementView& rhs)  {
@@ -16,13 +17,21 @@ bool operator==(const ElementView& lhs, const ElementView& rhs)  {
 
 
 
+// TODO: We have to sort lexicographically for mtbl library.
+// Floris is checking if we can change the sorter of mtbl, so we can optimize this.
 bool operator<(const ElementView& lhs, const ElementView& rhs) {
-  if (lhs.len_ != rhs.len_) return lhs.len_ < rhs.len_;
-  for (size_t i = 0; i < lhs.len_; i++) {
-    if (lhs.value_[i] != rhs.value_[i])
-      return lhs.value_[i] < rhs.value_[i];
+  int res = std::memcmp(lhs.Value(), rhs.Value(), std::min(lhs.Length(), rhs.Length()));
+  if (res == 0) {
+    return lhs.Length() < rhs.Length();
   }
-  return false;
+  return res < 0;
+// Old Version:
+//  if (lhs.len_ != rhs.len_) return lhs.len_ < rhs.len_;
+//  for (size_t i = 0; i < lhs.len_; i++) {
+//    if (lhs.value_[i] != rhs.value_[i])
+//      return lhs.value_[i] < rhs.value_[i];
+//  }
+//  return false;
 }
 
 bool operator<(const Element& lhs, const Element& rhs) {
