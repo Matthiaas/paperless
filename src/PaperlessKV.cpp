@@ -52,11 +52,10 @@ PaperlessKV::~PaperlessKV() {
 }
 
 void PaperlessKV::deleteKey(const ElementView& key) {
-  // TODO: Implement me.
+  Put(key, Tomblement::getATombstone());
 }
 
 void PaperlessKV::Compact() {
-
   while (true) {
     MemQueue::Chunk handler = local_.GetChunk();
     if(handler.IsPoisonPill()) {
@@ -66,7 +65,6 @@ void PaperlessKV::Compact() {
     storage_manager_.flushToDisk(*handler.Get());
     handler.Clear();
   }
-
 }
 
 void PaperlessKV::Dispatch() {
@@ -95,12 +93,10 @@ void PaperlessKV::RespondGet() {
       break;
     }
     Element key = ReceiveKey(MPI_ANY_SOURCE, KEY_TAG, &status);
-
     QueryResult element =
         LocalGet(key.GetView(), hash_function_(key.Value(), key.Length()));
     SendValue(element, status.MPI_SOURCE, VALUE_TAG);
   }
-
 }
 
 void PaperlessKV::RespondPut() {

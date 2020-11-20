@@ -9,5 +9,4 @@ do
   do
     rm -r /tmp/PaperlessTest${j}
   done
-
 done
