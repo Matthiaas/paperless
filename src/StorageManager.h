@@ -35,7 +35,7 @@ class StorageManager {
     mtbl_reader_options_destroy(&reader_options_);
   };
 
-  void flushToDisk(const RBTreeMemoryTable&);
+  void flushToDisk(const RBTreeMemoryTable<Tomblement>&);
   QueryResult readFromDisk(const ElementView &key);
 
  private:

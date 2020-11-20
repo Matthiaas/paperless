@@ -31,8 +31,8 @@ class PaperlessKV {
   enum Consistency { SEQUENTIAL, RELAXED };
   enum Mode { READANDWRITE, READONLY};
 
-  PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed, Consistency, Mode);
-  PaperlessKV(std::string id, MPI_Comm comm, HashFunction, Consistency, Mode);
+  PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed, Consistency c = Consistency::RELAXED, Mode m =READANDWRITE);
+  PaperlessKV(std::string id, MPI_Comm comm, HashFunction, Consistency c = Consistency::RELAXED, Mode m =READANDWRITE);
 
   PaperlessKV(const PaperlessKV&) = delete;
   PaperlessKV(PaperlessKV&&) = delete;
@@ -53,7 +53,7 @@ class PaperlessKV {
 
  private:
 
-  using MemTable = RBTreeMemoryTable;
+  using MemTable = RBTreeMemoryTable<Tomblement>;
   using MemQueue = ListQueue<MemTable>;
   using RBTreeMemoryManager =
       MemoryTableManager<MemTable, MemQueue>;
@@ -111,8 +111,8 @@ class PaperlessKV {
   RBTreeMemoryManager local_;
   RBTreeMemoryManager remote_;
 
-  RBTreeMemoryTable local_cache_;
-  RBTreeMemoryTable remote_cache_;
+  RBTreeMemoryTable<Tomblement> local_cache_;
+  RBTreeMemoryTable<Tomblement> remote_cache_;
 
   StorageManager storage_manager_;
 
@@ -150,5 +150,7 @@ class PaperlessKV {
   std::condition_variable fence_wait;
 
 };
+
+
 
 #endif  // PAPERLESS_PAPERLESSKV_H

@@ -1,6 +1,7 @@
 #include "RBTreeMemoryTable.h"
 
-void RBTreeMemoryTable::put(Element&& key, Tomblement&& value) {
+template <class Value>
+void RBTreeMemoryTable<Value>::put(Element&& key, Value&& value) {
   total_bytes += value.Length();
   size_t key_len = key.Length();
   auto emplace_result =
@@ -17,11 +18,12 @@ void RBTreeMemoryTable::put(Element&& key, Tomblement&& value) {
   }
 }
 
-void RBTreeMemoryTable::put(const ElementView& key, Tomblement&& value) {
+template <class Value>
+void RBTreeMemoryTable<Value>::put(const ElementView& key, Value&& value) {
   put(Element::copyElementContent(key), std::move(value));
 }
-
-QueryResult RBTreeMemoryTable::get(const ElementView& key) {
+template <class Value>
+QueryResult RBTreeMemoryTable<Value>::get(const ElementView& key) {
   auto it = container_.find(key);
   if (it == container_.end()) {
     return QueryStatus::NOT_FOUND;
@@ -35,9 +37,9 @@ QueryResult RBTreeMemoryTable::get(const ElementView& key) {
   }
 }
 
-std::pair<QueryStatus, size_t> RBTreeMemoryTable::get(const ElementView& key,
-                                                      char* value,
-                                                      size_t value_len) {
+template <class Value>
+std::pair<QueryStatus, size_t> RBTreeMemoryTable<Value>::get(
+    const ElementView& key, char* value, size_t value_len) {
   auto it = container_.find(key);
   if (it == container_.end()) {
     return {QueryStatus::NOT_FOUND, 0};
@@ -56,11 +58,19 @@ std::pair<QueryStatus, size_t> RBTreeMemoryTable::get(const ElementView& key,
   }
 }
 
-size_t RBTreeMemoryTable::size() const { return total_bytes; }
+template <class Value>
+size_t RBTreeMemoryTable<Value>::size() const { return total_bytes; }
 
-RBTreeMemoryTable::const_iterator RBTreeMemoryTable::begin() const {
+template <class Value>
+typename RBTreeMemoryTable<Value>::const_iterator
+RBTreeMemoryTable<Value>::begin() const {
   return container_.begin();
 }
-RBTreeMemoryTable::const_iterator RBTreeMemoryTable::end() const {
+template <class Value>
+typename RBTreeMemoryTable<Value>::const_iterator
+RBTreeMemoryTable<Value>::end() const {
   return container_.end();
 }
+
+template class RBTreeMemoryTable<Tomblement>;
+

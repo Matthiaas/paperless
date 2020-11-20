@@ -11,7 +11,7 @@
 #include "BloomFilter.h"
 
 // FIXME: Untested
-void StorageManager::flushToDisk(const RBTreeMemoryTable &mem_table) {
+void StorageManager::flushToDisk(const RBTreeMemoryTable<Tomblement> &mem_table) {
   ++cur_file_index_;
   auto file_path = sstable_dir_path_ / std::to_string(cur_file_index_);
 

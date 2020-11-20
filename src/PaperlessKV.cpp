@@ -8,8 +8,7 @@
 #include "Element.h"
 
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed,
-                         Consistency c = Consistency::RELAXED,
-                         Mode m =READANDWRITE)
+                         Consistency c, Mode m)
     : PaperlessKV(id, comm, [hash_seed] (const char* value, size_t len) -> Hash {
         uint32_t res;
         MurmurHash3_x86_32(value, len, hash_seed, &res);
@@ -18,8 +17,7 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed,
 }
 
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
-                         Consistency c = Consistency::RELAXED,
-                         Mode m =READANDWRITE)
+                         Consistency c ,Mode m)
     : id_(id),
       consistency_(c),
       mode_(m),

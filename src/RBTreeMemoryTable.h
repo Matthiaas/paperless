@@ -7,6 +7,9 @@
 #include "Element.h"
 #include "Status.h"
 
+
+template
+<typename Value>
 class RBTreeMemoryTable {
  private:
   struct Comparator {
@@ -23,14 +26,14 @@ class RBTreeMemoryTable {
   };
 
  public:
-  using container_t = std::map<Element, Tomblement, Comparator>;
+  using container_t = std::map<Element, Value, Comparator>;
   using const_iterator = typename container_t::const_iterator;
 
   RBTreeMemoryTable() : total_bytes(0){};
 
-  void put(const ElementView& key, Tomblement&& value);
+  void put(const ElementView& key, Value&& value);
 
-  void put(Element&& key, Tomblement&& value);
+  void put(Element&& key, Value&& value);
 
   size_t size() const;
 
