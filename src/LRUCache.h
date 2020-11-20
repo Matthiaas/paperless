@@ -5,16 +5,15 @@
 #ifndef PAPERLESS_LRUCACHE_H
 #define PAPERLESS_LRUCACHE_H
 
-
+#include <list>
 #include "Element.h"
+#include "RBTreeMemoryTable.h"
 #include "Status.h"
-#include <queue>
 
-
-template
-<class T>
 class LRUCache {
+  /*
 public:
+  LRUCache(size_t max_size);
   void put(const ElementView& key, Tomblement&& value);
 
   void put(Element&& key, Tomblement&& value);
@@ -30,9 +29,20 @@ public:
   std::pair<QueryStatus, size_t> get(const ElementView& key, char* value,
                                      size_t value_len);
 private:
-  T memoryTable;
-  std::deque<ElementView> queue;
+  struct Value {
+    Tomblement v;
+    std::list<ElementView>::iterator it;
 
+    [[nodiscard]] size_t GetBufferLen() const {
+      return v.GetBufferLen();
+    }
+  };
+
+  RBTreeMemoryTable<Value> memoryTable;
+  std::list<ElementView> queue;
+  size_t max_size;
+*/
 };
+
 
 #endif  // PAPERLESS_LRUCACHE_H
