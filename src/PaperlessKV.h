@@ -29,9 +29,10 @@
 class PaperlessKV {
  public:
   enum Consistency { SEQUENTIAL, RELAXED };
+  enum Mode { READANDWRITE, READONLY};
 
-  PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed, Consistency);
-  PaperlessKV(std::string id, MPI_Comm comm, HashFunction, Consistency);
+  PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed, Consistency, Mode);
+  PaperlessKV(std::string id, MPI_Comm comm, HashFunction, Consistency, Mode);
 
   PaperlessKV(const PaperlessKV&) = delete;
   PaperlessKV(PaperlessKV&&) = delete;
@@ -47,7 +48,7 @@ class PaperlessKV {
   void Fence();
 
   // Same as fence but it allows to change the Consistency
-  void FenceAndSetConsistency(Consistency c);
+  void FenceAndChangeOptions(Consistency c, Mode m);
   void FenceAndCheckPoint();
 
  private:
@@ -104,6 +105,7 @@ class PaperlessKV {
   std::string id_;
 
   Consistency consistency_;
+  Mode mode_;
   HashFunction hash_function_;
 
   RBTreeMemoryManager local_;
