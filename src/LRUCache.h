@@ -6,12 +6,13 @@
 #define PAPERLESS_LRUCACHE_H
 
 #include <list>
+#include <mutex>
 #include "Element.h"
 #include "RBTreeMemoryTable.h"
 #include "Status.h"
 
 class LRUCache {
-  /*
+
 public:
   LRUCache(size_t max_size);
   void put(const ElementView& key, Tomblement&& value);
@@ -29,6 +30,19 @@ public:
   std::pair<QueryStatus, size_t> get(const ElementView& key, char* value,
                                      size_t value_len);
 private:
+  struct Comparator {
+    using is_transparent = std::true_type;
+    bool operator()(const Element& lhs, const Element& rhs) const {
+      return lhs < rhs;
+    }
+    bool operator()(const Element& lhs, const ElementView& rhs) const {
+      return lhs < rhs;
+    }
+    bool operator()(const ElementView& lhs, const Element& rhs) const {
+      return lhs < rhs;
+    }
+  };
+
   struct Value {
     Tomblement v;
     std::list<ElementView>::iterator it;
@@ -38,10 +52,14 @@ private:
     }
   };
 
-  RBTreeMemoryTable<Value> memoryTable;
+  void CleanUp();
+
+  std::map<Element, Value, Comparator> container_;
   std::list<ElementView> queue;
-  size_t max_size;
-*/
+  std::mutex m_;
+  size_t max_byte_size_;
+  size_t cur_byte_size_;
+
 };
 
 

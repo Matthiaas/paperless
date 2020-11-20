@@ -18,7 +18,7 @@ class ElementView {
     : value_(const_cast<char*>(v)), len_(len) {}
   ElementView() : value_(nullptr), len_(0){};
   // TODO: Shouldn't all of these just use defualt implementation? (roman)
-  ElementView(const ElementView& other) = delete;
+  ElementView(const ElementView& other) = default;
   ElementView(ElementView&& other) = default;
   ElementView& operator=(const ElementView&) = default;
   ElementView& operator=(ElementView&&) = default;
