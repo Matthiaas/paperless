@@ -158,7 +158,6 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
     paper.put(key1, klen1, value1, vlen1);
   }
 
-
   if(rank == 0) {
     QueryResult qr = paper.get(key1, klen1);
     CHECK(qr.hasValue());
@@ -170,7 +169,7 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
     QueryResult qr = paper.get(key1, klen1);
     CHECK(qr == QueryStatus::NOT_FOUND);
   }
-
+  MPI_Barrier(MPI_COMM_WORLD);
   paper.Fence();
 }
 
