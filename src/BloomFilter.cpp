@@ -6,7 +6,7 @@
 
 #include <array>
 #include <cmath>
-#include <fstream>
+#include <iostream>
 
 #include "smhasher/MurmurHash3.h"
 
@@ -42,8 +42,40 @@ bool BloomFilter::contains(const ElementView &e) const {
   return true;
 }
 
-void BloomFilter::DumptoFile(const std::string& path) {
+void BloomFilter::DumpToFile(const std::string& path) {
   std::ofstream file {path, std::ios::out | std::ios::binary};
-  file << num_hashes_;
+  uint8_t nh = num_hashes_;
+  size_t size = bits_.size();
+  file.write(reinterpret_cast<const char *>(&nh), sizeof nh);
+  file.write(reinterpret_cast<const char *>(&size), sizeof size);
   std::copy(bits_.begin(), bits_.end(), std::ostreambuf_iterator<char>(file));
+}
+
+BloomFilter BloomFilter::CreateFromFile(const std::string &path) {
+  BloomFilter ret;
+  std::ifstream file{path, std::ios::in | std::ios::binary};
+
+  size_t size;
+  file.read(reinterpret_cast<char *>(&ret.num_hashes_), sizeof ret.num_hashes_);
+  file.read(reinterpret_cast<char *>(&size), sizeof size);
+  ret.bits_ = std::vector<bool>{std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
+
+  if (ret.bits_.size() != size) {
+    std::cerr << "ERROR: failed to read file (TODO please handle)\n";
+  }
+  return ret;
+}
+
+// ReadOnlyBloomFilterOnDisk
+bool ReadOnlyBloomFilterOnDisk::contains(const ElementView &e) const {
+  auto hashes = hash(e.Value(), e.Length());
+  for (int n = 0; n < num_hashes_; n++) {
+    uint64_t index = nthHash(n, hashes[0], hashes[1], size_);
+
+    file_.seekg(kbaseFileOffset_ + index, std::ios::beg);
+    if (file_.get() == 0) {
+      return false;
+    }
+  }
+  return true;
 }
