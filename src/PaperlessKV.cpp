@@ -17,7 +17,7 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed,
 }
 
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
-                         Consistency c ,Mode m)
+                         Consistency c ,Mode m )
     : id_(id),
       consistency_(c),
       mode_(m),

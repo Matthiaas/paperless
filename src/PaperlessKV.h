@@ -53,7 +53,7 @@ class PaperlessKV {
 
  private:
 
-  using MemTable = RBTreeMemoryTable<Tomblement>;
+  using MemTable = RBTreeMemoryTable;
   using MemQueue = ListQueue<MemTable>;
   using RBTreeMemoryManager =
       MemoryTableManager<MemTable, MemQueue>;
@@ -111,8 +111,8 @@ class PaperlessKV {
   RBTreeMemoryManager local_;
   RBTreeMemoryManager remote_;
 
-  RBTreeMemoryTable<Tomblement> local_cache_;
-  RBTreeMemoryTable<Tomblement> remote_cache_;
+  RBTreeMemoryTable local_cache_;
+  RBTreeMemoryTable remote_cache_;
 
   StorageManager storage_manager_;
 
@@ -150,7 +150,5 @@ class PaperlessKV {
   std::condition_variable fence_wait;
 
 };
-
-
 
 #endif  // PAPERLESS_PAPERLESSKV_H
