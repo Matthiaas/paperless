@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 for i in 1 2 4
 do
   for ((j=0; j <$i; j++))
