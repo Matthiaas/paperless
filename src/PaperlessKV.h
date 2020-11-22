@@ -14,6 +14,7 @@
 #include <thread>
 
 #include "Element.h"
+#include "LRUCache.h"
 #include "ListQueue.h"
 #include "MemoryTableManager.h"
 #include "RBTreeMemoryTable.h"
@@ -25,6 +26,9 @@
 #define VALUE_TAG 2
 #define  KEY_PUT_TAG 3
 #define VALUE_PUT_TAG 4
+
+#define MAX_MTABLE_SIZE 10000
+#define MAX_CACHE_SIZE 1000
 
 class PaperlessKV {
  public:
@@ -111,8 +115,8 @@ class PaperlessKV {
   RBTreeMemoryManager local_;
   RBTreeMemoryManager remote_;
 
-  RBTreeMemoryTable local_cache_;
-  RBTreeMemoryTable remote_cache_;
+  LRUCache local_cache_;
+  LRUCache remote_cache_;
 
   StorageManager storage_manager_;
 

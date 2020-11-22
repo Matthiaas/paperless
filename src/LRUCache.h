@@ -14,21 +14,23 @@
 class LRUCache {
 
 public:
-  LRUCache(size_t max_size);
-  void put(const ElementView& key, Tomblement&& value);
+  explicit LRUCache(size_t max_size);
+  void put(const ElementView& key, const QueryResult& value);
 
-  void put(Element&& key, Tomblement&& value);
+  void put(Element&& key, const QueryResult& value);
 
-  size_t size() const;
+  size_t size();
 
   // Returns a copy of the value element.
-  QueryResult get(const ElementView& key);
+  std::optional<QueryResult> get(const ElementView& key);
 
   // If found, copies the value into the user-provided buffer and returns OK,
   // value length. If the buffer is too small, returns BUFFER_TOO_SMALL and
   // value length.
   std::pair<QueryStatus, size_t> get(const ElementView& key, char* value,
                                      size_t value_len);
+
+  void clear();
 private:
   struct Comparator {
     using is_transparent = std::true_type;
@@ -44,11 +46,11 @@ private:
   };
 
   struct Value {
-    Tomblement v;
+    QueryResult v;
     std::list<ElementView>::iterator it;
 
-    [[nodiscard]] size_t GetBufferLen() const {
-      return v.GetBufferLen();
+    [[nodiscard]] size_t Length() const {
+      return v->Length();
     }
   };
 

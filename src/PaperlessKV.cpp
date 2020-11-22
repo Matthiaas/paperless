@@ -22,8 +22,10 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
       consistency_(c),
       mode_(m),
       hash_function_(hf),
-      local_(1,10000),
-      remote_(1, 10000),
+      local_(1,MAX_MTABLE_SIZE),
+      remote_(1, MAX_MTABLE_SIZE),
+      local_cache_(MAX_CACHE_SIZE),
+      remote_cache_(MAX_CACHE_SIZE),
       storage_manager_(id),
       shutdown_(false),
       comm_(comm),
@@ -136,9 +138,19 @@ void PaperlessKV::Put(const ElementView& key, Tomblement&& value) {
   Owner o = hash % rank_size_;
   if (o == rank_) {
     // Local insert.
+    if(value.Tombstone()) {
+      local_cache_.put(key, QueryStatus::DELETED);
+    } else {
+      local_cache_.put(key, Element::copyElementContent(value.GetView()));
+    }
     local_.Put(key, std::move(value), hash, rank_);
   } else {
     if (consistency_ == RELAXED) {
+      if(value.Tombstone()) {
+        remote_cache_.put(key, QueryStatus::DELETED);
+      } else {
+        remote_cache_.put(key, Element::copyElementContent(value.GetView()));
+      }
       remote_.Put(key, std::move(value), hash, rank_);
     } else if (consistency_ == SEQUENTIAL) {
       RemotePut(key, hash, value.GetView());
@@ -154,38 +166,41 @@ QueryResult PaperlessKV::Get(const ElementView& key) {
   } else {
     if (consistency_ == RELAXED) {
       return RemoteGetRelaxed(key, hash);
-    } else {
-      return RemoteGetValue(key, hash);
+    } else { // SEQUENTIAL
+      QueryResult qr = RemoteGetValue(key, hash);
+      if(mode_ == READONLY) {
+        remote_cache_.put(key, qr);
+      }
+      return qr;
     }
   }
 }
 
 QueryResult PaperlessKV::LocalGet(const ElementView& key, Hash hash) {
-
-  QueryResult e_cache = local_cache_.get(key);
-  if (e_cache == QueryStatus::NOT_FOUND) {
+  std::optional<QueryResult> cache_result = local_cache_.get(key);
+  if(cache_result) {
+    return std::move(cache_result.value());
+  } else {
     QueryResult el = local_.Get(key, hash, rank_);
     if (el == QueryStatus::NOT_FOUND) {
-      return storage_manager_.readFromDisk(key);
-    } else {
-      return el;
+      el = storage_manager_.readFromDisk(key);
     }
-  } else {
-    return e_cache;
+    local_cache_.put(key, el);
+    return el;
   }
 }
 
 QueryResult PaperlessKV::RemoteGetRelaxed(const ElementView& key, Hash hash) {
-  QueryResult e_cache = remote_cache_.get(key);
-  if (e_cache == QueryStatus::NOT_FOUND) {
+  std::optional<QueryResult> cache_result = remote_cache_.get(key);
+  if(cache_result) {
+    return std::move(cache_result.value());
+  } else {
     QueryResult el = remote_.Get(key, hash, rank_);
     if (el == QueryStatus::NOT_FOUND) {
-      return RemoteGetValue(key, hash);
-    } else {
-      return el;
+      el = RemoteGetValue(key, hash);
     }
-  } else {
-    return e_cache;
+    remote_cache_.put(key, el);
+    return el;
   }
 }
 
@@ -270,6 +285,7 @@ Element PaperlessKV::ReceiveKey(int source, int tag, MPI_Status* status) {
 }
 
 void PaperlessKV::Fence() {
+  remote_cache_.clear();
   Sync();
   MPI_Barrier(comm_);
 }
@@ -277,11 +293,15 @@ void PaperlessKV::Fence() {
 void PaperlessKV::FenceAndChangeOptions(PaperlessKV::Consistency c, Mode mode) {
   Sync();
   consistency_ = c;
+  if(!(mode_ == READONLY && mode == READANDWRITE && c == RELAXED)) {
+    remote_cache_.clear();
+  }
   mode_ = mode;
   MPI_Barrier(comm_);
 }
 
 void PaperlessKV::FenceAndCheckPoint() {
+  remote_cache_.clear();
   Sync();
   local_.Flush();
   MPI_Barrier(comm_);
