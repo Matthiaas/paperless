@@ -78,9 +78,16 @@ public:
   }
 
   // Gets element, stores result in the user-provided `buffer`.
-  QueryStatus Get(const ElementView& key, Hash hash, Owner owner,
-                  ElementView buffer) const {
-    throw "Hey you smartass, implement me.";
+  std::pair<QueryStatus, size_t>  Get(const ElementView& key, char* value,
+    size_t value_len, Hash hash, Owner owner) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto const& mtable : list_) {
+      // Skip the dummy entry.
+      if (mtable == nullptr) continue;
+      auto result = mtable->get(key, value, value_len);
+      if (result.first != QueryStatus::NOT_FOUND) return result;
+    }
+    return {QueryStatus::NOT_FOUND,0};
   }
 
   // Blocks until all of `wbuffer_` gets dequeued.

@@ -53,16 +53,18 @@ public:
       QueryResult result = mtable_->get(key);
       if (result != QueryStatus::NOT_FOUND) return result;
     }
-    QueryResult result = wbuffer_.Get(key, hash, owner);
-    if (result != QueryStatus::NOT_FOUND) return result;
-
-    return QueryStatus::NOT_FOUND;
+    return wbuffer_.Get(key, hash, owner);
   }
 
   // Gets element, stores result in the user-provided `buffer`.
-  QueryStatus Get(const ElementView& key, Hash hash, Owner owner,
-                  ElementView buffer) const {
-    throw "Shape that diamond and implement me.";
+  std::pair<QueryStatus, size_t> Get(const ElementView& key, char* value,
+    size_t value_len, Hash hash, Owner owner) const {
+    {
+      std::lock_guard<std::mutex> lock(mtable_mutex_);
+      auto result = mtable_->get(key, value, value_len);
+      if (result.first != QueryStatus::NOT_FOUND) return result;
+    }
+    return wbuffer_.Get(key, value, value_len, hash, owner);
   }
 
   // Retrieves part of `wbuffer_` that can be flushed. Blocking.
