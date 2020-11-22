@@ -20,8 +20,8 @@ class StatusOr {
     has_value_ = false;
   }
 
-  template <typename U = T>
-  StatusOr(U&& t) {
+
+  StatusOr(T&& t) {
     build(std::forward<T>(t));
   }
 
@@ -30,13 +30,22 @@ class StatusOr {
   }
 
   StatusOr(StatusOr<T, St>&& t) {
-    if(t.hasValue())
+    if(t.hasValue()) {
       build(std::move(t.Value()));
+    } else{
+      has_value_ = false;
+      status_ = t.status_;
+    }
   }
 
   StatusOr(const StatusOr<T, St>& t) {
-    if(t.hasValue() )
+    if(t.hasValue() ){
       build(t.Value());
+    } else {
+      has_value_ = false;
+      status_ = t.status_;
+    }
+
   }
 
 
@@ -80,6 +89,29 @@ class StatusOr {
   T& operator*() & { return Value(); }
 
   T&& operator*() && { return Value(); }
+
+  StatusOr<T, St>& operator=(const StatusOr<T, St>& rhs) {
+    if (rhs.hasValue()) {
+      storage_ = rhs.storage_;
+      has_value_ = true;
+    } else {
+      has_value_ = false;
+      status_ = rhs.status_;
+    }
+    return *this;
+  }
+
+  StatusOr<T, St>& operator=(StatusOr<T, St>&& rhs) {
+    if (rhs.hasValue()) {
+      storage_ = std::move(rhs.storage_);
+      has_value_ = true;
+      rhs.has_value_ = false;
+    } else {
+      has_value_ = false;
+      status_ = std::move(rhs.status_);
+    }
+    return *this;
+  }
 
 
   bool operator==(const StatusOr<T, St>& o) const {
