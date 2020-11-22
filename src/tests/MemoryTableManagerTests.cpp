@@ -17,9 +17,11 @@ using RBTreeMemoryManager =
     MemoryTableManager<MemTable, MemQueue>;
 
 char kKeyBytes[] = "key";
+size_t kKeyLen = 3;
 char kValueBytes[] = "value";
-const Element kSampleValue{kValueBytes, 5};
-const ElementView kSampleKey{kKeyBytes, 3};
+size_t kValueLen = 5;
+const Element kSampleValue{kValueBytes, kValueLen};
+const ElementView kSampleKey{kKeyBytes, kKeyLen};
 
 TEST_CASE("MemoryTableManager Simple Get") {
   RBTreeMemoryManager manager(/*consumer_count_=*/0, /*max_mtable_size=*/10);
@@ -28,6 +30,33 @@ TEST_CASE("MemoryTableManager Simple Get") {
   const auto result = manager.Get(kSampleKey, /*hash=*/1, /*owner=*/0);
   CHECK(kSampleValue == result.Value());
 }
+
+TEST_CASE("MemoryTableManager Get with user-provided buffer from working memtable") {
+  RBTreeMemoryManager manager(/*consumer_count_=*/0, /*max_mtable_size=*/10);
+  Tomblement val{kValueBytes, 5};
+  manager.Put(kSampleKey, std::move(val), /*hash=*/1, /*owner=*/0);
+
+  char* buffer[kValueLen];
+  const auto result = manager.Get(kSampleKey, reinterpret_cast<char*>(buffer),
+                                  kValueLen, /*hash=*/1, /*owner=*/0);
+  CHECK(result.first == QueryStatus::FOUND);
+  CHECK(result.second == kValueLen);
+  CHECK(memcmp(buffer, kValueBytes, kValueLen) == 0);
+}
+
+TEST_CASE("MemoryTableManager Get with user-provided buffer from memtable queue") {
+  RBTreeMemoryManager manager(/*consumer_count_=*/0, /*max_mtable_size=*/0);
+  Tomblement val{kValueBytes, 5};
+  manager.Put(kSampleKey, std::move(val), /*hash=*/1, /*owner=*/0);
+
+  char* buffer[kValueLen];
+  const auto result = manager.Get(kSampleKey, reinterpret_cast<char*>(buffer),
+                                  kValueLen, /*hash=*/1, /*owner=*/0);
+  CHECK(result.first == QueryStatus::FOUND);
+  CHECK(result.second == kValueLen);
+  CHECK(memcmp(buffer, kValueBytes, kValueLen) == 0);
+}
+
 
 TEST_CASE("MemoryTableManager Simple Dequeue") {
   // Setting max_mtable_size=0 forces memory tables to have a single element.
