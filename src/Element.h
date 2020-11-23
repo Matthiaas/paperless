@@ -121,6 +121,7 @@ class Tomblement {
   }
 
   Tomblement& operator=(Tomblement&& other)  noexcept {
+    free(value_);
     value_ = other.value_;
     len_= other.len_;
     other.value_ = nullptr;
