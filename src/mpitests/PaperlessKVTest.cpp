@@ -4,6 +4,8 @@
 #include <zconf.h>
 #include "../PaperlessKV.h"
 
+#include "PaperLessKVFriend.h"
+
 std::function<uint64_t(const char*,const size_t)> hash_fun =
     [] (const char* v, const size_t) -> uint64_t {
   return v[0] - '0';
@@ -178,8 +180,6 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
 
 TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
 {
-
-
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
@@ -207,7 +207,6 @@ TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
       CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
     }
   }
-
   paper.Fence();
 }
 

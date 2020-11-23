@@ -153,6 +153,9 @@ class PaperlessKV {
   std::mutex fence_mutex;
   std::condition_variable fence_wait;
 
+  // For testing:
+  friend class PaperLessKVFriend;
+
 };
 
 #endif  // PAPERLESS_PAPERLESSKV_H

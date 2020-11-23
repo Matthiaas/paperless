@@ -54,7 +54,9 @@ add_subdirectory(third_party/smhasher)
 
 set(MPI_TEST_SOURCES
         src/mpitests/mpi_tests_main.cpp
-        src/mpitests/PaperlessKVTest.cpp src/mpitests/PaperlessKVRandomTest.cpp)
+        src/mpitests/PaperlessKVTest.cpp
+        src/mpitests/PaperlessKVRandomTest.cpp
+        src/mpitests/PaperLessKVFriend.h)
 
 add_library(paperless STATIC ${LIB_SOURCES})
 target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})
