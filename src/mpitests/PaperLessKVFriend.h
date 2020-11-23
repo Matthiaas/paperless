@@ -11,27 +11,31 @@
 
 class PaperLessKVFriend {
  public:
-  PaperLessKVFriend(std::string id)
-    : paper(id, MPI_COMM_WORLD, 7, PaperlessKV::RELAXED){
+  PaperLessKVFriend(PaperlessKV* paper) : paper_(paper) {
+
   }
 
   LRUCache& getLocalCache() {
-    return paper.local_cache_;
+    return paper_->local_cache_;
   }
 
   LRUCache& getRemoteCache() {
-    return paper.remote_cache_;
+    return paper_->remote_cache_;
   }
 
   PaperlessKV::RBTreeMemoryManager& getLocalManager() {
-    return paper.local_;
+    return paper_->local_;
   }
 
   PaperlessKV::RBTreeMemoryManager& getRemoteManager() {
-    return paper.remote_;
+    return paper_->remote_;
   }
 
-  PaperlessKV paper;
+  StorageManager& getStorageManger() {
+    return paper_->storage_manager_;
+  }
+
+  PaperlessKV* paper_;
 };
 
 #endif  // PAPERLESS_PAPERLESSKVFRIEND_H

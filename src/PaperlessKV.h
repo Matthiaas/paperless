@@ -45,7 +45,7 @@ class PaperlessKV {
 
   void put(const char* key, size_t key_len,const char* value, size_t value_len);
   QueryResult get(const char* key, size_t key_len);
-  void deleteKey(char* key, size_t key_len);
+  void deleteKey(const char* key, size_t key_len);
 
   // Must be called in every rank.
   // Unblocks when all ranks processed all gets and puts.

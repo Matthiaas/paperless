@@ -227,7 +227,7 @@ QueryResult PaperlessKV::get(const char *key, size_t key_len) {
   return Get(ElementView(key, key_len));
 }
 
-void PaperlessKV::deleteKey(char *key, size_t key_len) {
+void PaperlessKV::deleteKey(const char *key, size_t key_len) {
   deleteKey(ElementView(key, key_len));
 }
 
