@@ -1,7 +1,6 @@
 #include <mpi_catch.hpp>
 
 #include <mpi.h>
-#include <zconf.h>
 #include "../PaperlessKV.h"
 
 
