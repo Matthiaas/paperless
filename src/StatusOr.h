@@ -91,6 +91,7 @@ class StatusOr {
   T&& operator*() && { return Value(); }
 
   StatusOr<T, St>& operator=(const StatusOr<T, St>& rhs) {
+    if (hasValue()) Value().T::~T();
     if (rhs.hasValue()) {
       storage_ = rhs.storage_;
       has_value_ = true;
@@ -102,6 +103,7 @@ class StatusOr {
   }
 
   StatusOr<T, St>& operator=(StatusOr<T, St>&& rhs) {
+    if (hasValue()) Value().T::~T();
     if (rhs.hasValue()) {
       storage_ = std::move(rhs.storage_);
       has_value_ = true;

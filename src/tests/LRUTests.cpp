@@ -2,16 +2,16 @@
 
 #include "../LRUCache.h"
 
-/*
-TEST_CASE("LRUCache: Put with View & Get Test") {
+
+TEST_CASE("LRUCache: Put with View & Get Test", "[LRUTest]") {
   LRUCache memTable(1000);
   char key_bytes[] = "key";
   ElementView n_key{key_bytes, 3};
   char value_bytes[] = "value";
   Element val_expected{value_bytes, 5};
-  Tomblement val{value_bytes, 5};
 
-  memTable.put(n_key, std::move(val));
+
+  memTable.put(n_key, Element::copyElementContent(val_expected));
   const auto result = memTable.get(n_key);
   CHECK(result->hasValue());
   bool a = val_expected == (**result);
@@ -19,7 +19,7 @@ TEST_CASE("LRUCache: Put with View & Get Test") {
 }
 
 
-TEST_CASE("LRUCache: Put with Key Move & Get Test") {
+TEST_CASE("LRUCache: Put with Key Move & Get Test", "[LRUTest]") {
   LRUCache memTable(1000);
   char key_bytes[] = "key";
   ElementView key{key_bytes, 3};
@@ -27,13 +27,13 @@ TEST_CASE("LRUCache: Put with Key Move & Get Test") {
   char value_bytes[] = "value";
   Element val_expected{value_bytes, 5};
 
-  memTable.put(std::move(keyToMove), {value_bytes, 5});
+  memTable.put(std::move(keyToMove),  Element::copyElementContent(val_expected));
   const auto result = memTable.get(key);
   CHECK(result->hasValue());
   CHECK(val_expected == (**result));
 }
 
-TEST_CASE("LRUCache: Get & Put Overwrite Test") {
+TEST_CASE("LRUCache: Get & Put Overwrite Test", "[LRUTest]") {
   LRUCache memTable(1000);
   char key_bytes[] = "key";
   ElementView key{key_bytes, 3};
@@ -42,19 +42,19 @@ TEST_CASE("LRUCache: Get & Put Overwrite Test") {
   Element val_expected{value_bytes, 5};
   Tomblement val{value_bytes, 5};
 
-  memTable.put(key, std::move(val));
+  memTable.put(key, Element::copyElementContent(val_expected));
   const auto result = memTable.get(key);
-  CHECK(result.hasValue());
-  CHECK(val_expected == (*result));
+  CHECK(result.has_value());
+  CHECK(val_expected == (**result));
 
   char value_overwrite_bytes[] = "overwrite";
   Element val_overwrite_expected{value_overwrite_bytes, 9};
   Tomblement val_overwrite{value_overwrite_bytes, 9};
 
-  memTable.put(key, std::move(val_overwrite));
+  memTable.put(key, Element::copyElementContent(val_overwrite_expected));
   const auto result_overwrite = memTable.get(key);
-  CHECK(result_overwrite.hasValue());
-  CHECK(val_overwrite_expected == (*result_overwrite));
+  CHECK(result_overwrite.has_value());
+  CHECK(val_overwrite_expected == (**result_overwrite));
 }
 
 /*
@@ -97,9 +97,9 @@ TEST_CASE("RBTreeMemoryTable: Put & Get with user-provided buffer") {
     CHECK(result.second == 0);
   }
 }
+*/
 
-
-TEST_CASE("LRUCache: Put, Delete & Get Test") {
+TEST_CASE("LRUCache: Put, Delete & Get Test", "[LRUTest]") {
   LRUCache memTable(1000);
   char key_bytes[] = "key";
   ElementView key{key_bytes, 3};
@@ -107,13 +107,13 @@ TEST_CASE("LRUCache: Put, Delete & Get Test") {
   Element val_expected{value_bytes, 5};
   Tomblement val{value_bytes, 5};
 
-  memTable.put(key, std::move(val));
-  memTable.put(key, Tomblement::getATombstone());
+  memTable.put(key, Element::copyElementContent(val_expected));
+  memTable.put(key, QueryStatus::DELETED);
   const auto result = memTable.get(key);
-  CHECK(result.Status() == QueryStatus::DELETED);
+  CHECK(result->Status() == QueryStatus::DELETED);
 }
 
-TEST_CASE("LRUCache: Old Elements Get Removed Test") {
+TEST_CASE("LRUCache: Old Elements Get Removed Test", "[LRUTest]") {
   LRUCache memTable(25);
 
   CHECK(memTable.size() == 0);
@@ -124,29 +124,29 @@ TEST_CASE("LRUCache: Old Elements Get Removed Test") {
   Element val_expected{value_bytes, 5};
   Tomblement val{value_bytes, 5};
 
-  memTable.put(key, std::move(val));
-  QueryResult res =memTable.get(key);
-  CHECK(res.hasValue());
-  CHECK(val_expected == (*res));
+  memTable.put(key, Element::copyElementContent(val_expected));
+  const auto res =memTable.get(key);
+  CHECK(res.has_value());
+  CHECK(val_expected == (**res));
 
   char another_key_bytes[] = "another_key";
   ElementView another_key{another_key_bytes, 11};
   char another_value_bytes[] = "another_value";
   Element another_value_expected{another_value_bytes, 13};
-  Tomblement another_value{another_value_bytes, 13};
-  memTable.put(another_key, std::move(another_value));
+  memTable.put(another_key, Element::copyElementContent(another_value_expected));
 
-  QueryResult res2 =memTable.get(key);
-  CHECK(!res2.hasValue());
- // CHECK(val_expected == (*res2));
+  const auto res2 =memTable.get(key);
+  CHECK(!res2.has_value());
 
 
-  QueryResult re3 =memTable.get(another_key);
-  CHECK(re3.hasValue());
-  CHECK(another_value_expected == (*re3));
+  const auto re3 =memTable.get(another_key);
+  CHECK(re3.has_value());
+  CHECK(another_value_expected == (**re3));
 }
 
-TEST_CASE("LRUCache: Size Test") {
+
+
+TEST_CASE("LRUCache: Size Test", "[LRUTest]") {
   LRUCache memTable(1000);
 
   CHECK(memTable.size() == 0);
@@ -155,28 +155,25 @@ TEST_CASE("LRUCache: Size Test") {
   ElementView key{key_bytes, 3};
   char value_bytes[] = "value";
   Element val_expected{value_bytes, 5};
-  Tomblement val{value_bytes, 5};
 
-  memTable.put(key, std::move(val));
-  CHECK(memTable.size() == key.Length() + val_expected.Length() + 1);
+  memTable.put(key, Element::copyElementContent(val_expected));
+  CHECK(memTable.size() == key.Length() + val_expected.Length() );
 
   char value_overwrite_bytes[] = "overwrite";
   Element val_overwrite_expected{value_overwrite_bytes, 9};
-  Tomblement val_overwrite{value_overwrite_bytes, 9};
 
-  memTable.put(key, std::move(val_overwrite));
-  CHECK(memTable.size() == key.Length() + val_overwrite_expected.Length() + 1);
+
+  memTable.put(key,Element::copyElementContent(val_overwrite_expected));
+  CHECK(memTable.size() == key.Length() + val_overwrite_expected.Length() );
 
   char another_key_bytes[] = "another_key";
   ElementView another_key{another_key_bytes, 11};
   char another_value_bytes[] = "another_value";
   Element another_value_expected{another_value_bytes, 13};
-  Tomblement another_value{another_value_bytes, 13};
-  memTable.put(another_key, std::move(another_value));
+  memTable.put(another_key, Element::copyElementContent(another_value_expected));
 
   CHECK(memTable.size() ==
-        another_key.Length() + another_value_expected.Length() + 1 +
-        key.Length() + val_overwrite_expected.Length() + 1);
+        another_key.Length() + another_value_expected.Length()  +
+        key.Length() + val_overwrite_expected.Length() );
 }
 
-*/

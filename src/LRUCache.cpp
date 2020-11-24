@@ -3,6 +3,7 @@
 //
 
 #include "LRUCache.h"
+#include <iostream>
 
 LRUCache::LRUCache(size_t max_size) :
   max_byte_size_(max_size), cur_byte_size_(0) {}
@@ -16,7 +17,6 @@ void LRUCache::put(Element&& key, const QueryResult& value) {
   queue.push_front(key.GetView());
   auto it = queue.begin();
 
-
   // Insert Elements
   if(value.hasValue())
     cur_byte_size_ += value->Length();
@@ -29,8 +29,10 @@ void LRUCache::put(Element&& key, const QueryResult& value) {
   auto emplace_result = container_.try_emplace(std::move(key), std::move(v));
   if (!emplace_result.second) {  // The key was in the map already.
     auto it = emplace_result.first;
+    queue.erase(it->second.it);
     // try_emplace doesn't move the value unless insertion actually happened.
     cur_byte_size_ -= it->second.Length();
+
     it->second = std::move(v);  // NOLINT(bugprone-use-after-move)
   } else {
     cur_byte_size_ += key_length;

@@ -16,7 +16,7 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
 
   PaperlessKV paper(id, MPI_COMM_WORLD, 7, PaperlessKV::RELAXED);
 
-  int size_per_rank = 100;
+  int size_per_rank = 1000;
 
   int from = rank * size_per_rank;
   int to = (rank+1) * size_per_rank;
@@ -69,7 +69,7 @@ TEST_CASE("ManyPutsAndGets READONLY Mode", "[4rank]")
 
   PaperlessKV paper(id, MPI_COMM_WORLD, 7, PaperlessKV::RELAXED);
 
-  int size_per_rank = 100;
+  int size_per_rank = 1000;
 
   int from = rank * size_per_rank;
   int to = (rank+1) * size_per_rank;

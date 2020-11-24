@@ -50,7 +50,10 @@ private:
     std::list<ElementView>::iterator it;
 
     [[nodiscard]] size_t Length() const {
-      return v->Length();
+      if(v.hasValue())
+        return v->Length();
+      else
+        return 0;
     }
   };
 
