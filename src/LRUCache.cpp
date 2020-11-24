@@ -3,6 +3,7 @@
 //
 
 #include "LRUCache.h"
+#include <mpi.h>
 #include <iostream>
 
 LRUCache::LRUCache(size_t max_size) :
@@ -32,7 +33,9 @@ void LRUCache::put(Element&& key, const QueryResult& value) {
     queue.erase(it->second.it);
     // try_emplace doesn't move the value unless insertion actually happened.
     cur_byte_size_ -= it->second.Length();
-
+    // We need to set the front Element view in the queue
+    // to the actual key that is in the map.
+    queue.front() = it->first.GetView();
     it->second = std::move(v);  // NOLINT(bugprone-use-after-move)
   } else {
     cur_byte_size_ += key_length;
@@ -67,13 +70,6 @@ void LRUCache::CleanUp() {
     auto it = queue.end();
     --it;
     auto e_it = container_.find(*it);
-    if(e_it == container_.end()) {
-      // We somehow did not the delete the iterator in the queue when either
-      // removing the element or more likley overriding the element.
-      std::cerr << "This should never happen: LRU CACHE" << std::endl << std::flush;
-      queue.erase(it);
-      continue;
-    }
     cur_byte_size_ -= e_it->second.Length();
     cur_byte_size_ -= e_it->first.Length();
     container_.erase(e_it);
