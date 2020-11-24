@@ -67,6 +67,13 @@ void LRUCache::CleanUp() {
     auto it = queue.end();
     --it;
     auto e_it = container_.find(*it);
+    if(e_it == container_.end()) {
+      // We somehow did not the delete the iterator in the queue when either
+      // removing the element or more likley overriding the element.
+      std::cerr << "This should never happen: LRU CACHE" << std::endl << std::flush;
+      queue.erase(it);
+      continue;
+    }
     cur_byte_size_ -= e_it->second.Length();
     cur_byte_size_ -= e_it->first.Length();
     container_.erase(e_it);
