@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(paperless)
 
+option(IS_CLUSTER "Indicates whether cmake is run on the cluster or not." OFF)
+
 # Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
 find_package(MPI REQUIRED)
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
@@ -10,7 +12,7 @@ find_package(Threads REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 
-set(CMAKE_CXX_FLAGS "-lmtbl -rdynamic") # sudo apt install libmtbl-dev
+set(CMAKE_CXX_FLAGS "-rdynamic") # sudo apt install libmtbl-dev
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ")
 
 
@@ -18,6 +20,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fno-omit-frame-pointer")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=leak")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+
+if (IS_CLUSTER)
+  # Non-global LD_LIBRARY_PATH equivalent.
+  set(CMAKE_INSTALL_RPATH "~/usr/lib")
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  link_directories(~/usr/lib)
+  include_directories(~/usr/include)
+endif()
 
 include_directories(third_party)
 
@@ -63,6 +73,7 @@ target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})
 target_link_libraries(paperless PRIVATE Threads::Threads)
 target_link_libraries(paperless PRIVATE smhasher)
 target_link_libraries(paperless PRIVATE stdc++fs)
+target_link_libraries(paperless PRIVATE mtbl)
 
 add_executable(main main.cpp)
 add_executable(tests
