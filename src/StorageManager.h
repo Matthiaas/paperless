@@ -37,6 +37,8 @@ class StorageManager {
 
   void flushToDisk(const RBTreeMemoryTable&);
   QueryResult readFromDisk(const ElementView &key);
+  std::pair<QueryStatus, size_t> readFromDisk(const ElementView &key,
+                                              const ElementView& buff);
 
  private:
   uint64_t cur_file_index_;

@@ -69,3 +69,18 @@ QueryResult StorageManager::readFromDisk(const ElementView &key) {
   }
   return QueryStatus::NOT_FOUND;
 }
+std::pair<QueryStatus, size_t> StorageManager::readFromDisk(const ElementView &key,
+                                                            const ElementView& buff) {
+  //TODO: FLoris implement this properly!
+  auto qr = readFromDisk(key);
+  if(qr == QueryStatus::NOT_FOUND || qr == QueryStatus::DELETED) {
+    return {qr.Status(), 0};
+  } else {
+    if(qr->Length() > buff.Length()) {
+      return {QueryStatus::BUFFER_TOO_SMALL,qr->Length()};
+    } else {
+      std::memcpy(qr->Value(), buff.Value(), qr->Length());
+      return {QueryStatus::FOUND,qr->Length()};
+    }
+  }
+}

@@ -45,6 +45,11 @@ class PaperlessKV {
 
   void put(const char* key, size_t key_len,const char* value, size_t value_len);
   QueryResult get(const char* key, size_t key_len);
+  // If found, copies the value into the user-provided buffer and returns OK,
+  // value length. If the buffer is too small, returns BUFFER_TOO_SMALL and
+  // value length.
+  std::pair<QueryStatus, size_t> get(const char* key, size_t key_len,
+                                     char* value_buff, size_t value_buff_len);
   void deleteKey(const char* key, size_t key_len);
 
   // Must be called in every rank.
@@ -91,22 +96,25 @@ class PaperlessKV {
 
   Element ReceiveKey(int source, int tag, MPI_Status* status);
   QueryResult ReceiveQueryResult(int source, int tag, MPI_Status* status);
-  Tomblement ReceiveTomblement(int source, int tag, MPI_Status* status);
-
-  // TODO: Implement this.
-  int receiveKey(const ElementView& buff, int source, int tag, MPI_Status status);
-  int receiveValue(const ElementView& buff, int source, int tag, MPI_Status status);
-
+  std::pair<QueryStatus, size_t> ReceiveValueIntoBuffer(
+      const ElementView& v_buff, int source, int tag, MPI_Status* status);
+  Tomblement ReceiveTomblementSequential(int source, int tag, MPI_Status* status);
 
   // Performs a LocalGet operation, given that the key is owned by this rank.
   QueryResult LocalGet(const ElementView& key, Hash hash);
-  // Gets the remote value but relaxed it migh check caches and returns outdated
-  // values.
+  std::pair<QueryStatus, size_t> LocalGet(
+      const ElementView& key, const ElementView& buff, Hash hash);
+  // Gets the remote value but relaxed it might check caches and returns
+  // outdated values.
   QueryResult RemoteGetRelaxed(const ElementView& key, Hash hash);
+  std::pair<QueryStatus, size_t> RemoteGetRelaxed(
+      const ElementView& key, const ElementView& v_buff, Hash hash);
   // Get a remote value immediately (used for SEQUENTIAL consistency).
   QueryResult RemoteGetValue(const ElementView& key, Hash hash);
+  std::pair<QueryStatus, size_t> RemoteGetValue(
+      const ElementView& key, const ElementView& v_buff, Hash hash);
   // Puts a single value to a remote rank immediately.
-  void RemotePut(const ElementView& key, Hash hash, const Tomblement& value);
+  void RemotePutSequential(const ElementView& key, Hash hash, const Tomblement& value);
 
   std::string id_;
 

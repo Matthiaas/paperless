@@ -27,6 +27,10 @@ const char value[] = "3value";
 const size_t vlen3 = 6;
 
 
+inline int user_buff_len = 200;
+inline char user_buff[200];
+
+
 
 TEST_CASE("LocalGetOnEmptyKV", "[1rank]")
 {
@@ -107,6 +111,52 @@ TEST_CASE("Local Put local_cache", "[1rank]")
     CHECK((*qr).Status() == QueryStatus::DELETED);
   }
 }
+
+
+TEST_CASE("LocalGet into user provided buffer ", "[1rank]")
+{
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+
+  paper.put(key1, klen1, value1, vlen1);
+
+  auto qr = paper.get(key1, klen1, user_buff, user_buff_len);
+  CHECK(qr.first == QueryStatus::FOUND);
+  CHECK(qr.second == vlen1);
+  CHECK(memcmp(user_buff, value1, vlen1) == 0);
+
+  qr = paper.get(key1, klen1, user_buff, 0);
+  CHECK(qr.first == QueryStatus::BUFFER_TOO_SMALL);
+  CHECK(qr.second == vlen1);
+}
+
+TEST_CASE("RemoteGet into user provided buffer ", "[2rank]")
+{
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+
+  if(rank == 1) {
+    paper.put(key1, klen1, value1, vlen1);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  auto qr = paper.get(key1, klen1, user_buff, user_buff_len);
+  CHECK(qr.first == QueryStatus::FOUND);
+  CHECK(qr.second == vlen1);
+  CHECK(memcmp(user_buff, value1, vlen1) == 0);
+
+  qr = paper.get(key1, klen1, user_buff, 0);
+  CHECK(qr.first == QueryStatus::BUFFER_TOO_SMALL);
+  CHECK(qr.second == vlen1);
+
+  MPI_Barrier(MPI_COMM_WORLD);
+}
+
 
 TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
 {
