@@ -60,6 +60,8 @@ class PaperlessKV {
   void FenceAndChangeOptions(Consistency c, Mode m);
   void FenceAndCheckPoint();
 
+  void Shutdown();
+
  private:
 
   using MemTable = RBTreeMemoryTable;

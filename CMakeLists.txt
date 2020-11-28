@@ -68,6 +68,12 @@ set(MPI_TEST_SOURCES
         src/mpitests/PaperlessKVStressTest.cpp
         src/mpitests/PaperLessKVFriend.h)
 
+set(WOKRLOAD_BECHMARK_SOURCES
+        src/benchmark/workload.cpp)
+
+set(BASIC_BECHMARK_SOURCES
+        src/benchmark/basic.cpp)
+
 add_library(paperless STATIC ${LIB_SOURCES})
 target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})
 target_link_libraries(paperless PRIVATE Threads::Threads)
@@ -86,7 +92,17 @@ add_executable(mpi_tests
         ${LIB_SOURCES}
         )
 
+add_executable(workload
+        ${WOKRLOAD_BECHMARK_SOURCES}
+        ${LIB_SOURCES})
+
+add_executable(basic
+        ${BASIC_BECHMARK_SOURCES}
+        ${LIB_SOURCES})
+
 target_link_libraries(main PUBLIC paperless mtbl)
 
+target_link_libraries(basic mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_link_libraries(workload mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(tests mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(mpi_tests mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)

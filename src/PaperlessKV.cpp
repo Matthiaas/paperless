@@ -41,6 +41,14 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
 }
 
 PaperlessKV::~PaperlessKV() {
+
+  if(!shutdown_) {
+    Shutdown();
+  }
+}
+
+void PaperlessKV::Shutdown() {
+  Fence();
   shutdown_ = true;
   local_.Shutdown();
   remote_.Shutdown();
@@ -437,3 +445,4 @@ void PaperlessKV::Sync() {
     fence_wait.wait(lck);
   }
 }
+
