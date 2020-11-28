@@ -36,7 +36,7 @@ TEST_CASE("LocalGetOnEmptyKV", "[1rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
   QueryResult qr = paper.get(key1, klen1);
   CHECK(qr == QueryStatus::NOT_FOUND);
@@ -47,7 +47,7 @@ TEST_CASE("Local Put Checkpoint", "[1rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
   PaperLessKVFriend paperFriend(&paper);
 
@@ -74,7 +74,7 @@ TEST_CASE("Local Put local_cache", "[1rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
   PaperLessKVFriend paperFriend(&paper);
 
@@ -117,7 +117,7 @@ TEST_CASE("LocalGet into user provided buffer ", "[1rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
 
   paper.put(key1, klen1, value1, vlen1);
@@ -136,7 +136,7 @@ TEST_CASE("RemoteGet into user provided buffer ", "[2rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
 
   if(rank == 1) {
@@ -162,7 +162,7 @@ TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::SEQUENTIAL);
   PaperLessKVFriend paperFriend(&paper);
 
@@ -201,7 +201,7 @@ TEST_CASE("LocalPut", "[1rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
   {
     paper.put(key1, klen1, value1, vlen1);
@@ -228,7 +228,7 @@ TEST_CASE("LocalOverride", "[1rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
   {
     paper.put(key1, klen1, value1, vlen1);
@@ -257,7 +257,7 @@ TEST_CASE("RemoteGet", "[2rank]")
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
 
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
   if(rank == 1) {
@@ -292,7 +292,7 @@ TEST_CASE("RemotePutAndGet SEQUENTIAL", "[2rank]")
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::SEQUENTIAL);
 
   if(rank == 0) {
@@ -316,7 +316,7 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
 
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
   if(rank == 0) {
@@ -345,7 +345,7 @@ TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
 
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
   if(rank == 0) {

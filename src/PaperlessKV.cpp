@@ -7,6 +7,12 @@
 #include <iostream>
 #include "Element.h"
 
+int GetRank(MPI_Comm comm) {
+  int rank;
+  MPI_Comm_rank(comm, &rank);
+  return rank;
+}
+
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed,
                          Consistency c, Mode m)
     : PaperlessKV(id, comm,
@@ -27,7 +33,7 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
       remote_(1, MAX_MTABLE_SIZE),
       local_cache_(MAX_CACHE_SIZE),
       remote_cache_(MAX_CACHE_SIZE),
-      storage_manager_(id),
+      storage_manager_(id + std::to_string(GetRank(comm))),
       shutdown_(false),
       comm_(comm),
       compactor_(&PaperlessKV::Compact, this),

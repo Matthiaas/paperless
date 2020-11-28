@@ -11,7 +11,7 @@ TEST_CASE("ManyPutsAndGets user provided buffer", "[4rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
 
   PaperlessKV paper(id, MPI_COMM_WORLD, 7, PaperlessKV::RELAXED);
 
@@ -61,7 +61,7 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
 
   PaperlessKV paper(id, MPI_COMM_WORLD, 7, PaperlessKV::RELAXED);
 
@@ -114,7 +114,7 @@ TEST_CASE("ManyPutsAndGets READONLY Mode", "[4rank]")
 {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::string id = "/tmp/PaperlessTest" + std::to_string(rank);
+  std::string id = "/tmp/PaperlessTest";
 
   PaperlessKV paper(id, MPI_COMM_WORLD, 7, PaperlessKV::RELAXED);
 

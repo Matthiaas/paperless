@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
   //opt.hash = NULL;
 
   // TODO: FixId
-  PaperlessKV paper("/tmp/mydb" + std::to_string(rank), MPI_COMM_WORLD, 1, PaperlessKV::RELAXED, PaperlessKV::READANDWRITE);
+  PaperlessKV paper("/tmp/mydb", MPI_COMM_WORLD, 1, PaperlessKV::RELAXED, PaperlessKV::READANDWRITE);
   //ret = papyruskv_open("mydb", PAPYRUSKV_CREATE | PAPYRUSKV_RELAXED | PAPYRUSKV_RDWR, &opt, &db);
   //if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
 
