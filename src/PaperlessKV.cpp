@@ -80,7 +80,7 @@ void PaperlessKV::Dispatch() {
     // TODO: Dispatch Data.
     for(const auto& [key, value] : *handler.Get()) {
       Hash hash = hash_function_(key.Value(), key.Length());
-      RemotePut(key.GetView(), hash, value.GetView());
+      RemotePut(key.GetView(), hash, value);
     }
     handler.Clear();
   }
@@ -124,11 +124,10 @@ void PaperlessKV::RespondPut() {
 
     // TODO: change interfaces and avoid some copies
     Element key = ReceiveKey( status.MPI_SOURCE, KEY_PUT_TAG, &status);
-    Element value = ReceiveKey( status.MPI_SOURCE, VALUE_PUT_TAG, &status);
+    Tomblement value = ReceiveTomblement( status.MPI_SOURCE, VALUE_PUT_TAG, &status);
     Hash hash = hash_function_(key.Value(), key.Length());
     Owner o = hash % rank_size_;
-    local_.Put(key.GetView(), Tomblement(value.Value(), value.Length()),
-               hash, o);
+    local_.Put(key.GetView(), std::move(value), hash, o);
 
   }
 }
@@ -153,7 +152,7 @@ void PaperlessKV::Put(const ElementView& key, Tomblement&& value) {
       }
       remote_.Put(key, std::move(value), hash, rank_);
     } else if (consistency_ == SEQUENTIAL) {
-      RemotePut(key, hash, value.GetView());
+      RemotePut(key, hash, value);
     }
   }
 }
@@ -209,13 +208,13 @@ QueryResult PaperlessKV::RemoteGetValue(const ElementView& key, Hash hash) {
   //int tag = get_value_tagger.getNextTag();
   SendKey(key, o, KEY_TAG);
   MPI_Status status;
-  return ReceiveValue(o, VALUE_TAG, &status);
+  return ReceiveQueryResult(o, VALUE_TAG, &status);
 }
 
-void PaperlessKV::RemotePut(const ElementView& key, Hash hash, const ElementView& value) {
+void PaperlessKV::RemotePut(const ElementView& key, Hash hash, const Tomblement& value) {
   Owner o = hash % rank_size_;
   SendKey(key, o, KEY_PUT_TAG);
-  SendKey(value, o, VALUE_PUT_TAG);
+  SendValue(value, o, VALUE_PUT_TAG);
 }
 
 void PaperlessKV::put(const char *key, size_t key_len,const char *value,
@@ -231,6 +230,10 @@ void PaperlessKV::deleteKey(const char *key, size_t key_len) {
   deleteKey(ElementView(key, key_len));
 }
 
+void PaperlessKV::SendValue(const Tomblement& value, int target, int tag) {
+  MPI_Send(value.GetBuffer(), value.GetBufferLen(),
+           MPI_CHAR, target, tag, comm_);
+}
 
 void PaperlessKV::SendValue(const QueryResult& key, int target, int tag) {
   char queryStatus = key.hasValue() ? QueryStatus::FOUND : key.Status();
@@ -241,7 +244,7 @@ void PaperlessKV::SendValue(const QueryResult& key, int target, int tag) {
 }
 
 
-QueryResult PaperlessKV::ReceiveValue(int source, int tag, MPI_Status* status) {
+QueryResult PaperlessKV::ReceiveQueryResult(int source, int tag, MPI_Status* status) {
   char queryStatus;
 
   MPI_Recv(&queryStatus, 1, MPI_CHAR, source, tag,comm_, status);
@@ -262,6 +265,16 @@ QueryResult PaperlessKV::ReceiveValue(int source, int tag, MPI_Status* status) {
   } else {
     return static_cast<QueryStatus >(queryStatus);
   }
+}
+
+Tomblement PaperlessKV::ReceiveTomblement(int source, int tag, MPI_Status* status) {
+  int value_size;
+  MPI_Probe(source, tag, comm_, status);
+  MPI_Get_count(status, MPI_CHAR, &value_size);
+  char* value_buff = static_cast<char*>(std::malloc(value_size));
+  MPI_Recv(value_buff, value_size, MPI_CHAR,
+           status->MPI_SOURCE, status->MPI_TAG,comm_, status);
+  return Tomblement::createFromBuffWithoutCopy(value_buff, value_size);
 }
 
 void PaperlessKV::SendKey(const ElementView& key, int target, int tag) {

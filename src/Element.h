@@ -109,9 +109,6 @@ class Tomblement {
     free(value_);
   }
 
-  Tomblement() :
-      Tomblement(nullptr, 0) {};
-
   Tomblement(const Tomblement& other) = delete;
   Tomblement(Tomblement&& other)   noexcept {
     value_ = other.value_;
@@ -129,6 +126,13 @@ class Tomblement {
     return *this;
   }
 
+  [[nodiscard]]  static Tomblement createFromBuffWithoutCopy(char* v, size_t len) {
+    Tomblement res;
+    res.value_ = v;
+    res.len_ = len - 1;
+    return res;
+  }
+
   [[nodiscard]] Element CopyToElement() const {
     return Element(Value(), len_);
   }
@@ -140,7 +144,7 @@ class Tomblement {
   }
 
   static Tomblement getATombstone() {
-    Tomblement res;
+    Tomblement res(nullptr, 0);
     res.value_[0] = true;
     return res;
   }
@@ -187,6 +191,7 @@ class Tomblement {
   }
 
  private:
+  Tomblement() {};
   char* value_;
   size_t len_;
 };

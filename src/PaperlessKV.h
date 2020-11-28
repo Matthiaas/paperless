@@ -87,9 +87,11 @@ class PaperlessKV {
   void SendKey(const ElementView& key, int target, int tag);
   // Sends a QueryResult (StatusOr) to specified target with specified tag.
   void SendValue(const QueryResult& key, int target, int tag);
+  void SendValue(const Tomblement& value, int target, int tag);
 
   Element ReceiveKey(int source, int tag, MPI_Status* status);
-  QueryResult ReceiveValue(int source, int tag, MPI_Status* status);
+  QueryResult ReceiveQueryResult(int source, int tag, MPI_Status* status);
+  Tomblement ReceiveTomblement(int source, int tag, MPI_Status* status);
 
   // TODO: Implement this.
   int receiveKey(const ElementView& buff, int source, int tag, MPI_Status status);
@@ -104,7 +106,7 @@ class PaperlessKV {
   // Get a remote value immediately (used for SEQUENTIAL consistency).
   QueryResult RemoteGetValue(const ElementView& key, Hash hash);
   // Puts a single value to a remote rank immediately.
-  void RemotePut(const ElementView& key, Hash hash, const ElementView& value);
+  void RemotePut(const ElementView& key, Hash hash, const Tomblement& value);
 
   std::string id_;
 
