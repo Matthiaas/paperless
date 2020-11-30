@@ -59,10 +59,27 @@ std::optional<QueryResult> LRUCache::get(const ElementView& key) {
   return res;
 }
 
-std::pair<QueryStatus, size_t> LRUCache::get(const ElementView& key,
-                                             char* value, size_t value_len) {
+std::pair<QueryStatus, size_t>
+LRUCache::get(const ElementView& key, const ElementView& value_buff) {
   std::lock_guard<std::mutex> lck(m_);
-  return std::pair<QueryStatus, size_t>();
+  auto it = container_.find(key);
+  if(it == container_.end()) {
+    return {QueryStatus::NOT_IN_CACHE, 0};
+  }
+  queue.erase(it->second.it);
+  queue.push_front(it->first.GetView());
+  it->second.it = queue.begin();
+  const QueryResult& value = it->second.v;
+  if(value.hasValue()) {
+    if(value->Length() > value_buff.Length()) {
+      return {QueryStatus::BUFFER_TOO_SMALL, value->Length()};
+    } else {
+      std::memcpy(value_buff.Value(), value->Value(), value->Length());
+      return {QueryStatus::FOUND, value->Length()};
+    }
+  } else {
+    return {value.Status(), 0};
+  }
 }
 void LRUCache::CleanUp() {
   // Delete Elements until cache has OK size.

@@ -27,8 +27,8 @@
 #define  KEY_PUT_TAG 3
 #define VALUE_PUT_TAG 4
 
-#define MAX_MTABLE_SIZE 10000
-#define MAX_CACHE_SIZE 1000
+#define MAX_MTABLE_SIZE 1000000
+#define MAX_CACHE_SIZE 1000000
 
 class PaperlessKV {
  public:

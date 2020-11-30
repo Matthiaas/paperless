@@ -207,17 +207,22 @@ std::pair<QueryStatus, size_t> PaperlessKV::LocalGet(const ElementView& key,
                                                      const ElementView& buff,
                                                      Hash hash) {
   // TODO: implement this for cache.
-  std::optional<QueryResult> cache_result = std::nullopt;
-  if(cache_result) {
-    return {QueryStatus::BUFFER_TOO_SMALL,0};
-  } else {
+  std::pair<QueryStatus, size_t> cache_result = local_cache_.get(key, buff);
+  if(cache_result.first== QueryStatus::NOT_IN_CACHE) {
     std::pair<QueryStatus, size_t> el =
         local_.Get(key, buff.Value(), buff.Length(), hash, rank_);
     if (el.first == QueryStatus::NOT_FOUND) {
       el = storage_manager_.readFromDisk(key, buff);
     }
-    //local_cache_.put(key, el);
+    if(el.first == QueryStatus::FOUND) {
+      local_cache_.put(key, Element(buff.Value(), el.second));
+    } else if(el.first == QueryStatus::DELETED
+              || el.first == QueryStatus::NOT_FOUND) {
+      local_cache_.put(key, el.first);
+    }
     return el;
+  } else {
+    return cache_result;
   }
 }
 
@@ -239,17 +244,23 @@ QueryResult PaperlessKV::RemoteGetRelaxed(const ElementView& key, Hash hash) {
 std::pair<QueryStatus, size_t> PaperlessKV::RemoteGetRelaxed(
     const ElementView& key, const ElementView& v_buff, Hash hash) {
   // TODO: implement this for cache.
-  std::optional<QueryResult> cache_result = std::nullopt;//remote_cache_.get(key);
-  if(cache_result) {
-    return {QueryStatus::BUFFER_TOO_SMALL,0};// std::move(cache_result.value());
-  } else {
+  std::pair<QueryStatus, size_t> cache_result = local_cache_.get(key, v_buff);
+  if(cache_result.first== QueryStatus::NOT_IN_CACHE) {
     std::pair<QueryStatus, size_t> el = remote_.Get(
         key, v_buff.Value(), v_buff.Length(), hash, rank_);
     if (el.first == QueryStatus::NOT_FOUND) {
       el = RemoteGetValue(key, v_buff, hash);
     }
-    //remote_cache_.put(key, el);
+    if(el.first == QueryStatus::FOUND) {
+      remote_cache_.put(key, Element(v_buff.Value(), el.second));
+    } else if(el.first == QueryStatus::DELETED
+                  || el.first == QueryStatus::NOT_FOUND) {
+      remote_cache_.put(key, el.first);
+    }
+
     return el;
+  } else {
+    return cache_result;
   }
 }
 
@@ -423,7 +434,7 @@ void PaperlessKV::Fence() {
 void PaperlessKV::FenceAndChangeOptions(PaperlessKV::Consistency c, Mode mode) {
   Sync();
   consistency_ = c;
-  if(!(mode_ == READONLY && mode == READANDWRITE && c == RELAXED)) {
+  if(c != RELAXED) {
     remote_cache_.clear();
   }
   mode_ = mode;

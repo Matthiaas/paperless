@@ -27,8 +27,8 @@ public:
   // If found, copies the value into the user-provided buffer and returns OK,
   // value length. If the buffer is too small, returns BUFFER_TOO_SMALL and
   // value length.
-  std::pair<QueryStatus, size_t> get(const ElementView& key, char* value,
-                                     size_t value_len);
+  std::pair<QueryStatus, size_t> get(const ElementView& key,
+                                     const ElementView& value_buff);
 
   void clear();
 private:
