@@ -83,7 +83,7 @@ TEST_CASE("Local Put local_cache", "[1rank]")
 
   paper.FenceAndCheckPoint();
 
-  LRUCache& lruCache = paperFriend.getLocalCache();
+  LRUTreeCache& lruCache = paperFriend.getLocalCache();
   {
     std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1));
     CHECK(qr.has_value());
@@ -172,7 +172,7 @@ TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  LRUCache& lruCache = paperFriend.getRemoteCache();
+  LRUTreeCache& lruCache = paperFriend.getRemoteCache();
   if(rank == 0){
     // Remote value should not get cached
     paper.get(key1, klen1);

@@ -15,11 +15,11 @@ class PaperLessKVFriend {
 
   }
 
-  LRUCache& getLocalCache() {
+  LRUTreeCache& getLocalCache() {
     return paper_->local_cache_;
   }
 
-  LRUCache& getRemoteCache() {
+  LRUTreeCache& getRemoteCache() {
     return paper_->remote_cache_;
   }
 

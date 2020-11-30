@@ -2,32 +2,34 @@
 // Created by matthias on 20.11.20.
 //
 
-#ifndef PAPERLESS_LRUCACHE_H
-#define PAPERLESS_LRUCACHE_H
+#ifndef PAPERLESS_LRUTREECACHE_H
+#define PAPERLESS_LRUTREECACHE_H
 
 #include <list>
 #include <mutex>
 #include "Element.h"
 #include "RBTreeMemoryTable.h"
 #include "Status.h"
+#include "Types.h"
 
-class LRUCache {
+
+class LRUTreeCache {
 
 public:
-  explicit LRUCache(size_t max_size);
-  void put(const ElementView& key, const QueryResult& value);
+  explicit LRUTreeCache(size_t max_size);
+  void put(const ElementView& key, Hash, const QueryResult& value);
 
-  void put(Element&& key, const QueryResult& value);
+  void put(Element&& key, Hash, const QueryResult& value);
 
   size_t size();
 
   // Returns a copy of the value element.
-  std::optional<QueryResult> get(const ElementView& key);
+  std::optional<QueryResult> get(const ElementView& key,  Hash);
 
   // If found, copies the value into the user-provided buffer and returns OK,
   // value length. If the buffer is too small, returns BUFFER_TOO_SMALL and
   // value length.
-  std::pair<QueryStatus, size_t> get(const ElementView& key,
+  std::pair<QueryStatus, size_t> get(const ElementView& key, Hash,
                                      const ElementView& value_buff);
 
   void clear();
@@ -68,4 +70,4 @@ private:
 };
 
 
-#endif  // PAPERLESS_LRUCACHE_H
+#endif  // PAPERLESS_LRUTREECACHE_H
