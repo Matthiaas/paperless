@@ -14,6 +14,7 @@
 #include <thread>
 
 #include "Element.h"
+#include "LRUHashCache.h"
 #include "LRUTreeCache.h"
 #include "ListQueue.h"
 #include "MemoryTableManager.h"
@@ -129,6 +130,9 @@ class PaperlessKV {
 
   LRUTreeCache local_cache_;
   LRUTreeCache remote_cache_;
+
+  //LRUHashCache local_cache_;
+  //LRUHashCache remote_cache_;
 
   StorageManager storage_manager_;
 
