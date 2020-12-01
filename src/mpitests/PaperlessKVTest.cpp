@@ -85,7 +85,7 @@ TEST_CASE("Local Put local_cache", "[1rank]")
 
   LRUTreeCache& lruCache = paperFriend.getLocalCache();
   {
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1), hash_fun(key1, klen1));
     CHECK(qr.has_value());
     if(qr.has_value()) {
       CHECK((*qr)->Length() == vlen1);
@@ -93,7 +93,7 @@ TEST_CASE("Local Put local_cache", "[1rank]")
     }
   }
   {
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key2, klen2));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key2, klen2), hash_fun(key2, klen2));
     CHECK(qr.has_value());
     if(qr.has_value()) {
       CHECK((*qr)->Length() == vlen2);
@@ -101,12 +101,12 @@ TEST_CASE("Local Put local_cache", "[1rank]")
     }
   }
   {
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key3, klen3));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key3, klen3), hash_fun(key3, klen3));
     CHECK(!qr.has_value());
   }
   paper.deleteKey(key1, klen1);
   {
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1), hash_fun(key1, klen1));
     CHECK(qr.has_value());
     CHECK((*qr).Status() == QueryStatus::DELETED);
   }
@@ -176,7 +176,7 @@ TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
   if(rank == 0){
     // Remote value should not get cached
     paper.get(key1, klen1);
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1), hash_fun(key1, klen1));
     CHECK(!qr.has_value());
   }
 
@@ -185,7 +185,7 @@ TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
   if(rank == 0) {
     // Remote value should get cached.
     paper.get(key1, klen1);
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1), hash_fun(key1, klen1));
     CHECK(qr.has_value());
     if (qr.has_value()) {
       CHECK((*qr)->Length() == vlen1);
