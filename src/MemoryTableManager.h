@@ -40,7 +40,7 @@ public:
     // mtable_ = x;
     std::lock_guard<std::mutex> lock(mtable_mutex_);
     mtable_->put(key, std::move(value));
-    if (mtable_->size() > max_mtable_size_) {
+    if (mtable_->ByteSize() > max_mtable_size_) {
       wbuffer_.Enqueue(std::move(mtable_));
       mtable_ = std::make_unique<MemoryTable>();
     }
@@ -96,7 +96,7 @@ public:
     size_t ret = 0;
     {
       std::lock_guard<std::mutex> lock(mtable_mutex_);
-      if (mtable_ != nullptr && mtable_->size() > 0) ++ret;
+      if (mtable_ != nullptr && mtable_->ByteSize() > 0) ++ret;
     }
     ret += wbuffer_.Size();
     return ret;

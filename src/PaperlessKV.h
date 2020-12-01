@@ -28,16 +28,58 @@
 #define  KEY_PUT_TAG 3
 #define VALUE_PUT_TAG 4
 
-#define MAX_MTABLE_SIZE 1000000
-#define MAX_CACHE_SIZE 1000000
-
 class PaperlessKV {
  public:
-  enum Consistency { SEQUENTIAL, RELAXED };
-  enum Mode { READANDWRITE, READONLY};
+  enum Consistency_t { SEQUENTIAL, RELAXED };
+  enum Mode_t { READANDWRITE, READONLY};
 
-  PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed, Consistency c = Consistency::RELAXED, Mode m =READANDWRITE);
-  PaperlessKV(std::string id, MPI_Comm comm, HashFunction, Consistency c = Consistency::RELAXED, Mode m =READANDWRITE);
+  class Options {
+   private:
+    // Default values are set here.
+    friend class PaperlessKV;
+    size_t max_local_memtable_size = 1000000;
+    size_t max_remote_memtable_size = 1000000;
+    size_t max_local_cache_size = 1000000;
+    size_t max_remote_cache_size = 1000000;
+
+    Consistency_t consistency = RELAXED;
+    Mode_t mode = READANDWRITE;
+   public:
+    bool dispatch_data_in_chunks = true;
+
+    Options& MaxLocalMemTableSize(size_t s) {
+      max_local_memtable_size = s;
+      return *this;
+    }
+    Options& MaxRemoteMemTableSize(size_t s) {
+      max_remote_memtable_size = s;
+      return *this;
+    }
+    Options& MaxLocalCacheSize(size_t s) {
+      max_local_memtable_size = s;
+      return *this;
+    }
+    Options& MaxRemoteCacheSize(size_t s) {
+      max_local_cache_size = s;
+      return *this;
+    }
+    Options& Consistency(Consistency_t c) {
+      consistency = c;
+      return *this;
+    }
+    Options& Mode(Mode_t m) {
+      mode = m;
+      return *this;
+    }
+    Options& DispatchInChunks(bool d) {
+      dispatch_data_in_chunks = d;
+      return * this;
+    }
+  };
+
+  PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed,
+              Options options);
+  PaperlessKV(std::string id, MPI_Comm comm, HashFunction, Options options);
 
   PaperlessKV(const PaperlessKV&) = delete;
   PaperlessKV(PaperlessKV&&) = delete;
@@ -58,7 +100,7 @@ class PaperlessKV {
   void Fence();
 
   // Same as fence but it allows to change the Consistency
-  void FenceAndChangeOptions(Consistency c, Mode m);
+  void FenceAndChangeOptions(Consistency_t c, Mode_t m);
   void FenceAndCheckPoint();
 
   void Shutdown();
@@ -121,8 +163,8 @@ class PaperlessKV {
 
   std::string id_;
 
-  Consistency consistency_;
-  Mode mode_;
+  Consistency_t consistency_;
+  Mode_t mode_;
   HashFunction hash_function_;
 
   RBTreeMemoryManager local_;
@@ -168,6 +210,9 @@ class PaperlessKV {
   volatile int fence_calls_received;
   std::mutex fence_mutex;
   std::condition_variable fence_wait;
+
+  // Settings:
+  bool dispatch_data_in_chunks_;
 
   // For testing:
   friend class PaperLessKVFriend;

@@ -32,7 +32,8 @@ class RBTreeMemoryTable {
 
   void put(Element&& key, Tomblement&& value);
 
-  size_t size() const;
+  size_t ByteSize() const;
+  size_t Count() const;
 
   // Returns a copy of the value element.
   QueryResult get(const ElementView& key);

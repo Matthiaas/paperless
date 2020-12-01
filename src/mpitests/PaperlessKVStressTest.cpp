@@ -6,6 +6,11 @@
 inline int user_buff_len = 200;
 inline char user_buff[200];
 
+inline PaperlessKV::Options relaxed_options =
+    PaperlessKV::Options()
+        .Consistency(PaperlessKV::RELAXED)
+        .Mode(PaperlessKV::READANDWRITE);
+
 
 TEST_CASE("ManyPutsAndGets user provided buffer", "[4rank]")
 {
@@ -13,7 +18,7 @@ TEST_CASE("ManyPutsAndGets user provided buffer", "[4rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, 7, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, 7, relaxed_options);
 
   int size_per_rank = 1000;
 
@@ -63,7 +68,7 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, 7, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, 7, relaxed_options);
 
   int size_per_rank = 1000;
 
@@ -116,7 +121,7 @@ TEST_CASE("ManyPutsAndGets READONLY Mode", "[4rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, 7, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, 7, relaxed_options);
 
   int size_per_rank = 10000;
 

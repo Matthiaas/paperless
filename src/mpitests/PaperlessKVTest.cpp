@@ -30,6 +30,16 @@ const size_t vlen3 = 6;
 inline int user_buff_len = 200;
 inline char user_buff[200];
 
+inline PaperlessKV::Options relaxed_options =
+    PaperlessKV::Options()
+    .Consistency(PaperlessKV::RELAXED)
+    .Mode(PaperlessKV::READANDWRITE);
+
+inline PaperlessKV::Options sequential =
+    PaperlessKV::Options()
+        .Consistency(PaperlessKV::SEQUENTIAL)
+        .Mode(PaperlessKV::READANDWRITE);
+
 
 
 TEST_CASE("LocalGetOnEmptyKV", "[1rank]")
@@ -37,7 +47,7 @@ TEST_CASE("LocalGetOnEmptyKV", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   QueryResult qr = paper.get(key1, klen1);
   CHECK(qr == QueryStatus::NOT_FOUND);
 }
@@ -48,7 +58,7 @@ TEST_CASE("Local Put Checkpoint", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   PaperLessKVFriend paperFriend(&paper);
 
   paper.put(key1, klen1, value1, vlen1);
@@ -75,7 +85,7 @@ TEST_CASE("Local Put local_cache", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   PaperLessKVFriend paperFriend(&paper);
 
   paper.put(key1, klen1, value1, vlen1);
@@ -118,7 +128,7 @@ TEST_CASE("LocalGet into user provided buffer ", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
 
   paper.put(key1, klen1, value1, vlen1);
 
@@ -137,7 +147,7 @@ TEST_CASE("RemoteGet into user provided buffer ", "[2rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
 
   if(rank == 1) {
     paper.put(key1, klen1, value1, vlen1);
@@ -163,7 +173,7 @@ TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::SEQUENTIAL);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, sequential);
   PaperLessKVFriend paperFriend(&paper);
 
   if(rank == 1) {
@@ -202,7 +212,7 @@ TEST_CASE("LocalPut", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   {
     paper.put(key1, klen1, value1, vlen1);
     QueryResult qr = paper.get(key1, klen1);
@@ -229,7 +239,7 @@ TEST_CASE("LocalOverride", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   {
     paper.put(key1, klen1, value1, vlen1);
     QueryResult qr = paper.get(key1, klen1);
@@ -259,7 +269,7 @@ TEST_CASE("RemoteGet", "[2rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   if(rank == 1) {
     paper.put(key1, klen1, value1, vlen1);
   }
@@ -293,7 +303,7 @@ TEST_CASE("RemotePutAndGet SEQUENTIAL", "[2rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::SEQUENTIAL);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, sequential);
 
   if(rank == 0) {
     paper.put(key1, klen1, value1, vlen1);
@@ -318,7 +328,7 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   if(rank == 0) {
 
     paper.put(key1, klen1, value1, vlen1);
@@ -347,7 +357,7 @@ TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   if(rank == 0) {
 
     paper.put(key1, klen1, value1, vlen1);

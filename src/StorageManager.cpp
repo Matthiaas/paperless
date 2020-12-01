@@ -16,7 +16,7 @@ void StorageManager::flushToDisk(const RBTreeMemoryTable &mem_table) {
   auto file_path = sstable_dir_path_ / std::to_string(cur_file_index_);
 
   auto mtbl_writer = mtbl_writer_init(file_path.c_str(), writer_options_);
-  BloomFilter filter = BloomFilter{mem_table.size(), filter_fp_rate_};
+  BloomFilter filter = BloomFilter{mem_table.ByteSize(), filter_fp_rate_};
 
   for (const auto&[key, value] : mem_table) {
     auto key_ptr = reinterpret_cast<const uint8_t *>(key.Value());

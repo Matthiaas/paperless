@@ -112,7 +112,7 @@ TEST_CASE("RBTreeMemoryTable: Put, Delete & Get Test") {
 TEST_CASE("RBTreeMemoryTable: Size Test") {
   RBTreeMemoryTable memTable;
 
-  CHECK(memTable.size() == 0);
+  CHECK(memTable.ByteSize() == 0);
 
   char key_bytes[] = "key";
   ElementView key{key_bytes, 3};
@@ -121,14 +121,14 @@ TEST_CASE("RBTreeMemoryTable: Size Test") {
   Tomblement val{value_bytes, 5};
 
   memTable.put(key, std::move(val));
-  CHECK(memTable.size() == key.Length() + val_expected.Length() + 1);
+  CHECK(memTable.ByteSize() == key.Length() + val_expected.Length() + 1);
 
   char value_overwrite_bytes[] = "overwrite";
   Element val_overwrite_expected{value_overwrite_bytes, 9};
   Tomblement val_overwrite{value_overwrite_bytes, 9};
 
   memTable.put(key, std::move(val_overwrite));
-  CHECK(memTable.size() == key.Length() + val_overwrite_expected.Length() + 1);
+  CHECK(memTable.ByteSize() == key.Length() + val_overwrite_expected.Length() + 1);
 
   char another_key_bytes[] = "another_key";
   ElementView another_key{another_key_bytes, 11};
@@ -137,7 +137,7 @@ TEST_CASE("RBTreeMemoryTable: Size Test") {
   Tomblement another_value{another_value_bytes, 13};
   memTable.put(another_key, std::move(another_value));
 
-  CHECK(memTable.size() ==
+  CHECK(memTable.ByteSize() ==
         another_key.Length() + another_value_expected.Length() + 1 +
             key.Length() + val_overwrite_expected.Length() + 1);
 }
