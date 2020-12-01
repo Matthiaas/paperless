@@ -86,8 +86,11 @@ int main(int argc, char** argv) {
   //opt.vallen = vallen;
   //opt.hash = NULL;
 
+  auto options = PaperlessKV::Options()
+      .Consistency(PaperlessKV::RELAXED)
+      .Mode(PaperlessKV::READANDWRITE);
   // TODO: FixId
-  PaperlessKV paper("/tmp/mydb", MPI_COMM_WORLD, 1, PaperlessKV::RELAXED, PaperlessKV::READANDWRITE);
+  PaperlessKV paper("/tmp/mydb", MPI_COMM_WORLD, 1, options);
   //ret = papyruskv_open("mydb", PAPYRUSKV_CREATE | PAPYRUSKV_RELAXED | PAPYRUSKV_RDWR, &opt, &db);
   //if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
 

@@ -14,33 +14,33 @@ int GetRank(MPI_Comm comm) {
 }
 
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed,
-                         Consistency c, Mode m)
+                         PaperlessKV::Options options)
     : PaperlessKV(id, comm,
                   [hash_seed] (const char* value, size_t len) -> Hash {
                     uint32_t res;
                     MurmurHash3_x86_32(value, len, hash_seed, &res);
                     return static_cast<Hash>(res);
-                  }, c, m) {
+                  }, options) {
 }
 
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
-                         Consistency c ,Mode m )
+                         PaperlessKV::Options options)
     : id_(id),
-      consistency_(c),
-      mode_(m),
+      consistency_(options.consistency),
+      mode_(options.mode),
       hash_function_(hf),
-      local_(1,MAX_MTABLE_SIZE),
-      remote_(1, MAX_MTABLE_SIZE),
-      local_cache_(MAX_CACHE_SIZE),
-      remote_cache_(MAX_CACHE_SIZE),
+      local_(1,options.max_local_memtable_size),
+      remote_(1, options.max_remote_memtable_size),
+      local_cache_(options.max_local_cache_size),
+      remote_cache_(options.max_remote_cache_size),
       storage_manager_(id + std::to_string(GetRank(comm))),
       shutdown_(false),
       comm_(comm),
       compactor_(&PaperlessKV::Compact, this),
       dispatcher_(&PaperlessKV::Dispatch, this),
       get_responder_(&PaperlessKV::RespondGet, this),
-      put_responder_(&PaperlessKV::RespondPut, this)
-      /*get_value_tagger(0,100000000)*/ {
+      put_responder_(&PaperlessKV::RespondPut, this),
+      dispatch_data_in_chunks_(options.dispatch_data_in_chunks) {
   MPI_Comm_rank(comm_, &rank_);
   MPI_Comm_size(comm_, &rank_size_);
   MPI_Barrier(comm);
@@ -436,7 +436,7 @@ void PaperlessKV::Fence() {
   MPI_Barrier(comm_);
 }
 
-void PaperlessKV::FenceAndChangeOptions(PaperlessKV::Consistency c, Mode mode) {
+void PaperlessKV::FenceAndChangeOptions(PaperlessKV::Consistency_t c, Mode_t mode) {
   Sync();
   consistency_ = c;
   if(c != RELAXED) {
