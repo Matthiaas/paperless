@@ -48,8 +48,10 @@ set(LIB_SOURCES
         src/Status.h
         src/RBTreeMemoryTable.cpp
         src/RBTreeMemoryTable.h
-        src/LRUCache.cpp
-        src/LRUCache.h
+        src/LRUTreeCache.cpp
+        src/LRUTreeCache.h
+        src/LRUHashCache.cpp
+        src/LRUHashCache.h
         src/BloomFilter.cpp
         src/BloomFilter.h)
 
@@ -60,7 +62,8 @@ set(TEST_SOURCES
         src/tests/MemoryTableManagerTests.cpp
         src/tests/StatusOrTests.cpp
         src/tests/RBTreeMemoryTableTests.cpp
-        src/tests/LRUTests.cpp
+        src/tests/LRUTreeTests.cpp
+        src/tests/LRUHashTests.cpp
         src/tests/BloomFilterTests.cpp)
 
 add_subdirectory(third_party/smhasher)
