@@ -6,6 +6,7 @@
 #define PAPERLESS_STORAGEMANAGER_H
 
 #include <filesystem>
+#include <iostream>
 #include <utility>
 
 #include "BloomFilter.h"

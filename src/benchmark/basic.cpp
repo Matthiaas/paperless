@@ -1,10 +1,11 @@
 // https://code.ornl.gov/eck/papyrus/-/blob/master/kv/apps/sc17/basic.cpp
 
 #include <mpi.h>
-#include "../PaperlessKV.h"
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include "../PaperlessKV.h"
+#include "OptionReader.h"
 #include "timer.h"
 
 //#define VERBOSE
@@ -84,7 +85,7 @@ int main(int argc, char** argv) {
   //opt.hash = NULL;
 
   auto options =
-      PaperlessKV::Options()
+      ReadOptionsFromEnvVariables()
           .Consistency(PaperlessKV::RELAXED)
           .Mode(PaperlessKV::READANDWRITE);
 

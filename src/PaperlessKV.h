@@ -41,6 +41,7 @@ class PaperlessKV {
     size_t max_remote_memtable_size = 1000000;
     size_t max_local_cache_size = 1000000;
     size_t max_remote_cache_size = 1000000;
+    std::string strorage_location;
 
     Consistency_t consistency = RELAXED;
     Mode_t mode = READANDWRITE;
@@ -71,9 +72,13 @@ class PaperlessKV {
       mode = m;
       return *this;
     }
-    Options& DispatchInChunks(bool d) {
-      dispatch_data_in_chunks = d;
+    Options& DispatchInChunks(size_t d) {
+      dispatch_data_in_chunks = static_cast<bool>(d);
       return * this;
+    }
+    Options& StorageLocation(std::string sl) {
+      strorage_location = sl;
+      return *this;
     }
   };
 

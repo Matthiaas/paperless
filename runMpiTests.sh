@@ -5,7 +5,7 @@ do
   do
     mkdir /tmp/PaperlessTest${j}
   done
-  mpiexec -n $i ./build/mpi_tests [${i}rank]
+  mpiexec -n $i ./build/mpi_tests "[${i}rank]"
   for ((j=0; j <$i; j++))
   do
     rm -r /tmp/PaperlessTest${j}
