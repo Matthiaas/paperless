@@ -4,6 +4,7 @@
 #include "../PaperlessKV.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <filesystem>
 #include "timer.h"
 
 //#define VERBOSE
@@ -11,6 +12,8 @@
 #define KILO    (1024UL)
 #define MEGA    (1024 * KILO)
 #define GIGA    (1024 * MEGA)
+
+namespace fs = std::filesystem;
 
 int rank, size;
 int left, right;
@@ -90,7 +93,12 @@ int main(int argc, char** argv) {
       .Consistency(PaperlessKV::RELAXED)
       .Mode(PaperlessKV::READANDWRITE);
   // TODO: FixId
-  PaperlessKV paper("/tmp/mydb", MPI_COMM_WORLD, 1, options);
+  std::string db_path = "/scratch/mydb";
+  std::string db_path_rank = db_path + std::to_string(rank);
+  if (!fs::is_directory(db_path_rank) || !fs::exists(db_path_rank)) {
+    fs::create_directory(db_path_rank);
+  }
+  PaperlessKV paper(db_path, MPI_COMM_WORLD, 1, options);
   //ret = papyruskv_open("mydb", PAPYRUSKV_CREATE | PAPYRUSKV_RELAXED | PAPYRUSKV_RDWR, &opt, &db);
   //if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
 
