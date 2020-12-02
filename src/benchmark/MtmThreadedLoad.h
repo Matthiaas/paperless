@@ -1,4 +1,5 @@
-// https://code.ornl.gov/eck/papyrus/-/blob/master/kv/apps/sc17/workload.cpp
+#ifndef PAPERLESS_MTMTHREADEDLOAD_H
+#define PAPERLESS_MTMTHREADEDLOAD_H
 
 #include "../MemoryTable.h"
 #include "../MemoryTableManager.h"
@@ -9,18 +10,13 @@
 #include <stdio.h>
 #include <random>
 #include <thread>
+#include <chrono>
 
 #include "timer.h"
 
 #define KILO    (1024UL)
 #define MEGA    (1024 * KILO)
 #define GIGA    (1024 * MEGA)
-
-
-using MemTable = RBTreeMemoryTable;
-using MemQueue = ListQueue<MemTable>;
-using RBTreeMemoryManager =
-    MemoryTableManager<MemTable, MemQueue>;
 
 // Creates `keys_count` random keys on initialization and
 // returns i-th one using `GetKey(i)` method.
@@ -67,16 +63,17 @@ private:
   }
 };
 
+template <typename MTM>
 struct Producer {
   std::unique_ptr<std::thread> thread;
 
-  Producer(RBTreeMemoryManager *mtm, SharedRandomKeys *keys, size_t vallen,
+  Producer(MTM *mtm, SharedRandomKeys *keys, size_t vallen,
     size_t count, size_t update_ratio, int seed) {
     thread = std::make_unique<std::thread>(
       &Producer::Produce, mtm, keys, vallen, count, update_ratio, seed);
   }
 
-  static void Produce(RBTreeMemoryManager *mtm, SharedRandomKeys *keys,
+  static void Produce(MTM *mtm, SharedRandomKeys *keys,
     size_t vallen, size_t count, size_t update_ratio, int seed) {
     std::mt19937 generator(seed);
     std::uniform_int_distribution<int> rand_key_idx(0, keys->GetKeysCount() - 1);
@@ -94,84 +91,95 @@ struct Producer {
   }
 };
 
+template <typename MTM>
 struct Consumer {
   std::unique_ptr<std::thread> thread;
 
-  Consumer(RBTreeMemoryManager *mtm) {
+  Consumer(MTM *mtm) {
     thread = std::make_unique<std::thread>(&Consumer::Consume, mtm);
   }
 
-  static void Consume(RBTreeMemoryManager *mtm) {
+  static void Consume(MTM *mtm) {
+    using std::chrono_literals::operator""ms;
     while (true) {
       auto chunk = mtm->GetChunk();
       if (chunk.IsPoisonPill()) {
         chunk.Clear();
         break;
       }
+      std::this_thread::sleep_for(100ms);
       chunk.Clear();
     }
   }
 };
 
+struct Result {
+  double producers_done;
+  double consumers_done;
+};
 
-int main(int argc, char** argv) {
-  size_t keylen;
-  size_t vallen;
-  size_t count;
-  int update_ratio;
-  int memtable_size_kb;
-  int num_producer_threads;
-  int num_consumer_threads;
-  int seed;
+template <typename MTM>
+class MtmThreadedLoad {
+private:
 
-  if (argc < 5) {
-    printf("[%s:%d] usage: %s keylen vallen count update_ratio[0:100] membtable_size_kb num_producer_threads num_consumer_threads seed\n", __FILE__, __LINE__, argv[0]);
-    return 0;
-  }
+public:
+  // Returns time elapsed.
+  void Execute(int argc, char** argv, Result *result) {
+    size_t keylen;
+    size_t vallen;
+    size_t count;
+    int update_ratio;
+    int memtable_size_kb;
+    int num_producer_threads;
+    int num_consumer_threads;
+    int seed;
 
-  keylen = atol(argv[1]);
-  vallen = atol(argv[2]);
-  count = atol(argv[3]);
-  update_ratio = atoi(argv[4]);
-  memtable_size_kb = atoi(argv[5]);
-  num_producer_threads = atoi(argv[6]);
-  num_consumer_threads = atoi(argv[7]);
-  seed = atoi(argv[8]);
-  srand(seed);
-
-  SharedRandomKeys keys(keylen, count * num_producer_threads, seed);
-  RBTreeMemoryManager mtm(num_consumer_threads, memtable_size_kb);
-
-  double cb = (keylen + vallen) * count;
-  double total = (keylen + vallen) * count * num_producer_threads;
-  printf("[%s:%d] update_ratio[%d%%] keylen[%lu] vallen[%lu] count[%lu] size[%0.lf]KB [%lf]MB [%lf]GB num_threads[%d] seed[%d] total count[%lu] size[%0.lf]KB [%lf]MB [%lf]GB\n", __FILE__, __LINE__, update_ratio, keylen, vallen, count, cb / KILO, cb / MEGA, cb / GIGA, num_producer_threads, seed, count * num_producer_threads, total / KILO, total / MEGA, total / GIGA);
-
-  _w(0);
-  // Create consumer threads.
-  std::vector<Consumer> consumers;
-  for (int i = 0; i < num_consumer_threads; ++i) consumers.emplace_back(&mtm);
-
-  // Create threads inserting elements.
-  std::vector<Producer> producers;
-  // SharedRandomKeys *keys, size_t vallen, size_t count, size_t update_ratio, int seed)
-  for (int i = 0; i < num_producer_threads; ++i) {
-    producers.emplace_back(&mtm, &keys, vallen, count, update_ratio, /*seed=*/rand());
-  }
-
-  for (auto &c : producers) {
-    if (c.thread->joinable()) {
-      c.thread->join();
+    if (argc < 7) {
+      printf("[%s:%d] usage: %s keylen vallen count update_ratio[0:100] membtable_size_kb num_producer_threads num_consumer_threads seed\n", __FILE__, __LINE__, argv[0]);
     }
-  }
 
-  _w(1);
-  mtm.Shutdown();
-  for (auto &c : consumers) {
-    if (c.thread->joinable()) {
-      c.thread->join();
+    keylen = atol(argv[1]);
+    vallen = atol(argv[2]);
+    count = atol(argv[3]);
+    update_ratio = atoi(argv[4]);
+    memtable_size_kb = atoi(argv[5]);
+    num_producer_threads = atoi(argv[6]);
+    num_consumer_threads = atoi(argv[7]);
+    seed = atoi(argv[8]);
+    srand(seed);
+
+    SharedRandomKeys keys(keylen, count * num_producer_threads, seed);
+    MTM mtm(num_consumer_threads, memtable_size_kb);
+    _w(0);
+    // Create consumer threads.
+    std::vector<Consumer<MTM>> consumers;
+    for (int i = 0; i < num_consumer_threads; ++i) consumers.emplace_back(&mtm);
+
+    // Create threads inserting elements.
+    std::vector<Producer<MTM>> producers;
+    // SharedRandomKeys *keys, size_t vallen, size_t count, size_t update_ratio, int seed)
+    for (int i = 0; i < num_producer_threads; ++i) {
+      producers.emplace_back(&mtm, &keys, vallen, count, update_ratio, /*seed=*/rand());
     }
+
+    for (auto &c : producers) {
+      if (c.thread->joinable()) {
+        c.thread->join();
+      }
+    }
+    
+    _w(1);
+    mtm.Shutdown();
+    for (auto &c : consumers) {
+      if (c.thread->joinable()) {
+        c.thread->join();
+      }
+    }
+    _w(2);
+    
+    result->producers_done = _ww(0, 1);
+    result->consumers_done = _ww(0, 2);
   }
-  
-  printf("Time elapsed: %lf", _ww(0, 1));
-  return 0;
-}
+};
+
+#endif //PAPERLESS_MTMTHREADEDLOAD_H
