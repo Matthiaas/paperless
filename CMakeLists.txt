@@ -80,6 +80,9 @@ set(WOKRLOAD_BECHMARK_SOURCES
 set(BASIC_BECHMARK_SOURCES
         src/benchmark/basic.cpp)
 
+set(MTM_THREADED_LOAD_BECHMARK_SOURCES
+        src/benchmark/mtm_threaded_load.cpp)
+
 add_library(paperless STATIC ${LIB_SOURCES})
 target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})
 target_link_libraries(paperless PRIVATE Threads::Threads)
@@ -106,9 +109,14 @@ add_executable(basic
         ${BASIC_BECHMARK_SOURCES}
         ${LIB_SOURCES})
 
+add_executable(mtm_threaded_load
+        ${MTM_THREADED_LOAD_BECHMARK_SOURCES}
+        ${LIB_SOURCES})
+
 target_link_libraries(main PUBLIC paperless mtbl)
 
 target_link_libraries(basic mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(workload mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_link_libraries(mtm_threaded_load mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(tests mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(mpi_tests mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)

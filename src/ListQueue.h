@@ -61,7 +61,6 @@ public:
   Chunk Dequeue() {
     std::unique_lock<std::mutex> lock(mutex_);
     can_dequeue_cv_.wait(lock, [this]{return next_dequeue_ != tail_dummy_;});
-    // std::cout << next_dequeue_->get()->begin()->first.Value() << std::endl;
     return Chunk(this, next_dequeue_++);
   }
 
