@@ -214,6 +214,24 @@ class PaperlessKV {
   // Settings:
   bool dispatch_data_in_chunks_;
 
+  // Helpers:
+
+  void WriteIntToBuff(char* ptr, unsigned int x) {
+    ptr[0] = static_cast<char>(x & 0x000000ff);
+    ptr[1] = static_cast<char>((x & 0x0000ff00) >> 8);
+    ptr[2] = static_cast<char>((x & 0x00ff0000) >> 16);
+    ptr[3] =static_cast<char>( (x & 0xff000000) >> 24);
+  }
+
+  unsigned int ReadIntFromBuff(char* ptr) {
+    unsigned int x = 0;
+    x = static_cast<unsigned int>(ptr[0]) &  0x000000ff;
+    x += (static_cast<unsigned int>(ptr[1]) << 8) & 0x0000ff00;
+    x += (static_cast<unsigned int>(ptr[2]) << 16) & 0x00ff0000;
+    x += (static_cast<unsigned int>(ptr[3]) << 24) & 0xff000000;
+    return x;
+  }
+
   // For testing:
   friend class PaperLessKVFriend;
 

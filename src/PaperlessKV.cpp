@@ -4,6 +4,7 @@
 
 #include "PaperlessKV.h"
 #include <smhasher/MurmurHash3.h>
+#include <zconf.h>
 #include <iostream>
 #include "Element.h"
 
@@ -83,6 +84,7 @@ void PaperlessKV::Compact() {
   }
 }
 
+
 void PaperlessKV::Dispatch() {
   while (true) {
     MemQueue::Chunk handler = remote_.GetChunk();
@@ -90,10 +92,62 @@ void PaperlessKV::Dispatch() {
       handler.Clear();
       return;
     }
-    // TODO: Dispatch Data.
-    for(const auto& [key, value] : *handler.Get()) {
-      Hash hash = hash_function_(key.Value(), key.Length());
-      RemotePutSequential(key.GetView(), hash, value);
+    // consistency_ == SEQUENTIAL should never come here.
+    if(dispatch_data_in_chunks_ && consistency_ != SEQUENTIAL) {
+      // First is count, second is size
+      std::vector<std::pair<size_t, size_t>> per_rank(rank_size_);
+      for(const auto& [key, value] : *handler.Get()) {
+        Hash hash = hash_function_(key.Value(), key.Length());
+        Owner o = hash % rank_size_;
+        auto& p = per_rank[o];
+        p.first += 2;
+        p.second += key.Length() + value.GetBufferLen();
+      }
+
+      // fist is buffer second current location.
+      std::vector<std::pair<char*,size_t >> send_buffers(rank_size_);
+      for(int i = 0; i < rank_size_; i++) {
+        if(i == rank_) continue;
+        auto& p = per_rank[i];
+        send_buffers[i] = std::make_pair(
+            static_cast<char*>(std::malloc(p.second + p.first * sizeof(int))),
+            0);
+      }
+      // TODO: do not compute hash two times.
+      for(const auto& [key, value] : *handler.Get()) {
+        Hash hash = hash_function_(key.Value(), key.Length());
+        Owner o = hash % rank_size_;
+        auto& p = send_buffers[o];
+        char* buff = p.first + p.second;
+        WriteIntToBuff(buff, key.Length());
+        WriteIntToBuff(buff + 4, value.GetBufferLen());
+        buff += 8;
+        std::memcpy(buff, key.Value(), key.Length());
+        buff += key.Length();
+        std::memcpy(buff, value.GetBuffer(), value.GetBufferLen());
+        buff += value.GetBufferLen();
+        p.second += 8 + key.Length() + value.GetBufferLen();
+        // Send data with ISend
+      }
+
+      for(int i = 0; i < rank_size_; i++) {
+        auto& p = send_buffers[i];
+        if(p.second == 0 || i == rank_) {
+          continue;
+        }
+        MPI_Send(p.first, p.second, MPI_CHAR, i, KEY_PUT_TAG, comm_);
+        free(p.first);
+      }
+
+      // TODO: Wait for all Isend to be completed:
+
+    } else {
+      // Send data one by one:
+      for(const auto& [key, value] : *handler.Get()) {
+        Hash hash = hash_function_(key.Value(), key.Length());
+        // TODO: Send data with I_Send
+        RemotePutSequential(key.GetView(), hash, value);
+      }
     }
     handler.Clear();
   }
@@ -134,15 +188,39 @@ void PaperlessKV::RespondPut() {
       }
       continue;
     }
+    if(dispatch_data_in_chunks_ && consistency_ != SEQUENTIAL) {
+      // We also need to receive data in chunks.
+      char* original_buff = static_cast<char*>(std::malloc(count));
+      MPI_Recv(original_buff, count, MPI_CHAR, status.MPI_SOURCE, KEY_PUT_TAG, comm_, &status);
+      int pos = 0;
+      char* buff = original_buff;
+      while(pos < count) {
+        unsigned int key_len = ReadIntFromBuff(buff);
+        unsigned int value_len = ReadIntFromBuff(buff + 4);
+        buff += 8;
+        ElementView key = ElementView(buff, key_len);
+        buff += key_len;
+        Tomblement value = Tomblement::createFromBuffWithCopy(buff, value_len);
+        buff += value_len;
 
-    // TODO: change interfaces and avoid some copies
-    Element key = ReceiveKey(status.MPI_SOURCE, KEY_PUT_TAG, &status);
-    Tomblement value =
-        ReceiveTomblementSequential(status.MPI_SOURCE, VALUE_PUT_TAG, &status);
-    Hash hash = hash_function_(key.Value(), key.Length());
-    Owner o = hash % rank_size_;
-    local_.Put(key.GetView(), std::move(value), hash, o);
-
+        Hash hash = hash_function_(key.Value(), key.Length());
+        Owner o = hash % rank_size_;
+        // TODO Change interface and avoid copies.
+        //  Even though we did avoid it here with a hack.
+        local_.Put(key, std::move(value), hash, o);
+        pos += 8 + key_len + value_len;
+      }
+      free(original_buff);
+    } else {
+      // TODO: change interfaces and avoid some copies#
+      // Add Element&& interfaces.
+      Element key = ReceiveKey(status.MPI_SOURCE, KEY_PUT_TAG, &status);
+      Tomblement value =
+          ReceiveTomblementSequential(status.MPI_SOURCE, VALUE_PUT_TAG, &status);
+      Hash hash = hash_function_(key.Value(), key.Length());
+      Owner o = hash % rank_size_;
+      local_.Put(key.GetView(), std::move(value), hash, o);
+    }
   }
 }
 

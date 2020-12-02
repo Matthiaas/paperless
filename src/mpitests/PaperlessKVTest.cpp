@@ -385,3 +385,24 @@ TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
 
 
 
+TEST_CASE("TestHelpers", "[1rank]")
+{
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  std::string id = "/tmp/PaperlessTest";
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
+  PaperLessKVFriend paperFriend(&paper);
+
+  char buff[10];
+
+
+
+  for(int i = 0; i < 500000; i+= 1) {
+    paperFriend.WriteIntToBuff(buff, i);
+    paperFriend.WriteIntToBuff(buff + 4, i + 1);
+    CHECK(paperFriend.ReadIntFromBuff(buff) == static_cast<unsigned int>(i));
+    CHECK(paperFriend.ReadIntFromBuff(buff + 4) == static_cast<unsigned int>(i+1));
+  }
+
+
+}

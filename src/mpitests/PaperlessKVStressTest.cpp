@@ -9,7 +9,8 @@ inline char user_buff[200];
 inline PaperlessKV::Options relaxed_options =
     PaperlessKV::Options()
         .Consistency(PaperlessKV::RELAXED)
-        .Mode(PaperlessKV::READANDWRITE);
+        .Mode(PaperlessKV::READANDWRITE)
+        .DispatchInChunks(true);
 
 
 TEST_CASE("ManyPutsAndGets user provided buffer", "[4rank]")

@@ -133,6 +133,14 @@ class Tomblement {
     return res;
   }
 
+  [[nodiscard]]  static Tomblement createFromBuffWithCopy(char* v, size_t len) {
+    Tomblement res;
+    res.value_ = static_cast<char*>(std::malloc(len));
+    std::memcpy(res.value_, v, len);
+    res.len_ = len - 1;
+    return res;
+  }
+
   [[nodiscard]] Element CopyToElement() const {
     return Element(Value(), len_);
   }

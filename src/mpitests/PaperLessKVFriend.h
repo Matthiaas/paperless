@@ -35,6 +35,14 @@ class PaperLessKVFriend {
     return paper_->storage_manager_;
   }
 
+  inline void WriteIntToBuff(char* ptr, unsigned int x) {
+    paper_->WriteIntToBuff(ptr,x);
+  }
+
+  inline unsigned int ReadIntFromBuff(char* ptr) {
+    return paper_->ReadIntFromBuff(ptr);
+  }
+
   PaperlessKV* paper_;
 };
 
