@@ -24,6 +24,10 @@ class StorageManager {
     writer_options_ = mtbl_writer_options_init();
     reader_options_ = mtbl_reader_options_init();
     cur_file_index_ = 0;
+    // Create folders if they do note exists.
+    std::filesystem::create_directory(sstable_dir_path_);
+    std::filesystem::create_directory(filter_dir_path);
+
     for (const auto &dirEntry : std::filesystem::recursive_directory_iterator(sstable_dir_path_)) {
       uint64_t c = std::stoll(dirEntry.path().filename());
       cur_file_index_ = std::max(cur_file_index_, c);
