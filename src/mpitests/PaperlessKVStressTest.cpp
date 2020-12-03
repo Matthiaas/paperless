@@ -2,15 +2,15 @@
 
 #include <mpi.h>
 #include "../PaperlessKV.h"
+#include "../benchmark/OptionReader.h"
 
 inline int user_buff_len = 200;
 inline char user_buff[200];
 
 inline PaperlessKV::Options relaxed_options =
-    PaperlessKV::Options()
+    ReadOptionsFromEnvVariables()
         .Consistency(PaperlessKV::RELAXED)
-        .Mode(PaperlessKV::READANDWRITE)
-        .DispatchInChunks(true);
+        .Mode(PaperlessKV::READANDWRITE);
 
 
 TEST_CASE("ManyPutsAndGets user provided buffer", "[4rank]")

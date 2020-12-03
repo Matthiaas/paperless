@@ -75,6 +75,7 @@ set(MPI_TEST_SOURCES
         src/mpitests/PaperLessKVFriend.h)
 
 set(BENCHMARK_SOURCES
+        src/benchmark/OptionReader.cpp
         src/benchmark/OptionReader.h)
 
 set(WOKRLOAD_BECHMARK_SOURCES
@@ -100,6 +101,7 @@ add_executable(tests
         )
 
 add_executable(mpi_tests
+        ${BENCHMARK_SOURCES}
         ${MPI_TEST_SOURCES}
         ${LIB_SOURCES}
         )

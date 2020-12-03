@@ -4,6 +4,7 @@
 #include <zconf.h>
 #include "../PaperlessKV.h"
 
+#include "../benchmark/OptionReader.h"
 #include "PaperLessKVFriend.h"
 
 std::function<uint64_t(const char*,const size_t)> hash_fun =
@@ -31,12 +32,12 @@ inline int user_buff_len = 200;
 inline char user_buff[200];
 
 inline PaperlessKV::Options relaxed_options =
-    PaperlessKV::Options()
+    ReadOptionsFromEnvVariables()
     .Consistency(PaperlessKV::RELAXED)
     .Mode(PaperlessKV::READANDWRITE);
 
 inline PaperlessKV::Options sequential =
-    PaperlessKV::Options()
+    ReadOptionsFromEnvVariables()
         .Consistency(PaperlessKV::SEQUENTIAL)
         .Mode(PaperlessKV::READANDWRITE);
 
