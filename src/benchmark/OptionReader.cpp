@@ -2,7 +2,7 @@
 
 using Options = PaperlessKV::Options;
 
-std::map<std::string, std::function<Options&(Options*, size_t)>> size_t_options = {
+std::map<std::string, std::function<Options(Options*, size_t)>> size_t_options = {
     {"MAX_LOCAL_MEMTABLE_SIZE", &Options::MaxLocalMemTableSize},
     {"MAX_REMOTE_MEMTABLE_SIZE", &Options::MaxRemoteMemTableSize},
     {"MAX_LOCAL_CACHE_SIZE", &Options::MaxLocalCacheSize},
@@ -10,7 +10,7 @@ std::map<std::string, std::function<Options&(Options*, size_t)>> size_t_options 
     {"DISPATCH_IN_CHUNKS", &Options::DispatchInChunks},
 };
 
-std::map<std::string, std::function<Options&(Options*, std::string)>> string_options = {
+std::map<std::string, std::function<Options(Options*, std::string)>> string_options = {
     {"STORAGE_LOCATION", &Options::StorageLocation},
 };
 
@@ -29,13 +29,13 @@ Options ReadOptionsFromEnvVariables() {
   for(auto& [env, set_option] : size_t_options) {
     auto val = GetEnv(env);
     if(val) {
-      set_option(&options, std::stoul(val.value()));
+      options = set_option(&options, std::stoul(val.value()));
     }
   }
   for(auto& [env, set_option] : string_options) {
     auto val = GetEnv(env);
     if(val) {
-      set_option(&options, val.value());
+      options = set_option(&options, val.value());
     }
   }
   return options;

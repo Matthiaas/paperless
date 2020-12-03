@@ -34,7 +34,7 @@ class PaperlessKV {
   enum Mode_t { READANDWRITE, READONLY};
 
   class Options {
-   private:
+   public:
     // Default values are set here.
     friend class PaperlessKV;
     size_t max_local_memtable_size = 1000000;
@@ -48,37 +48,45 @@ class PaperlessKV {
    public:
     bool dispatch_data_in_chunks = true;
 
-    Options& MaxLocalMemTableSize(size_t s) {
-      max_local_memtable_size = s;
-      return *this;
+    Options MaxLocalMemTableSize(size_t s) {
+      Options res = *this;
+      res.max_local_memtable_size = s;
+      return res;
     }
-    Options& MaxRemoteMemTableSize(size_t s) {
-      max_remote_memtable_size = s;
-      return *this;
+    Options MaxRemoteMemTableSize(size_t s) {
+      Options res = *this;
+      res.max_remote_memtable_size = s;
+      return res;
     }
-    Options& MaxLocalCacheSize(size_t s) {
-      max_local_memtable_size = s;
-      return *this;
+    Options MaxLocalCacheSize(size_t s) {
+      Options res = *this;
+      res.max_local_cache_size = s;
+      return res;
     }
-    Options& MaxRemoteCacheSize(size_t s) {
-      max_local_cache_size = s;
-      return *this;
+    Options MaxRemoteCacheSize(size_t s) {
+      Options res = *this;
+      res.max_remote_cache_size = s;
+      return res;
     }
-    Options& Consistency(Consistency_t c) {
-      consistency = c;
-      return *this;
+    Options Consistency(Consistency_t c) {
+      Options res = *this;
+      res.consistency = c;
+      return res;
     }
-    Options& Mode(Mode_t m) {
-      mode = m;
-      return *this;
+    Options Mode(Mode_t m) {
+      Options res = *this;
+      res.mode = m;
+      return res;
     }
-    Options& DispatchInChunks(size_t d) {
-      dispatch_data_in_chunks = static_cast<bool>(d);
-      return * this;
+    Options DispatchInChunks(size_t d) {
+      Options res = *this;
+      res.dispatch_data_in_chunks = static_cast<bool>(d);
+      return res;
     }
-    Options& StorageLocation(std::string sl) {
-      strorage_location = sl;
-      return *this;
+    Options StorageLocation(std::string sl) {
+      Options res = *this;
+      res.strorage_location = sl;
+      return res;
     }
   };
 
