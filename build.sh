@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: $ ./build.sh <target>
+# Usage: $ ./build.sh <target> <Debug|Release>
 #   e.g. $ ./build.sh tests
 
 # Check if we're on a cluster.
@@ -17,6 +17,10 @@ if [ $IS_CLUSTER == "ON" ]
     . ./load_modules.sh
 fi
 
+DEFAULT_BUILD_TYPE=Release
+BUILD_TYPE="${2:-$DEFAULT_BUILD_TYPE}"
+
+echo ${BUILD_TYPE}
 rm -r build
 mkdir build
-cd build && cmake -DCMAKE_BUILD_TYPE=Release -DIS_CLUSTER=${IS_CLUSTER} .. && make -j4 $1
+cd build && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DIS_CLUSTER=${IS_CLUSTER} .. && make -j4 $1
