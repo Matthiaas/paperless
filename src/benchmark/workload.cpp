@@ -2,8 +2,6 @@
 
 #include <mpi.h>
 #include "../PaperlessKV.h"
-#include <stdlib.h>
-#include <stdio.h>
 #include <filesystem>
 #include "timer.h"
 
@@ -14,8 +12,6 @@
 #define KILO    (1024UL)
 #define MEGA    (1024 * KILO)
 #define GIGA    (1024 * MEGA)
-
-namespace fs = std::filesystem;
 
 int rank, size;
 int left, right;
