@@ -19,4 +19,4 @@ fi
 
 rm -r build
 mkdir build
-cd build && cmake -DIS_CLUSTER=${IS_CLUSTER} .. && make -j4 $1
+cd build && cmake -DCMAKE_BUILD_TYPE=Release -DIS_CLUSTER=${IS_CLUSTER} .. && make -j4 $1
