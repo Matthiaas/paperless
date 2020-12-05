@@ -6,11 +6,8 @@
 
 #include <mtbl.h>
 
-#include <iostream>
-
 #include "BloomFilter.h"
 
-// FIXME: Untested
 void StorageManager::flushToDisk(const RBTreeMemoryTable &mem_table) {
   ++cur_file_index_;
   auto file_path = sstable_dir_path_ / std::to_string(cur_file_index_);
@@ -32,43 +29,71 @@ void StorageManager::flushToDisk(const RBTreeMemoryTable &mem_table) {
   }
   filters.emplace(cur_file_index_, std::move(filter));
   mtbl_writer_destroy(&mtbl_writer);
-//  filter.DumptoFile(filter_dir_path_ + "/" + file_name);
+
+  // Pop last filter and write to disk.
+  if (filters.size() > cache_size_) {
+    auto f = --filters.end();
+    filters.erase(f);
+    f->second.DumpToFile(filter_dir_path_ / std::to_string(f->first));
+  }
 }
 
 QueryResult StorageManager::readFromDisk(const ElementView &key) {
   for (auto&[file_index, filter] : filters) {
     if (filter.contains(key)) {
       auto file_path = sstable_dir_path_ / std::to_string(file_index);
-
-      auto reader = mtbl_reader_init(file_path.c_str(), reader_options_);
-      auto source = mtbl_reader_source(reader);
-      auto iter = mtbl_source_get(source, reinterpret_cast<const uint8_t *>(key.Value()), key.Length());
-
-      const uint8_t *res_ptr = nullptr;
-      size_t res_len;
-      const uint8_t *key_ptr= nullptr;
-      size_t key_len;
-      auto res = mtbl_iter_next(iter, &key_ptr, &key_len, &res_ptr, &res_len);
-
-      if (res == mtbl_res_success) {
-        // I do not like the fact, that there are 3 different sets of calls to destroy mtbl stuff.
-        // But I am trying to avoid an expensive copy, and the destroy methods have to be called after the copy.
-        if (res_len == 0 || res_ptr[0]) {
-          mtbl_iter_destroy(&iter);
-          mtbl_reader_destroy(&reader);
-          return QueryStatus::DELETED;
-        }
-        Element result {(char *) res_ptr + 1, res_len - 1};
-        mtbl_iter_destroy(&iter);
-        mtbl_reader_destroy(&reader);
+      if (auto result = ReadSSTable(file_path, key); result != QueryStatus::NOT_FOUND) {
         return result;
       }
-      mtbl_iter_destroy(&iter);
-      mtbl_reader_destroy(&reader);
+    }
+  }
+
+  // Check BloomFilters on Disk.
+  if (cur_file_index_ > cache_size_) {
+    for (uint64_t file_index = cur_file_index_ - cache_size_; file_index > 0; file_index--) {
+      auto filter_dir_entry = filter_dir_path_ / std::to_string(file_index);
+      auto filter = ReadOnlyBloomFilterOnDisk(filter_dir_path_);
+      if (filter.contains(key)) {
+        auto file_path = sstable_dir_path_ / filter_dir_entry.stem();
+        if (auto result = ReadSSTable(file_path, key); result != QueryStatus::NOT_FOUND) {
+          return result;
+        }
+      }
     }
   }
   return QueryStatus::NOT_FOUND;
 }
+
+QueryResult StorageManager::ReadSSTable(const std::string& file_path, const ElementView &key) {
+  auto reader = mtbl_reader_init(file_path.c_str(), reader_options_);
+  auto source = mtbl_reader_source(reader);
+  auto iter = mtbl_source_get(source, reinterpret_cast<const uint8_t *>(key.Value()), key.Length());
+
+  const uint8_t *res_ptr = nullptr;
+  size_t res_len;
+  const uint8_t *key_ptr= nullptr;
+  size_t key_len;
+  auto res = mtbl_iter_next(iter, &key_ptr, &key_len, &res_ptr, &res_len);
+
+  if (res == mtbl_res_success) {
+    // I do not like the fact, that there are 3 different sets of calls to destroy mtbl stuff.
+    // But I am trying to avoid an expensive copy, and the destroy methods have to be called after the copy.
+    if (res_len == 0 || res_ptr[0]) {
+      mtbl_iter_destroy(&iter);
+      mtbl_reader_destroy(&reader);
+      return QueryStatus::DELETED;
+    }
+    Element result {(char *) res_ptr + 1, res_len - 1};
+    mtbl_iter_destroy(&iter);
+    mtbl_reader_destroy(&reader);
+    return result;
+  }
+  mtbl_iter_destroy(&iter);
+  mtbl_reader_destroy(&reader);
+
+  return QueryStatus::NOT_FOUND;
+}
+
 std::pair<QueryStatus, size_t> StorageManager::readFromDisk(const ElementView &key,
                                                             const ElementView& buff) {
   //TODO: FLoris implement this properly!
