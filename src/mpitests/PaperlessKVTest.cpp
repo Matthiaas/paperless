@@ -4,6 +4,7 @@
 #include <zconf.h>
 #include "../PaperlessKV.h"
 
+#include "../benchmark/OptionReader.h"
 #include "PaperLessKVFriend.h"
 
 std::function<uint64_t(const char*,const size_t)> hash_fun =
@@ -30,6 +31,16 @@ const size_t vlen3 = 6;
 inline int user_buff_len = 200;
 inline char user_buff[200];
 
+inline PaperlessKV::Options relaxed_options =
+    ReadOptionsFromEnvVariables()
+    .Consistency(PaperlessKV::RELAXED)
+    .Mode(PaperlessKV::READANDWRITE);
+
+inline PaperlessKV::Options sequential =
+    ReadOptionsFromEnvVariables()
+        .Consistency(PaperlessKV::SEQUENTIAL)
+        .Mode(PaperlessKV::READANDWRITE);
+
 
 
 TEST_CASE("LocalGetOnEmptyKV", "[1rank]")
@@ -37,7 +48,8 @@ TEST_CASE("LocalGetOnEmptyKV", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  std::cout << "asdfasdf" << relaxed_options.StorageLocation("hallo").strorage_location << std::endl;
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   QueryResult qr = paper.get(key1, klen1);
   CHECK(qr == QueryStatus::NOT_FOUND);
 }
@@ -48,7 +60,7 @@ TEST_CASE("Local Put Checkpoint", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   PaperLessKVFriend paperFriend(&paper);
 
   paper.put(key1, klen1, value1, vlen1);
@@ -75,7 +87,7 @@ TEST_CASE("Local Put local_cache", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options.MaxLocalCacheSize(2000000));
   PaperLessKVFriend paperFriend(&paper);
 
   paper.put(key1, klen1, value1, vlen1);
@@ -83,9 +95,9 @@ TEST_CASE("Local Put local_cache", "[1rank]")
 
   paper.FenceAndCheckPoint();
 
-  LRUCache& lruCache = paperFriend.getLocalCache();
+  LRUTreeCache& lruCache = paperFriend.getLocalCache();
   {
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1), hash_fun(key1, klen1));
     CHECK(qr.has_value());
     if(qr.has_value()) {
       CHECK((*qr)->Length() == vlen1);
@@ -93,7 +105,7 @@ TEST_CASE("Local Put local_cache", "[1rank]")
     }
   }
   {
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key2, klen2));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key2, klen2), hash_fun(key2, klen2));
     CHECK(qr.has_value());
     if(qr.has_value()) {
       CHECK((*qr)->Length() == vlen2);
@@ -101,12 +113,12 @@ TEST_CASE("Local Put local_cache", "[1rank]")
     }
   }
   {
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key3, klen3));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key3, klen3), hash_fun(key3, klen3));
     CHECK(!qr.has_value());
   }
   paper.deleteKey(key1, klen1);
   {
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1), hash_fun(key1, klen1));
     CHECK(qr.has_value());
     CHECK((*qr).Status() == QueryStatus::DELETED);
   }
@@ -118,7 +130,7 @@ TEST_CASE("LocalGet into user provided buffer ", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
 
   paper.put(key1, klen1, value1, vlen1);
 
@@ -137,7 +149,7 @@ TEST_CASE("RemoteGet into user provided buffer ", "[2rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
 
   if(rank == 1) {
     paper.put(key1, klen1, value1, vlen1);
@@ -163,7 +175,7 @@ TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::SEQUENTIAL);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, sequential);
   PaperLessKVFriend paperFriend(&paper);
 
   if(rank == 1) {
@@ -172,11 +184,11 @@ TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  LRUCache& lruCache = paperFriend.getRemoteCache();
+  LRUTreeCache& lruCache = paperFriend.getRemoteCache();
   if(rank == 0){
     // Remote value should not get cached
     paper.get(key1, klen1);
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1), hash_fun(key1, klen1));
     CHECK(!qr.has_value());
   }
 
@@ -185,7 +197,7 @@ TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
   if(rank == 0) {
     // Remote value should get cached.
     paper.get(key1, klen1);
-    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1));
+    std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1), hash_fun(key1, klen1));
     CHECK(qr.has_value());
     if (qr.has_value()) {
       CHECK((*qr)->Length() == vlen1);
@@ -202,7 +214,7 @@ TEST_CASE("LocalPut", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   {
     paper.put(key1, klen1, value1, vlen1);
     QueryResult qr = paper.get(key1, klen1);
@@ -229,7 +241,7 @@ TEST_CASE("LocalOverride", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   {
     paper.put(key1, klen1, value1, vlen1);
     QueryResult qr = paper.get(key1, klen1);
@@ -259,7 +271,7 @@ TEST_CASE("RemoteGet", "[2rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   if(rank == 1) {
     paper.put(key1, klen1, value1, vlen1);
   }
@@ -293,7 +305,7 @@ TEST_CASE("RemotePutAndGet SEQUENTIAL", "[2rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::SEQUENTIAL);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, sequential);
 
   if(rank == 0) {
     paper.put(key1, klen1, value1, vlen1);
@@ -318,7 +330,7 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   if(rank == 0) {
 
     paper.put(key1, klen1, value1, vlen1);
@@ -347,7 +359,7 @@ TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, PaperlessKV::RELAXED);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   if(rank == 0) {
 
     paper.put(key1, klen1, value1, vlen1);
@@ -375,3 +387,24 @@ TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
 
 
 
+TEST_CASE("TestHelpers", "[1rank]")
+{
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  std::string id = "/tmp/PaperlessTest";
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
+  PaperLessKVFriend paperFriend(&paper);
+
+  char buff[10];
+
+
+
+  for(int i = 0; i < 500000; i+= 1) {
+    paperFriend.WriteIntToBuff(buff, i);
+    paperFriend.WriteIntToBuff(buff + 4, i + 1);
+    CHECK(paperFriend.ReadIntFromBuff(buff) == static_cast<unsigned int>(i));
+    CHECK(paperFriend.ReadIntFromBuff(buff + 4) == static_cast<unsigned int>(i+1));
+  }
+
+
+}

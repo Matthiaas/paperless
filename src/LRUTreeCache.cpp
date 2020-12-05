@@ -2,18 +2,18 @@
 // Created by matthias on 20.11.20.
 //
 
-#include "LRUCache.h"
+#include "LRUTreeCache.h"
 #include <mpi.h>
 #include <iostream>
 
-LRUCache::LRUCache(size_t max_size) :
+LRUTreeCache::LRUTreeCache(size_t max_size) :
   max_byte_size_(max_size), cur_byte_size_(0) {}
 
-void LRUCache::put(const ElementView& key, const QueryResult& value) {
-  put(Element::copyElementContent(key), value);
+void LRUTreeCache::put(const ElementView& key, Hash h, const QueryResult& value) {
+  put(Element::copyElementContent(key), h, value);
 }
 
-void LRUCache::put(Element&& key, const QueryResult& value) {
+void LRUTreeCache::put(Element&& key, Hash, const QueryResult& value) {
   std::lock_guard<std::mutex> lck(m_);
   queue.push_front(key.GetView());
   auto it = queue.begin();
@@ -43,7 +43,7 @@ void LRUCache::put(Element&& key, const QueryResult& value) {
   CleanUp();
 }
 
-std::optional<QueryResult> LRUCache::get(const ElementView& key) {
+std::optional<QueryResult> LRUTreeCache::get(const ElementView& key, Hash) {
   std::lock_guard<std::mutex> lck(m_);
   auto it = container_.find(key);
   if(it == container_.end()) {
@@ -59,12 +59,28 @@ std::optional<QueryResult> LRUCache::get(const ElementView& key) {
   return res;
 }
 
-std::pair<QueryStatus, size_t> LRUCache::get(const ElementView& key,
-                                             char* value, size_t value_len) {
+std::pair<QueryStatus, size_t> LRUTreeCache::get(const ElementView& key, Hash, const ElementView& value_buff) {
   std::lock_guard<std::mutex> lck(m_);
-  return std::pair<QueryStatus, size_t>();
+  auto it = container_.find(key);
+  if(it == container_.end()) {
+    return {QueryStatus::NOT_IN_CACHE, 0};
+  }
+  queue.erase(it->second.it);
+  queue.push_front(it->first.GetView());
+  it->second.it = queue.begin();
+  const QueryResult& value = it->second.v;
+  if(value.hasValue()) {
+    if(value->Length() > value_buff.Length()) {
+      return {QueryStatus::BUFFER_TOO_SMALL, value->Length()};
+    } else {
+      std::memcpy(value_buff.Value(), value->Value(), value->Length());
+      return {QueryStatus::FOUND, value->Length()};
+    }
+  } else {
+    return {value.Status(), 0};
+  }
 }
-void LRUCache::CleanUp() {
+void LRUTreeCache::CleanUp() {
   // Delete Elements until cache has OK size.
   while(cur_byte_size_ > max_byte_size_ && !queue.empty()) {
     auto it = queue.end();
@@ -76,12 +92,12 @@ void LRUCache::CleanUp() {
     queue.erase(it);
   }
 }
-size_t LRUCache::size() {
+size_t LRUTreeCache::size() {
   std::lock_guard<std::mutex> lck(m_);
   return cur_byte_size_;
 }
 
-void LRUCache::clear() {
+void LRUTreeCache::clear() {
   std::lock_guard<std::mutex> lck(m_);
   queue.clear();
   container_.clear();

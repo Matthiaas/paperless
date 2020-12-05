@@ -15,11 +15,11 @@ class PaperLessKVFriend {
 
   }
 
-  LRUCache& getLocalCache() {
+  LRUTreeCache& getLocalCache() {
     return paper_->local_cache_;
   }
 
-  LRUCache& getRemoteCache() {
+  LRUTreeCache& getRemoteCache() {
     return paper_->remote_cache_;
   }
 
@@ -33,6 +33,14 @@ class PaperLessKVFriend {
 
   StorageManager& getStorageManger() {
     return paper_->storage_manager_;
+  }
+
+  inline void WriteIntToBuff(char* ptr, unsigned int x) {
+    paper_->WriteIntToBuff(ptr,x);
+  }
+
+  inline unsigned int ReadIntFromBuff(char* ptr) {
+    return paper_->ReadIntFromBuff(ptr);
   }
 
   PaperlessKV* paper_;

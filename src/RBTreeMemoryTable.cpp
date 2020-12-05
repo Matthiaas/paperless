@@ -56,7 +56,9 @@ std::pair<QueryStatus, size_t> RBTreeMemoryTable::get(const ElementView& key,
   }
 }
 
-size_t RBTreeMemoryTable::size() const { return total_bytes; }
+size_t RBTreeMemoryTable::ByteSize() const { return total_bytes; }
+
+size_t RBTreeMemoryTable::Count() const { return container_.size(); }
 
 RBTreeMemoryTable::const_iterator RBTreeMemoryTable::begin() const {
   return container_.begin();
@@ -64,3 +66,4 @@ RBTreeMemoryTable::const_iterator RBTreeMemoryTable::begin() const {
 RBTreeMemoryTable::const_iterator RBTreeMemoryTable::end() const {
   return container_.end();
 }
+

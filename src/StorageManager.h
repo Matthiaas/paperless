@@ -6,9 +6,7 @@
 #define PAPERLESS_STORAGEMANAGER_H
 
 #include <filesystem>
-#include <queue>
 #include <utility>
-#include <iostream>
 
 #include "BloomFilter.h"
 #include "Element.h"
@@ -24,13 +22,8 @@ class StorageManager {
                        dir / "filters",
                        cache_size) {}
 
-  explicit StorageManager(const std::string &sstable_dir_path,
-                          const std::string &filter_dir_path,
-                          size_t cache_size)
-      : sstable_dir_path_(sstable_dir_path),
-        filter_dir_path_(filter_dir_path),
-        cache_size_(cache_size) {
-
+  explicit StorageManager(const std::string& sstable_dir_path, const std::string& filter_dir_path)
+  : sstable_dir_path_(sstable_dir_path), filter_dir_path_(filter_dir_path){
     writer_options_ = mtbl_writer_options_init();
     reader_options_ = mtbl_reader_options_init();
     cur_file_index_ = 0;
@@ -70,6 +63,7 @@ class StorageManager {
 
   std::map<uint64_t, BloomFilter, std::greater<>> filters;
   static constexpr double filter_fp_rate_ = 0.01;
+};
 
   QueryResult ReadSSTable(const std::string &file_path, const ElementView &key);
 };

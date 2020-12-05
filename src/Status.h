@@ -9,7 +9,7 @@
 #include "StatusOr.h"
 
 enum QueryStatus {
-  NOT_FOUND, FOUND, DELETED, BUFFER_TOO_SMALL
+  NOT_FOUND, FOUND, DELETED, BUFFER_TOO_SMALL, NOT_IN_CACHE
 };
 
 using QueryResult

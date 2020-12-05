@@ -14,7 +14,8 @@
 #include <thread>
 
 #include "Element.h"
-#include "LRUCache.h"
+#include "LRUHashCache.h"
+#include "LRUTreeCache.h"
 #include "ListQueue.h"
 #include "MemoryTableManager.h"
 #include "RBTreeMemoryTable.h"
@@ -27,16 +28,71 @@
 #define  KEY_PUT_TAG 3
 #define VALUE_PUT_TAG 4
 
-#define MAX_MTABLE_SIZE 10000
-#define MAX_CACHE_SIZE 1000
-
 class PaperlessKV {
  public:
-  enum Consistency { SEQUENTIAL, RELAXED };
-  enum Mode { READANDWRITE, READONLY};
+  enum Consistency_t { SEQUENTIAL, RELAXED };
+  enum Mode_t { READANDWRITE, READONLY};
 
-  PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed, Consistency c = Consistency::RELAXED, Mode m =READANDWRITE);
-  PaperlessKV(std::string id, MPI_Comm comm, HashFunction, Consistency c = Consistency::RELAXED, Mode m =READANDWRITE);
+  class Options {
+   public:
+    // Default values are set here.
+    friend class PaperlessKV;
+    size_t max_local_memtable_size = 1000000;
+    size_t max_remote_memtable_size = 1000000;
+    size_t max_local_cache_size = 1000000;
+    size_t max_remote_cache_size = 1000000;
+    std::string strorage_location;
+
+    Consistency_t consistency = RELAXED;
+    Mode_t mode = READANDWRITE;
+   public:
+    bool dispatch_data_in_chunks = true;
+
+    Options MaxLocalMemTableSize(size_t s) {
+      Options res = *this;
+      res.max_local_memtable_size = s;
+      return res;
+    }
+    Options MaxRemoteMemTableSize(size_t s) {
+      Options res = *this;
+      res.max_remote_memtable_size = s;
+      return res;
+    }
+    Options MaxLocalCacheSize(size_t s) {
+      Options res = *this;
+      res.max_local_cache_size = s;
+      return res;
+    }
+    Options MaxRemoteCacheSize(size_t s) {
+      Options res = *this;
+      res.max_remote_cache_size = s;
+      return res;
+    }
+    Options Consistency(Consistency_t c) {
+      Options res = *this;
+      res.consistency = c;
+      return res;
+    }
+    Options Mode(Mode_t m) {
+      Options res = *this;
+      res.mode = m;
+      return res;
+    }
+    Options DispatchInChunks(size_t d) {
+      Options res = *this;
+      res.dispatch_data_in_chunks = static_cast<bool>(d);
+      return res;
+    }
+    Options StorageLocation(std::string sl) {
+      Options res = *this;
+      res.strorage_location = sl;
+      return res;
+    }
+  };
+
+  PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed,
+              Options options);
+  PaperlessKV(std::string id, MPI_Comm comm, HashFunction, Options options);
 
   PaperlessKV(const PaperlessKV&) = delete;
   PaperlessKV(PaperlessKV&&) = delete;
@@ -57,7 +113,7 @@ class PaperlessKV {
   void Fence();
 
   // Same as fence but it allows to change the Consistency
-  void FenceAndChangeOptions(Consistency c, Mode m);
+  void FenceAndChangeOptions(Consistency_t c, Mode_t m);
   void FenceAndCheckPoint();
 
   void Shutdown();
@@ -120,15 +176,18 @@ class PaperlessKV {
 
   std::string id_;
 
-  Consistency consistency_;
-  Mode mode_;
+  Consistency_t consistency_;
+  Mode_t mode_;
   HashFunction hash_function_;
 
   RBTreeMemoryManager local_;
   RBTreeMemoryManager remote_;
 
-  LRUCache local_cache_;
-  LRUCache remote_cache_;
+  LRUTreeCache local_cache_;
+  LRUTreeCache remote_cache_;
+
+  //LRUHashCache local_cache_;
+  //LRUHashCache remote_cache_;
 
   StorageManager storage_manager_;
 
@@ -164,6 +223,27 @@ class PaperlessKV {
   volatile int fence_calls_received;
   std::mutex fence_mutex;
   std::condition_variable fence_wait;
+
+  // Settings:
+  bool dispatch_data_in_chunks_;
+
+  // Helpers:
+
+  void WriteIntToBuff(char* ptr, unsigned int x) {
+    ptr[0] = static_cast<char>(x & 0x000000ff);
+    ptr[1] = static_cast<char>((x & 0x0000ff00) >> 8);
+    ptr[2] = static_cast<char>((x & 0x00ff0000) >> 16);
+    ptr[3] =static_cast<char>( (x & 0xff000000) >> 24);
+  }
+
+  unsigned int ReadIntFromBuff(char* ptr) {
+    unsigned int x = 0;
+    x = static_cast<unsigned int>(ptr[0]) &  0x000000ff;
+    x += (static_cast<unsigned int>(ptr[1]) << 8) & 0x0000ff00;
+    x += (static_cast<unsigned int>(ptr[2]) << 16) & 0x00ff0000;
+    x += (static_cast<unsigned int>(ptr[3]) << 24) & 0xff000000;
+    return x;
+  }
 
   // For testing:
   friend class PaperLessKVFriend;

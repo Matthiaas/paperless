@@ -12,14 +12,14 @@ find_package(Threads REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 
-set(CMAKE_CXX_FLAGS "-rdynamic") # sudo apt install libmtbl-dev
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ")
+# sudo apt install libmtbl-dev
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O3")
 
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fno-omit-frame-pointer")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=leak")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -rdynamic")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer")
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=leak")
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
 
 if (IS_CLUSTER)
   # Non-global LD_LIBRARY_PATH equivalent.
@@ -45,8 +45,10 @@ set(LIB_SOURCES
         src/Status.h
         src/RBTreeMemoryTable.cpp
         src/RBTreeMemoryTable.h
-        src/LRUCache.cpp
-        src/LRUCache.h
+        src/LRUTreeCache.cpp
+        src/LRUTreeCache.h
+        src/LRUHashCache.cpp
+        src/LRUHashCache.h
         src/BloomFilter.cpp
         src/BloomFilter.h)
 
@@ -57,7 +59,8 @@ set(TEST_SOURCES
         src/tests/MemoryTableManagerTests.cpp
         src/tests/StatusOrTests.cpp
         src/tests/RBTreeMemoryTableTests.cpp
-        src/tests/LRUTests.cpp
+        src/tests/LRUTreeTests.cpp
+        src/tests/LRUHashTests.cpp
         src/tests/BloomFilterTests.cpp)
 
 add_subdirectory(third_party/smhasher)
@@ -68,11 +71,18 @@ set(MPI_TEST_SOURCES
         src/mpitests/PaperlessKVStressTest.cpp
         src/mpitests/PaperLessKVFriend.h)
 
+set(BENCHMARK_SOURCES
+        src/benchmark/OptionReader.cpp
+        src/benchmark/OptionReader.h)
+
 set(WOKRLOAD_BECHMARK_SOURCES
         src/benchmark/workload.cpp)
 
 set(BASIC_BECHMARK_SOURCES
         src/benchmark/basic.cpp)
+
+set(MTM_COMPARISON_SOURCES
+        src/benchmark/mtm_comparison.cpp)
 
 add_library(paperless STATIC ${LIB_SOURCES})
 target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})
@@ -88,21 +98,29 @@ add_executable(tests
         )
 
 add_executable(mpi_tests
+        ${BENCHMARK_SOURCES}
         ${MPI_TEST_SOURCES}
         ${LIB_SOURCES}
         )
 
 add_executable(workload
+        ${BENCHMARK_SOURCES}
         ${WOKRLOAD_BECHMARK_SOURCES}
         ${LIB_SOURCES})
 
 add_executable(basic
+        ${BENCHMARK_SOURCES}
         ${BASIC_BECHMARK_SOURCES}
+        ${LIB_SOURCES})
+
+add_executable(mtm_comparison
+        ${MTM_COMPARISON_SOURCES}
         ${LIB_SOURCES})
 
 target_link_libraries(main PUBLIC paperless mtbl)
 
 target_link_libraries(basic mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(workload mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_link_libraries(mtm_comparison mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(tests mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(mpi_tests mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)

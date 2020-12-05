@@ -4,6 +4,7 @@
 
 #include "PaperlessKV.h"
 #include <smhasher/MurmurHash3.h>
+#include <zconf.h>
 #include <iostream>
 #include "Element.h"
 
@@ -14,33 +15,33 @@ int GetRank(MPI_Comm comm) {
 }
 
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, uint32_t hash_seed,
-                         Consistency c, Mode m)
+                         PaperlessKV::Options options)
     : PaperlessKV(id, comm,
                   [hash_seed] (const char* value, size_t len) -> Hash {
                     uint32_t res;
                     MurmurHash3_x86_32(value, len, hash_seed, &res);
                     return static_cast<Hash>(res);
-                  }, c, m) {
+                  }, options) {
 }
 
 PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
-                         Consistency c ,Mode m )
+                         PaperlessKV::Options options)
     : id_(id),
-      consistency_(c),
-      mode_(m),
+      consistency_(options.consistency),
+      mode_(options.mode),
       hash_function_(hf),
-      local_(1,MAX_MTABLE_SIZE),
-      remote_(1, MAX_MTABLE_SIZE),
-      local_cache_(MAX_CACHE_SIZE),
-      remote_cache_(MAX_CACHE_SIZE),
-      storage_manager_(id + std::to_string(GetRank(comm))),
+      local_(1,options.max_local_memtable_size),
+      remote_(1, options.max_remote_memtable_size),
+      local_cache_(options.max_local_cache_size),
+      remote_cache_(options.max_remote_cache_size),
+      storage_manager_(options.strorage_location + std::to_string(GetRank(comm))),
       shutdown_(false),
       comm_(comm),
       compactor_(&PaperlessKV::Compact, this),
       dispatcher_(&PaperlessKV::Dispatch, this),
       get_responder_(&PaperlessKV::RespondGet, this),
-      put_responder_(&PaperlessKV::RespondPut, this)
-      /*get_value_tagger(0,100000000)*/ {
+      put_responder_(&PaperlessKV::RespondPut, this),
+      dispatch_data_in_chunks_(options.dispatch_data_in_chunks) {
   MPI_Comm_rank(comm_, &rank_);
   MPI_Comm_size(comm_, &rank_size_);
   MPI_Barrier(comm);
@@ -83,6 +84,7 @@ void PaperlessKV::Compact() {
   }
 }
 
+
 void PaperlessKV::Dispatch() {
   while (true) {
     MemQueue::Chunk handler = remote_.GetChunk();
@@ -90,10 +92,62 @@ void PaperlessKV::Dispatch() {
       handler.Clear();
       return;
     }
-    // TODO: Dispatch Data.
-    for(const auto& [key, value] : *handler.Get()) {
-      Hash hash = hash_function_(key.Value(), key.Length());
-      RemotePutSequential(key.GetView(), hash, value);
+    // consistency_ == SEQUENTIAL should never come here.
+    if(dispatch_data_in_chunks_ && consistency_ != SEQUENTIAL) {
+      // First is count, second is size
+      std::vector<std::pair<size_t, size_t>> per_rank(rank_size_);
+      for(const auto& [key, value] : *handler.Get()) {
+        Hash hash = hash_function_(key.Value(), key.Length());
+        Owner o = hash % rank_size_;
+        auto& p = per_rank[o];
+        p.first += 2;
+        p.second += key.Length() + value.GetBufferLen();
+      }
+
+      // fist is buffer second current location.
+      std::vector<std::pair<char*,size_t >> send_buffers(rank_size_);
+      for(int i = 0; i < rank_size_; i++) {
+        if(i == rank_) continue;
+        auto& p = per_rank[i];
+        send_buffers[i] = std::make_pair(
+            static_cast<char*>(std::malloc(p.second + p.first * sizeof(int))),
+            0);
+      }
+      // TODO: do not compute hash two times.
+      for(const auto& [key, value] : *handler.Get()) {
+        Hash hash = hash_function_(key.Value(), key.Length());
+        Owner o = hash % rank_size_;
+        auto& p = send_buffers[o];
+        char* buff = p.first + p.second;
+        WriteIntToBuff(buff, key.Length());
+        WriteIntToBuff(buff + 4, value.GetBufferLen());
+        buff += 8;
+        std::memcpy(buff, key.Value(), key.Length());
+        buff += key.Length();
+        std::memcpy(buff, value.GetBuffer(), value.GetBufferLen());
+        buff += value.GetBufferLen();
+        p.second += 8 + key.Length() + value.GetBufferLen();
+        // Send data with ISend
+      }
+
+      for(int i = 0; i < rank_size_; i++) {
+        auto& p = send_buffers[i];
+        if(p.second == 0 || i == rank_) {
+          continue;
+        }
+        MPI_Send(p.first, p.second, MPI_CHAR, i, KEY_PUT_TAG, comm_);
+        free(p.first);
+      }
+
+      // TODO: Wait for all Isend to be completed:
+
+    } else {
+      // Send data one by one:
+      for(const auto& [key, value] : *handler.Get()) {
+        Hash hash = hash_function_(key.Value(), key.Length());
+        // TODO: Send data with I_Send
+        RemotePutSequential(key.GetView(), hash, value);
+      }
     }
     handler.Clear();
   }
@@ -134,15 +188,39 @@ void PaperlessKV::RespondPut() {
       }
       continue;
     }
+    if(dispatch_data_in_chunks_ && consistency_ != SEQUENTIAL) {
+      // We also need to receive data in chunks.
+      char* original_buff = static_cast<char*>(std::malloc(count));
+      MPI_Recv(original_buff, count, MPI_CHAR, status.MPI_SOURCE, KEY_PUT_TAG, comm_, &status);
+      int pos = 0;
+      char* buff = original_buff;
+      while(pos < count) {
+        unsigned int key_len = ReadIntFromBuff(buff);
+        unsigned int value_len = ReadIntFromBuff(buff + 4);
+        buff += 8;
+        ElementView key = ElementView(buff, key_len);
+        buff += key_len;
+        Tomblement value = Tomblement::createFromBuffWithCopy(buff, value_len);
+        buff += value_len;
 
-    // TODO: change interfaces and avoid some copies
-    Element key = ReceiveKey(status.MPI_SOURCE, KEY_PUT_TAG, &status);
-    Tomblement value =
-        ReceiveTomblementSequential(status.MPI_SOURCE, VALUE_PUT_TAG, &status);
-    Hash hash = hash_function_(key.Value(), key.Length());
-    Owner o = hash % rank_size_;
-    local_.Put(key.GetView(), std::move(value), hash, o);
-
+        Hash hash = hash_function_(key.Value(), key.Length());
+        Owner o = hash % rank_size_;
+        // TODO Change interface and avoid copies.
+        //  Even though we did avoid it here with a hack.
+        local_.Put(key, std::move(value), hash, o);
+        pos += 8 + key_len + value_len;
+      }
+      free(original_buff);
+    } else {
+      // TODO: change interfaces and avoid some copies#
+      // Add Element&& interfaces.
+      Element key = ReceiveKey(status.MPI_SOURCE, KEY_PUT_TAG, &status);
+      Tomblement value =
+          ReceiveTomblementSequential(status.MPI_SOURCE, VALUE_PUT_TAG, &status);
+      Hash hash = hash_function_(key.Value(), key.Length());
+      Owner o = hash % rank_size_;
+      local_.Put(key.GetView(), std::move(value), hash, o);
+    }
   }
 }
 
@@ -152,17 +230,17 @@ void PaperlessKV::Put(const ElementView& key, Tomblement&& value) {
   if (o == rank_) {
     // Local insert.
     if(value.Tombstone()) {
-      local_cache_.put(key, QueryStatus::DELETED);
+      local_cache_.put(key, hash, QueryStatus::DELETED);
     } else {
-      local_cache_.put(key, Element::copyElementContent(value.GetView()));
+      local_cache_.put(key, hash, Element::copyElementContent(value.GetView()));
     }
     local_.Put(key, std::move(value), hash, rank_);
   } else {
     if (consistency_ == RELAXED) {
       if(value.Tombstone()) {
-        remote_cache_.put(key, QueryStatus::DELETED);
+        remote_cache_.put(key, hash, QueryStatus::DELETED);
       } else {
-        remote_cache_.put(key, Element::copyElementContent(value.GetView()));
+        remote_cache_.put(key, hash, Element::copyElementContent(value.GetView()));
       }
       remote_.Put(key, std::move(value), hash, rank_);
     } else if (consistency_ == SEQUENTIAL) {
@@ -182,7 +260,7 @@ QueryResult PaperlessKV::Get(const ElementView& key) {
     } else { // SEQUENTIAL
       QueryResult qr = RemoteGetValue(key, hash);
       if(mode_ == READONLY) {
-        remote_cache_.put(key, qr);
+        remote_cache_.put(key, hash, qr);
       }
       return qr;
     }
@@ -190,7 +268,7 @@ QueryResult PaperlessKV::Get(const ElementView& key) {
 }
 
 QueryResult PaperlessKV::LocalGet(const ElementView& key, Hash hash) {
-  std::optional<QueryResult> cache_result = local_cache_.get(key);
+  std::optional<QueryResult> cache_result = local_cache_.get(key, hash);
   if(cache_result) {
     return std::move(cache_result.value());
   } else {
@@ -198,7 +276,7 @@ QueryResult PaperlessKV::LocalGet(const ElementView& key, Hash hash) {
     if (el == QueryStatus::NOT_FOUND) {
       el = storage_manager_.readFromDisk(key);
     }
-    local_cache_.put(key, el);
+    local_cache_.put(key, hash, el);
     return el;
   }
 }
@@ -207,23 +285,28 @@ std::pair<QueryStatus, size_t> PaperlessKV::LocalGet(const ElementView& key,
                                                      const ElementView& buff,
                                                      Hash hash) {
   // TODO: implement this for cache.
-  std::optional<QueryResult> cache_result = std::nullopt;
-  if(cache_result) {
-    return {QueryStatus::BUFFER_TOO_SMALL,0};
-  } else {
+  std::pair<QueryStatus, size_t> cache_result = local_cache_.get(key, hash, buff);
+  if(cache_result.first== QueryStatus::NOT_IN_CACHE) {
     std::pair<QueryStatus, size_t> el =
         local_.Get(key, buff.Value(), buff.Length(), hash, rank_);
     if (el.first == QueryStatus::NOT_FOUND) {
       el = storage_manager_.readFromDisk(key, buff);
     }
-    //local_cache_.put(key, el);
+    if(el.first == QueryStatus::FOUND) {
+      local_cache_.put(key, hash, Element(buff.Value(), el.second));
+    } else if(el.first == QueryStatus::DELETED
+              || el.first == QueryStatus::NOT_FOUND) {
+      local_cache_.put(key, hash, el.first);
+    }
     return el;
+  } else {
+    return cache_result;
   }
 }
 
 
 QueryResult PaperlessKV::RemoteGetRelaxed(const ElementView& key, Hash hash) {
-  std::optional<QueryResult> cache_result = remote_cache_.get(key);
+  std::optional<QueryResult> cache_result = remote_cache_.get(key, hash);
   if(cache_result) {
     return std::move(cache_result.value());
   } else {
@@ -231,7 +314,7 @@ QueryResult PaperlessKV::RemoteGetRelaxed(const ElementView& key, Hash hash) {
     if (el == QueryStatus::NOT_FOUND) {
       el = RemoteGetValue(key, hash);
     }
-    remote_cache_.put(key, el);
+    remote_cache_.put(key, hash, el);
     return el;
   }
 }
@@ -239,17 +322,23 @@ QueryResult PaperlessKV::RemoteGetRelaxed(const ElementView& key, Hash hash) {
 std::pair<QueryStatus, size_t> PaperlessKV::RemoteGetRelaxed(
     const ElementView& key, const ElementView& v_buff, Hash hash) {
   // TODO: implement this for cache.
-  std::optional<QueryResult> cache_result = std::nullopt;//remote_cache_.get(key);
-  if(cache_result) {
-    return {QueryStatus::BUFFER_TOO_SMALL,0};// std::move(cache_result.value());
-  } else {
+  std::pair<QueryStatus, size_t> cache_result = local_cache_.get(key, hash, v_buff);
+  if(cache_result.first== QueryStatus::NOT_IN_CACHE) {
     std::pair<QueryStatus, size_t> el = remote_.Get(
         key, v_buff.Value(), v_buff.Length(), hash, rank_);
     if (el.first == QueryStatus::NOT_FOUND) {
       el = RemoteGetValue(key, v_buff, hash);
     }
-    //remote_cache_.put(key, el);
+    if(el.first == QueryStatus::FOUND) {
+      remote_cache_.put(key, hash, Element(v_buff.Value(), el.second));
+    } else if(el.first == QueryStatus::DELETED
+                  || el.first == QueryStatus::NOT_FOUND) {
+      remote_cache_.put(key, hash, el.first);
+    }
+
     return el;
+  } else {
+    return cache_result;
   }
 }
 
@@ -300,11 +389,16 @@ std::pair<QueryStatus, size_t> PaperlessKV::get(
     if (consistency_ == RELAXED) {
       return RemoteGetRelaxed(key, buff, hash);
     } else { // SEQUENTIAL
-      std::pair<QueryStatus, size_t> qr = RemoteGetValue(key, buff, hash);
+      std::pair<QueryStatus, size_t> el = RemoteGetValue(key, buff, hash);
       if(mode_ == READONLY) {
-        //remote_cache_.put(key, qr);
+        if(el.first == QueryStatus::FOUND) {
+          remote_cache_.put(key, hash, Element(buff.Value(), el.second));
+        } else if(el.first == QueryStatus::DELETED
+                  || el.first == QueryStatus::NOT_FOUND) {
+          remote_cache_.put(key, hash, el.first);
+        }
       }
-      return qr;
+      return el;
     }
   }
 
@@ -420,10 +514,10 @@ void PaperlessKV::Fence() {
   MPI_Barrier(comm_);
 }
 
-void PaperlessKV::FenceAndChangeOptions(PaperlessKV::Consistency c, Mode mode) {
+void PaperlessKV::FenceAndChangeOptions(PaperlessKV::Consistency_t c, Mode_t mode) {
   Sync();
   consistency_ = c;
-  if(!(mode_ == READONLY && mode == READANDWRITE && c == RELAXED)) {
+  if(c != RELAXED) {
     remote_cache_.clear();
   }
   mode_ = mode;

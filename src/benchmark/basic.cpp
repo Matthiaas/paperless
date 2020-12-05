@@ -1,10 +1,11 @@
 // https://code.ornl.gov/eck/papyrus/-/blob/master/kv/apps/sc17/basic.cpp
 
 #include <mpi.h>
-#include "../PaperlessKV.h"
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include "../PaperlessKV.h"
+#include "OptionReader.h"
 #include "timer.h"
 
 //#define VERBOSE
@@ -83,7 +84,12 @@ int main(int argc, char** argv) {
   //opt.vallen = vallen;
   //opt.hash = NULL;
 
-  PaperlessKV paper("/tmp/mydb", MPI_COMM_WORLD, 1, PaperlessKV::RELAXED, PaperlessKV::READANDWRITE);
+  auto options =
+      ReadOptionsFromEnvVariables()
+          .Consistency(PaperlessKV::RELAXED)
+          .Mode(PaperlessKV::READANDWRITE);
+
+  PaperlessKV paper("/tmp/mydb", MPI_COMM_WORLD, 1, options);
 
   //ret = papyruskv_open("mydb", PAPYRUSKV_CREATE | PAPYRUSKV_RELAXED | PAPYRUSKV_RDWR, &opt, &db);
   //if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);

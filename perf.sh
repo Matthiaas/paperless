@@ -2,8 +2,8 @@
 #BSUB -P paperless
 #BSUB -J workload
 #BSUB -o output.o%J
-#BSUB -W 04:00
-#BSUB -n 40
+#BSUB -W 02:00
+#BSUB -n 20
 
 # On cluster run: bsub < benchmark_cluster.sh
 
@@ -11,7 +11,7 @@
 KEYLEN=16
 VALLEN=(8) #, 64, 512)
 COUNT=10000
-RANKS=(1 2 4 8 16 20) # 40 80 160 320)
+RANKS=(1 2 4 8) # 16 20) # 40 80 160 320)
 
 
 export MAX_LOCAL_MEMTABLE_SIZ=100000
@@ -26,6 +26,6 @@ export STORAGE_LOCATION=/scratch/mydb
 
 for i in "${RANKS[@]}"; do
     for j in "${VALLEN[@]}"; do
-        mpirun -np $i ./build/workload $KEYLEN $j $COUNT 0
+        perf record -g  mpirun -np $i ./build/workload $KEYLEN $j $COUNT 0
     done
 done
