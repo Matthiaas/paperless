@@ -2,6 +2,8 @@
 // StorageManager.cpp
 //
 
+#include <iostream>
+
 #include "StorageManager.h"
 
 #include <mtbl.h>
