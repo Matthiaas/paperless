@@ -17,7 +17,7 @@ class StorageManager {
 
  public:
   explicit StorageManager(const std::filesystem::path &dir,
-                          size_t cache_size = 100)
+                          size_t cache_size = 5000)
       : StorageManager(dir / "sstables",
                        dir / "filters",
                        cache_size) {}
