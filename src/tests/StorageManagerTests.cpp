@@ -48,13 +48,14 @@ TEST_CASE("general StorageManager test") {
 
 TEST_CASE("Check with on-disk bloomfilter") {
   std::string dir = "/tmp/StorageManagerTest/";
-  StorageManager storage_manager {dir, 0};
+  StorageManager storage_manager {dir, 1};
 
   RBTreeMemoryTable mtable1{};
   mtable1.put(ELEMENTVIEW(key1), TOMBLEMENT(value1));
+  mtable1.put(ELEMENTVIEW(key2), TOMBLEMENT(value2));
 
   RBTreeMemoryTable mtable2{};
-  mtable1.put(ELEMENTVIEW(key2), TOMBLEMENT(value2));
+  mtable2.put(ELEMENTVIEW(key2), TOMBLEMENT(value2));
 
   storage_manager.flushToDisk(mtable1);
 
