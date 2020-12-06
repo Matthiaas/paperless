@@ -21,16 +21,13 @@ class BloomFilter {
   BloomFilter(BloomFilter &&other)  noexcept = default;
 
   BloomFilter(size_t num_elements, double fp_rate) {
-    double m = num_elements * std::log(fp_rate) / std::log(0.6185);
-    num_hashes_ = std::ceil(std::pow(0.6185, m / num_elements));
-    bits_ = std::vector<bool>(m);
+    double num_bits  = std::ceil((num_elements * std::log(fp_rate)) / std::log(0.6185));
+    num_hashes_ = std::round((num_bits / num_elements) * std::log(2));
+    bits_ = std::vector<bool>(num_bits);
   }
-
-
 
   void insert(const ElementView &e);
   [[nodiscard]] bool contains(const ElementView &e) const;
-
 
   [[nodiscard]] uint8_t GetNumHashes() const {
     return num_hashes_;
