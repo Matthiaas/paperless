@@ -1,7 +1,3 @@
-//
-// Created by matthias on 08.11.20.
-//
-
 #ifndef PAPERLESS_STATUSOR_H
 #define PAPERLESS_STATUSOR_H
 
@@ -10,6 +6,11 @@
 template <class T, class St>
 class StatusOr {
  public:
+  StatusOr() {
+    status_ = static_cast<St>(0);
+    has_value_ = false;
+  }
+
   StatusOr(const St& s) {
     status_ = s;
     has_value_ = false;
@@ -45,7 +46,6 @@ class StatusOr {
       has_value_ = false;
       status_ = t.status_;
     }
-
   }
 
 

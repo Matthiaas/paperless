@@ -61,7 +61,7 @@ set(TEST_SOURCES
         src/tests/RBTreeMemoryTableTests.cpp
         src/tests/LRUTreeTests.cpp
         src/tests/LRUHashTests.cpp
-        src/tests/BloomFilterTests.cpp)
+        src/tests/BloomFilterTests.cpp src/tests/TestUtils.h src/tests/TestUtils.cpp)
 
 add_subdirectory(third_party/smhasher)
 

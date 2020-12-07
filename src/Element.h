@@ -86,7 +86,7 @@ class Element {
   }
 
  private:
-  Element() = default;;
+  Element() = default;
   friend bool operator<(const Element& lhs, const Element& rhs);
   friend bool operator<(const ElementView& lhs, const Element& rhs);
   friend bool operator<(const Element& lhs, const ElementView& rhs);

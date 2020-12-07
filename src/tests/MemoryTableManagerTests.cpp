@@ -1,15 +1,14 @@
-#include <memory>
-#include <thread>
+#include <catch.hpp>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <string>
+#include <thread>
 
-#include <catch.hpp>
-
-#include "../Status.h"
-#include "../MemoryTableManager.h"
 #include "../ListQueue.h"
+#include "../MemoryTableManager.h"
 #include "../RBTreeMemoryTable.h"
+#include "TestUtils.h"
 
 using MemTable = RBTreeMemoryTable;
 using MemQueue = ListQueue<MemTable>;
@@ -74,14 +73,6 @@ TEST_CASE("MemoryTableManager Simple Dequeue") {
   CHECK(kSampleValue == result_direct.Value());
   CHECK(kSampleValue == result_dequeued.Value());
   CHECK(result_cleared == QueryStatus::NOT_FOUND);
-}
-
-std::string CreateIthKey(int i) {
-  return "key" + std::to_string(i);
-}
-
-std::string CreateIthValue(int i) {
-  return "value" + std::to_string(i);
 }
 
 struct Consumer {

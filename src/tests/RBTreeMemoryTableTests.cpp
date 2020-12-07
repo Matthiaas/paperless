@@ -1,6 +1,8 @@
 #include <catch.hpp>
+#include <thread>
 
 #include "../RBTreeMemoryTable.h"
+#include "TestUtils.h"
 
 TEST_CASE("RBTreeMemoryTable: Put with View & Get Test") {
   RBTreeMemoryTable memTable;
@@ -68,9 +70,9 @@ TEST_CASE("RBTreeMemoryTable: Put & Get with user-provided buffer") {
 
   SECTION("correct buffer") {
     size_t buffer_len = value_len;
-    char* buffer[buffer_len];
+    char *buffer[buffer_len];
     const auto result =
-        memTable.get(key, reinterpret_cast<char*>(buffer), buffer_len);
+        memTable.get(key, reinterpret_cast<char *>(buffer), buffer_len);
     CHECK(result.first == QueryStatus::FOUND);
     CHECK(result.second == value_len);
     CHECK(memcmp(buffer, value_bytes, value_len) == 0);
@@ -78,18 +80,18 @@ TEST_CASE("RBTreeMemoryTable: Put & Get with user-provided buffer") {
 
   SECTION("too short buffer") {
     size_t buffer_len = 3;
-    char* buffer[buffer_len];
+    char *buffer[buffer_len];
     const auto result =
-        memTable.get(key, reinterpret_cast<char*>(buffer), buffer_len);
+        memTable.get(key, reinterpret_cast<char *>(buffer), buffer_len);
     CHECK(result.first == QueryStatus::BUFFER_TOO_SMALL);
     CHECK(result.second == value_len);
   }
 
   SECTION("not found") {
     size_t buffer_len = 3;
-    char* buffer[buffer_len];
+    char *buffer[buffer_len];
     const auto result = memTable.get(
-        {"nonexistent", 11}, reinterpret_cast<char*>(buffer), buffer_len);
+        {"nonexistent", 11}, reinterpret_cast<char *>(buffer), buffer_len);
     CHECK(result.first == QueryStatus::NOT_FOUND);
     CHECK(result.second == 0);
   }
@@ -128,7 +130,8 @@ TEST_CASE("RBTreeMemoryTable: Size Test") {
   Tomblement val_overwrite{value_overwrite_bytes, 9};
 
   memTable.put(key, std::move(val_overwrite));
-  CHECK(memTable.ByteSize() == key.Length() + val_overwrite_expected.Length() + 1);
+  CHECK(memTable.ByteSize() ==
+        key.Length() + val_overwrite_expected.Length() + 1);
 
   char another_key_bytes[] = "another_key";
   ElementView another_key{another_key_bytes, 11};
@@ -140,4 +143,106 @@ TEST_CASE("RBTreeMemoryTable: Size Test") {
   CHECK(memTable.ByteSize() ==
         another_key.Length() + another_value_expected.Length() + 1 +
             key.Length() + val_overwrite_expected.Length() + 1);
+}
+
+template <int N>
+struct Reader {
+  std::unique_ptr<std::vector<Element>> keys;
+  QueryResult readResults[N];
+  std::unique_ptr<std::thread> thread;
+
+  Reader(RBTreeMemoryTable *memoryTable, int start, int count) {
+    keys = std::make_unique<std::vector<Element>>();
+    thread = std::make_unique<std::thread>(
+        &Reader::Read, memoryTable, keys.get(), readResults, start, count);
+  }
+
+  static void Read(RBTreeMemoryTable *memoryTable, std::vector<Element> *keys,
+                   QueryResult values[N], int start, int count) {
+    for (int i = start * count; i < (start + 1) * count; i++) {
+      const std::string key = CreateIthKey(i);
+      keys->emplace_back(&key[0], key.size());
+      ElementView e(&key[0], key.size());
+      QueryResult result = memoryTable->get(e);
+      values[i - start * count] = std::move(result);
+    }
+  }
+};
+
+struct Writer {
+  const int start;
+  const int count;
+  std::unique_ptr<std::thread> thread;
+
+  Writer(RBTreeMemoryTable *memoryTable, int start, int count)
+      : start(start), count(count) {
+    thread = std::make_unique<std::thread>(&Writer::Write, memoryTable, start,
+                                           count);
+  }
+
+  static void Write(RBTreeMemoryTable *memoryTable, int start, int count) {
+    for (int i = start; i < start + count; ++i) {
+      std::string key = CreateIthKey(i);
+      std::string value = CreateIthValue(i);
+      Element key_elem(&key[0], key.size());
+      Tomblement value_tombl(&value[0], value.size());
+      memoryTable->put(std::move(key_elem), std::move(value_tombl));
+    }
+  }
+};
+
+TEST_CASE("RBTreeMemoryTable: Threaded Put/Get") {
+  const int thread_count = 10;
+  const int elems_per_thread = 10;
+  RBTreeMemoryTable memoryTable;
+
+  std::vector<Reader<elems_per_thread>> readers;
+  std::vector<Writer> writers;
+  for (int i = 0; i < thread_count; ++i) {
+    writers.emplace_back(&memoryTable, i * elems_per_thread, elems_per_thread);
+  }
+  for (int i = 0; i < thread_count; ++i) {
+    readers.emplace_back(&memoryTable, i * elems_per_thread, elems_per_thread);
+  }
+
+  for (auto &t : writers) {
+    if (t.thread->joinable()) {
+      t.thread->join();
+    }
+  }
+  for (auto &t : readers) {
+    if (t.thread->joinable()) {
+      t.thread->join();
+    }
+  }
+
+  std::map<Element, Tomblement> map;
+  for (int i = 0; i < thread_count * elems_per_thread; i++) {
+    std::string key = CreateIthKey(i);
+    std::string value = CreateIthValue(i);
+    Element key_elem(&key[0], key.size());
+    Tomblement value_tombl(&value[0], value.size());
+    Element value_elem(&value[0], value.size());
+    map.insert(std::make_pair(std::move(key_elem), std::move(value_tombl)));
+
+    // Check everything got properly inserted.
+    ElementView key_elem_view(&key[0], key.size());
+    auto result = memoryTable.get(key_elem_view);
+
+    CHECK(result.hasValue());
+    CHECK(result.Value() == value_elem.GetView());
+  }
+
+  for (int i = 0; i < thread_count; i++) {
+    CHECK(readers[i].keys->size() == elems_per_thread);
+    for (int j = 0; j < thread_count; j++) {
+      auto &result = readers[i].readResults[j];
+      auto &key = readers[i].keys->at(j);
+      bool not_found =
+          !result.hasValue() && result.Status() == QueryStatus::NOT_FOUND;
+      bool correct_value =
+          result.hasValue() && (result.Value() == map.at(key).GetView());
+      CHECK((not_found || correct_value));
+    }
+  }
 }

@@ -1,7 +1,3 @@
-//
-// Created by matthias on 08.11.20.
-//
-
 #ifndef PAPERLESS_STATUS_H
 #define PAPERLESS_STATUS_H
 
@@ -9,7 +5,7 @@
 #include "StatusOr.h"
 
 enum QueryStatus {
-  NOT_FOUND, FOUND, DELETED, BUFFER_TOO_SMALL, NOT_IN_CACHE
+  UNKNOWN, NOT_FOUND, FOUND, DELETED, BUFFER_TOO_SMALL, NOT_IN_CACHE
 };
 
 using QueryResult
