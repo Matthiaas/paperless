@@ -192,7 +192,7 @@ struct Writer {
 };
 
 TEST_CASE("RBTreeMemoryTable: Threaded Put/Get") {
-  const int thread_count = 10;
+  const int thread_count = 100;
   const int elems_per_thread = 10;
   RBTreeMemoryTable memoryTable;
 
@@ -217,6 +217,7 @@ TEST_CASE("RBTreeMemoryTable: Threaded Put/Get") {
   }
 
   std::map<Element, Tomblement> map;
+  // Check everything got properly inserted.
   for (int i = 0; i < thread_count * elems_per_thread; i++) {
     std::string key = CreateIthKey(i);
     std::string value = CreateIthValue(i);
@@ -225,7 +226,6 @@ TEST_CASE("RBTreeMemoryTable: Threaded Put/Get") {
     Element value_elem(&value[0], value.size());
     map.insert(std::make_pair(std::move(key_elem), std::move(value_tombl)));
 
-    // Check everything got properly inserted.
     ElementView key_elem_view(&key[0], key.size());
     auto result = memoryTable.get(key_elem_view);
 
@@ -233,9 +233,10 @@ TEST_CASE("RBTreeMemoryTable: Threaded Put/Get") {
     CHECK(result.Value() == value_elem.GetView());
   }
 
+  // Check that all readers got either NOT_FOUND or the correct value.
   for (int i = 0; i < thread_count; i++) {
     CHECK(readers[i].keys->size() == elems_per_thread);
-    for (int j = 0; j < thread_count; j++) {
+    for (int j = 0; j < elems_per_thread; j++) {
       auto &result = readers[i].readResults[j];
       auto &key = readers[i].keys->at(j);
       bool not_found =

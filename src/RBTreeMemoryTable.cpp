@@ -1,6 +1,7 @@
 #include "RBTreeMemoryTable.h"
 
 void RBTreeMemoryTable::put(Element&& key, Tomblement&& value) {
+  std::lock_guard<std::mutex> lock(mutex_);
   total_bytes += value.Length();
   size_t key_len = key.Length();
   auto emplace_result =
@@ -22,6 +23,7 @@ void RBTreeMemoryTable::put(const ElementView& key, Tomblement&& value) {
 }
 
 QueryResult RBTreeMemoryTable::get(const ElementView& key) {
+  std::lock_guard<std::mutex> lock(mutex_);
   auto it = container_.find(key);
   if (it == container_.end()) {
     return QueryStatus::NOT_FOUND;
@@ -38,6 +40,7 @@ QueryResult RBTreeMemoryTable::get(const ElementView& key) {
 std::pair<QueryStatus, size_t> RBTreeMemoryTable::get(const ElementView& key,
                                                       char* value,
                                                       size_t value_len) {
+  std::lock_guard<std::mutex> lock(mutex_);
   auto it = container_.find(key);
   if (it == container_.end()) {
     return {QueryStatus::NOT_FOUND, 0};
@@ -49,14 +52,16 @@ std::pair<QueryStatus, size_t> RBTreeMemoryTable::get(const ElementView& key,
       if (entry.Length() <= value_len) {
         memcpy(value, entry.Value(), entry.Length());
         return {QueryStatus::FOUND, entry.Length()};
-      } else { // User-provided buffer is too small.
+      } else {  // User-provided buffer is too small.
         return {QueryStatus::BUFFER_TOO_SMALL, entry.Length()};
       }
     }
   }
 }
 
-size_t RBTreeMemoryTable::ByteSize() const { return total_bytes; }
+size_t RBTreeMemoryTable::ByteSize() const {
+  return total_bytes;
+}
 
 size_t RBTreeMemoryTable::Count() const { return container_.size(); }
 
@@ -66,4 +71,3 @@ RBTreeMemoryTable::const_iterator RBTreeMemoryTable::begin() const {
 RBTreeMemoryTable::const_iterator RBTreeMemoryTable::end() const {
   return container_.end();
 }
-

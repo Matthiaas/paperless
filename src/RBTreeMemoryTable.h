@@ -1,8 +1,10 @@
 #ifndef PAPERLESS_RBTREEMEMORYTABLE_H
 #define PAPERLESS_RBTREEMEMORYTABLE_H
 
+#include <atomic>
 #include <map>
 #include <memory>
+#include <mutex>
 
 #include "Element.h"
 #include "Status.h"
@@ -44,13 +46,15 @@ class RBTreeMemoryTable {
   std::pair<QueryStatus, size_t> get(const ElementView& key, char* value,
                                      size_t value_len);
 
+  // Iterating over the container is not thread-safe!
   const_iterator begin() const;
 
   const_iterator end() const;
 
  private:
   container_t container_;
-  size_t total_bytes;
+  std::mutex mutex_;
+  std::atomic<size_t> total_bytes;
 };
 
 #endif  // PAPERLESS_RBTREEMEMORYTABLE_H
