@@ -165,28 +165,28 @@ namespace TimedKV {
     auto start = high_resolution_clock::now();
     KV::Init(argc, argv, name);
     auto end = high_resolution_clock::now();
-    return (end-start).count();
+    return (duration_cast<nanoseconds>(end-start)).count();
   }
 
   inline long Fence() {
     auto start = high_resolution_clock::now();
     KV::Fence();
     auto end = high_resolution_clock::now();
-    return (end-start).count();
+    return (duration_cast<nanoseconds>(end-start)).count();
   }
 
   inline long Checkpoint() {
     auto start = high_resolution_clock::now();
     KV::Checkpoint();
     auto end = high_resolution_clock::now();
-    return (end-start).count();
+    return (duration_cast<nanoseconds>(end-start)).count();
   }
 
   inline long SetMode(PaperlessKV::Consistency_t c, PaperlessKV::Mode_t  m) {
     auto start = high_resolution_clock::now();
     KV::SetMode(c, m);
     auto end = high_resolution_clock::now();
-    return (end-start).count();
+    return (duration_cast<nanoseconds>(end-start)).count();
   }
 
   inline long Put(const char* key, size_t key_len,
@@ -194,7 +194,7 @@ namespace TimedKV {
     auto start = high_resolution_clock::now();
     KV::Put(key, key_len, value, value_len);
     auto end = high_resolution_clock::now();
-    return (end-start).count();
+    return (duration_cast<nanoseconds>(end-start)).count();
   }
 
   inline long Get(const char* key, size_t key_len,
@@ -202,14 +202,14 @@ namespace TimedKV {
     auto start = high_resolution_clock::now();
     KV::Get(key, key_len, value, value_len);
     auto end = high_resolution_clock::now();
-    return (end-start).count();
+    return (duration_cast<nanoseconds>(end-start)).count();
   }
 
   inline long Finalize() {
     auto start = high_resolution_clock::now();
     KV::Finalize();
     auto end = high_resolution_clock::now();
-    return (end-start).count();
+    return (duration_cast<nanoseconds>(end-start)).count();
   }
 }
 

@@ -98,21 +98,18 @@ int main(int argc, char** argv)  {
   // Write data to file:
   std::filesystem::create_directories(storage_directory);
   std::ofstream put_file(storage_directory + "/put" + std::to_string(rank) + ".txt");
-  put_file << put_time.size() << std::endl;
   for(const auto& t : put_time) {
     put_file << t << " ";
   }
   put_file.close();
 
   std::ofstream get_file(storage_directory + "/get" + std::to_string(rank) + ".txt");
-  get_file << get_time.size() << std::endl;
   for(const auto& t : get_time) {
     get_file << t << " ";
   }
   get_file.close();
 
   std::ofstream update_file(storage_directory + "/update" + std::to_string(rank) + ".txt");
-  update_file << update_time.size() << std::endl;
   for(const auto& t : update_time) {
     update_file << t << " ";
   }
