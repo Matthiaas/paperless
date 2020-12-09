@@ -73,7 +73,12 @@ set(MPI_TEST_SOURCES
 
 set(BENCHMARK_SOURCES
         src/benchmark/OptionReader.cpp
-        src/benchmark/OptionReader.h)
+        src/benchmark/OptionReader.h
+        )
+
+set(THE_GREAT_BECHMARK_SOURCES
+        src/benchmark/KVWrapper.h
+        src/benchmark/theGreatBenchmark.cpp)
 
 set(WOKRLOAD_BECHMARK_SOURCES
         src/benchmark/workload.cpp)
@@ -103,6 +108,11 @@ add_executable(mpi_tests
         ${LIB_SOURCES}
         )
 
+add_executable(thegreatebenchmark
+        ${BENCHMARK_SOURCES}
+        ${THE_GREAT_BECHMARK_SOURCES}
+        ${LIB_SOURCES})
+
 add_executable(workload
         ${BENCHMARK_SOURCES}
         ${WOKRLOAD_BECHMARK_SOURCES}
@@ -119,6 +129,7 @@ add_executable(mtm_comparison
 
 target_link_libraries(main PUBLIC paperless mtbl)
 
+target_link_libraries(thegreatebenchmark mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(basic mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(workload mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(mtm_comparison mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
