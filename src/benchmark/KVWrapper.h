@@ -107,7 +107,8 @@ namespace KV {
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    papyruskv_init(&argc, &argv, "$PAPYRUSKV_REPOSITORY");
+    std::string storage_directory = argv[5];
+    papyruskv_init(&argc, &argv, storage_directory.c_str());
 
     papyruskv_option_t opt;
     opt.keylen = keylen;
