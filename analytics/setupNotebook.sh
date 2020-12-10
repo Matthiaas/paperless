@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-sudo apt install jupyter -y
-sudo pip3 install jupytext
+conda env create -f environment.yml
 jupyter serverextension enable jupytext
 jupytext --set-formats ipynb,py KV_plots.py

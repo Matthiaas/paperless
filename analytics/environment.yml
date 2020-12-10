@@ -1,0 +1,9 @@
+name: paperless
+channels:
+  - conda-forge
+dependencies:
+  - jupyter
+  - jupytext
+  - numpy
+  - pandas
+  - matplotlib
