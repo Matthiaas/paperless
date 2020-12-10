@@ -118,6 +118,10 @@ class PaperlessKV {
 
   void Shutdown();
 
+  Owner GetOwner(const char* key, size_t key_len) {
+    return hash_function_(key, key_len) % rank_size_;
+  }
+
  private:
 
   using MemTable = RBTreeMemoryTable;

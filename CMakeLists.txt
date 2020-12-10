@@ -108,7 +108,7 @@ add_executable(mpi_tests
         ${LIB_SOURCES}
         )
 
-add_executable(thegreatebenchmark
+add_executable(thegreatbenchmark
         ${BENCHMARK_SOURCES}
         ${THE_GREAT_BECHMARK_SOURCES}
         ${LIB_SOURCES})

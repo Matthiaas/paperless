@@ -11,9 +11,9 @@
 #define GIGA    (1024 * MEGA)
 
 
-std::vector<long> put_time;
-std::vector<long> get_time;
-std::vector<long> update_time;
+std::vector<std::pair<long,int>> put_time;
+std::vector<std::pair<long,int>> get_time;
+std::vector<std::pair<long,int>> update_time;
 
 
 void BenchmarkRandomData() {
@@ -98,20 +98,20 @@ int main(int argc, char** argv)  {
   // Write data to file:
   std::filesystem::create_directories(storage_directory);
   std::ofstream put_file(storage_directory + "/put" + std::to_string(rank) + ".txt");
-  for(const auto& t : put_time) {
-    put_file << t << " ";
+  for(const auto& [t, r] : put_time) {
+    put_file << t << " " << r << std::endl;
   }
   put_file.close();
 
   std::ofstream get_file(storage_directory + "/get" + std::to_string(rank) + ".txt");
-  for(const auto& t : get_time) {
-    get_file << t << " ";
+  for(const auto& [t, r] : get_time) {
+    get_file << t << " " << r << std::endl;
   }
   get_file.close();
 
   std::ofstream update_file(storage_directory + "/update" + std::to_string(rank) + ".txt");
-  for(const auto& t : update_time) {
-    update_file << t << " ";
+  for(const auto& [t, r] : update_time) {
+    update_file << t << " " << r << std::endl;
   }
   update_file.close();
 
