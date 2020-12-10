@@ -94,9 +94,20 @@ int main(int argc, char** argv)  {
   BenchmarkRandomData();
 
   KV::Finalize();
-
   // Write data to file:
   std::filesystem::create_directories(storage_directory);
+
+  if (rank == 0) {
+    std::ofstream put_file(storage_directory + "/runconfig.txt");
+    put_file << "rank_count: " << size << std::endl;
+    put_file << "keylen: " << keylen << std::endl;
+    put_file << "vallen: " << vallen << std::endl;
+    put_file << "count: " << count << std::endl;
+    put_file << "update_ratio: " << update_ratio << std::endl;
+    put_file.close();
+  }
+
+
   std::ofstream put_file(storage_directory + "/put" + std::to_string(rank) + ".txt");
   for(const auto& [t, r] : put_time) {
     put_file << t << " " << r << std::endl;
