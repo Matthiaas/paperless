@@ -36,8 +36,8 @@ def readVector(file_name):
 #
 
 # + id="BJa3a46qnhdl"
-experiment = 'localRun'
-ranks = [8]
+experiment = '8MB'
+ranks = [1,2,4,8]
 
 
 path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/" + experiment + "/"
@@ -63,12 +63,10 @@ for rank in ranks:
     gets.append(readVector(path + str(rank) + "/get" + str(i) + ".txt"))
     puts.append(readVector(path + str(rank) + "/put" + str(i) + ".txt"))
     
-    print(puts[i][0])
-    breka
     
     plt.subplot(rank, 2, 2*i +1)
     plt.yscale('log')
-    plt.scatter(list(range(0, len(puts[i]))), puts[i][0], 0.5, puts[i][1])
+    plt.scatter(list(range(0, len(puts[i][0]))), puts[i][0], 0.5, puts[i][1])
     plt.title("Put rank" + str(i))
     plt.ylabel("time")
     plt.xlabel("nth operation")
@@ -78,7 +76,7 @@ for rank in ranks:
 
     # #plt.plot(gets[i])
     plt.yscale('log')
-    plt.scatter(list(range(0, len(gets[i]))), gets[i][0], 0.5,gets[i][1])
+    plt.scatter(list(range(0, len(gets[i][0]))), gets[i][0], 0.5,gets[i][1])
     plt.ylabel("time")
     plt.xlabel("nth operation")
     plt.title("Get rank" + str(i))
