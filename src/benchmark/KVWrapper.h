@@ -32,7 +32,7 @@ void generate_key_set() {
     rand_str(keylen, get_key(i));
   }
 }
-
+#define PAPERLESS_BENCHMARK
 
 #ifdef PAPERLESS_BENCHMARK
 
@@ -78,6 +78,10 @@ namespace KV {
   inline void Finalize() {
     paper->Shutdown();
     MPI_Finalize();
+  }
+
+  inline int GetOwner(const char* key, size_t key_len) {
+    return paper->GetOwner(key, key_len);
   }
 }
 
@@ -189,20 +193,22 @@ namespace TimedKV {
     return (duration_cast<nanoseconds>(end-start)).count();
   }
 
-  inline long Put(const char* key, size_t key_len,
+  inline std::pair<long,int> Put(const char* key, size_t key_len,
                   const char* value, size_t value_len) {
     auto start = high_resolution_clock::now();
     KV::Put(key, key_len, value, value_len);
     auto end = high_resolution_clock::now();
-    return (duration_cast<nanoseconds>(end-start)).count();
+    return std::make_pair((duration_cast<nanoseconds>(end-start)).count(),
+                          KV::GetOwner(key, key_len));
   }
 
-  inline long Get(const char* key, size_t key_len,
+  inline std::pair<long,int> Get(const char* key, size_t key_len,
                   char* value, size_t value_len) {
     auto start = high_resolution_clock::now();
     KV::Get(key, key_len, value, value_len);
     auto end = high_resolution_clock::now();
-    return (duration_cast<nanoseconds>(end-start)).count();
+    return std::make_pair((duration_cast<nanoseconds>(end-start)).count(),
+                          KV::GetOwner(key, key_len));
   }
 
   inline long Finalize() {

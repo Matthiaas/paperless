@@ -14,6 +14,8 @@
 # ---
 
 # + id="zeWCU8XvnRBH"
+# %matplotlib inline
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -24,16 +26,26 @@ import os
 
 # + id="OFvbZi__9c_j"
 def readVector(file_name):
-  return np.loadtxt(file_name)
+    matrix = np.loadtxt(file_name)
+    
+    # return values, colors
+    return matrix[:,0], matrix[:,1]
 
 # + [markdown] id="cALaPDztnH_X"
 # # Paperless and Papyrus plots
 #
 
 # + id="BJa3a46qnhdl"
-path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/512MB/"
+experiment = 'localRun'
+ranks = [8]
+
+
+path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/" + experiment + "/"
 print(path)
-ranks = [1,2,8]
+
+# -
+
+
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 539} id="9vWxik0KpqO8" outputId="4b83a218-c7db-484c-ac74-14a304f019a0"
 gets = []
@@ -50,10 +62,13 @@ for rank in ranks:
     
     gets.append(readVector(path + str(rank) + "/get" + str(i) + ".txt"))
     puts.append(readVector(path + str(rank) + "/put" + str(i) + ".txt"))
-
+    
+    print(puts[i][0])
+    breka
+    
     plt.subplot(rank, 2, 2*i +1)
     plt.yscale('log')
-    plt.scatter(list(range(0, len(puts[i]))), puts[i], 0.5)
+    plt.scatter(list(range(0, len(puts[i]))), puts[i][0], 0.5, puts[i][1])
     plt.title("Put rank" + str(i))
     plt.ylabel("time")
     plt.xlabel("nth operation")
@@ -63,7 +78,7 @@ for rank in ranks:
 
     # #plt.plot(gets[i])
     plt.yscale('log')
-    plt.scatter(list(range(0, len(gets[i]))), gets[i], 0.5)
+    plt.scatter(list(range(0, len(gets[i]))), gets[i][0], 0.5,gets[i][1])
     plt.ylabel("time")
     plt.xlabel("nth operation")
     plt.title("Get rank" + str(i))
