@@ -42,3 +42,7 @@ cmake-build-debug
 # vscode
 *.code-workspace
 .vscode
+
+# pythone notebooks
+.ipynb_checkpoints/
+*.ipynb
