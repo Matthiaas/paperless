@@ -29,6 +29,7 @@ if (IS_CLUSTER)
   include_directories(~/usr/include)
 endif()
 
+link_directories(papyrus/install/lib)
 include_directories(third_party)
 
 set(LIB_SOURCES
@@ -108,7 +109,12 @@ add_executable(mpi_tests
         ${LIB_SOURCES}
         )
 
-add_executable(thegreatbenchmark
+add_executable(thegreatbenchmark_paperless
+        ${BENCHMARK_SOURCES}
+        ${THE_GREAT_BECHMARK_SOURCES}
+        ${LIB_SOURCES})
+
+add_executable(thegreatbenchmark_papyrus
         ${BENCHMARK_SOURCES}
         ${THE_GREAT_BECHMARK_SOURCES}
         ${LIB_SOURCES})
@@ -129,7 +135,11 @@ add_executable(mtm_comparison
 
 target_link_libraries(main PUBLIC paperless mtbl)
 
-target_link_libraries(thegreatbenchmark mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_link_libraries(thegreatbenchmark_paperless mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_compile_definitions(thegreatbenchmark_paperless PRIVATE PAPERLESS_BENCHMARK)
+target_link_libraries(thegreatbenchmark_papyrus mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_compile_definitions(thegreatbenchmark_papyrus PRIVATE PAPYRUS_BENCHMARK)
+
 target_link_libraries(basic mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(workload mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(mtm_comparison mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)

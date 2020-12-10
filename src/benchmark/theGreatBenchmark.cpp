@@ -2,7 +2,6 @@
 // Created by matthias on 07.12.20.
 //
 
-#define PAPERLESS_BENCHMARK
 #include "KVWrapper.h"
 #include <filesystem>
 

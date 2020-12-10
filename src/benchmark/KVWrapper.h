@@ -32,7 +32,6 @@ void generate_key_set() {
     rand_str(keylen, get_key(i));
   }
 }
-#define PAPERLESS_BENCHMARK
 
 #ifdef PAPERLESS_BENCHMARK
 
@@ -90,8 +89,17 @@ namespace KV {
 #include <mpi.h>
 #include <string>
 #include "../PaperlessKV.h"
+#include "../../papyrus/include/papyrus/kv.h"
+#include "../../papyrus/include/papyrus/mpi.h"
 
-namespace Benchmark {
+namespace KV {
+  // Copypaste of deafult Papyrus hash function.
+  int papyruskv_hash_fn(const char* key, size_t keylen, size_t nranks) {
+    uint64_t hash = 5381;
+    for (size_t i = 0UL; i < keylen; i++) hash = ((hash << 5) + hash) + key[i];
+    return hash % nranks;
+  }
+
   int db;
   int rank, size;
 
@@ -104,7 +112,7 @@ namespace Benchmark {
     papyruskv_option_t opt;
     opt.keylen = keylen;
     opt.vallen = vallen;
-    opt.hash = NULL;
+    opt.hash = papyruskv_hash_fn;
 
     int ret = papyruskv_open(name.c_str(), PAPYRUSKV_CREATE | PAPYRUSKV_RELAXED | PAPYRUSKV_RDWR, &opt, &db);
     if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
@@ -157,6 +165,10 @@ namespace Benchmark {
     int ret = papyruskv_close(db);
     if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
     MPI_Finalize();
+  }
+
+  inline int GetOwner(const char* key, size_t key_len) {
+    return papyruskv_hash_fn(key, key_len, size);
   }
 }
 

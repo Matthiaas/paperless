@@ -17,6 +17,12 @@ if [ $IS_CLUSTER == "ON" ]
     . ./load_modules.sh
 fi
 
+# Clone and compile papyrus
+if [ ! -d "papyrus" ]
+  then
+    ./install_papyrus.sh
+fi
+
 DEFAULT_BUILD_TYPE=Release
 BUILD_TYPE="${2:-$DEFAULT_BUILD_TYPE}"
 
