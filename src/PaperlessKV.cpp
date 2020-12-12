@@ -162,6 +162,7 @@ void PaperlessKV::RespondGetAndPut() {
     int put_flag = false;
     while(!get_flag && !put_flag) {
       MPI_Iprobe(MPI_ANY_SOURCE, KEY_TAG, comm_, &get_flag, &status);
+      if(get_flag) break;
       MPI_Iprobe(MPI_ANY_SOURCE, KEY_PUT_TAG, comm_, &put_flag, &status);
     }
     if(get_flag) {
