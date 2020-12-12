@@ -35,8 +35,8 @@ def readVector(file_name):
 #
 
 # + id="BJa3a46qnhdl" pycharm={"is_executing": false}
-experiments = ['killPutTaskEuler/paperless', 'PE3', '8MB'] #'IprobeExperimentEuler', 'nodePE2', 'nodePE3', '8MB']
-ranks = [8]
+experiments = ['IprobeExperimentEuler/paperless'] #'killPutTaskEuler/paperless', 'PE3', '8MB'] # 'nodePE2', 'nodePE3', '8MB']
+ranks = [8,16,32]
 show_first_n = 1
 # experiment = 'localRun'
 # ranks = [8]
@@ -59,10 +59,11 @@ for experiment in experiments:
 
         print("--------------------------------------")
         print("Plots for ranks n=" + str(rank))
-    
+    some
         plt.figure(num=None, figsize=(15, 6* rank), dpi=80, facecolor='w', edgecolor='k')
         for i in range(min(show_first_n,rank)):
 
+            i = i +1
 
             gets = readVector(path + str(rank) + "/get" + str(i) + ".txt")
             puts = readVector(path + str(rank) + "/put" + str(i) + ".txt")
