@@ -35,7 +35,7 @@ def readVector(file_name):
 #
 
 # + id="BJa3a46qnhdl" pycharm={"is_executing": false}
-experiment = 'nodePE3'
+experiment = 'killResponPutTasklocal'
 ranks = [16]
 # experiment = 'localRun'
 # ranks = [8]

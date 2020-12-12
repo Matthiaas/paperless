@@ -11,7 +11,7 @@
 KEYLEN=16
 VALLEN=(8) #, 64, 512)
 COUNT=10000
-RANKS=(1 2 4 8) # 16 20) # 40 80 160 320)
+RANKS=(1) # 16 20) # 40 80 160 320)
 
 
 export MAX_LOCAL_MEMTABLE_SIZ=100000
@@ -26,6 +26,6 @@ export STORAGE_LOCATION=/scratch/mydb
 
 for i in "${RANKS[@]}"; do
     for j in "${VALLEN[@]}"; do
-        perf record -g  mpirun -np $i ./build/workload $KEYLEN $j $COUNT 0
+        perf record -call-graph dwarf mpirun -np $i ./build/workload $KEYLEN $j $COUNT 0
     done
 done

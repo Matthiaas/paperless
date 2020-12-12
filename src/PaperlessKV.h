@@ -139,11 +139,14 @@ class PaperlessKV {
   // Called by the Dispatcher Thread to send data to its Owner rank
   // given by the MemoryTableManager. This is only required in RELAXED mode.
   void Dispatch();
+
+  void RespondGetAndPut();
+
   // Responds to remote get requests and send value back to the requesting rank.
-  void RespondGet();
+  int RespondGet();
   // Works through remote put requests to store them locally.
   // TODO: Should this actually respond?
-  void RespondPut();
+  int RespondPut();
 
   // Must to be called in every rank.
   // Calls MPI_Barrier and unblocks when current rank is not precessing

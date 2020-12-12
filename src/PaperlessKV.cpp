@@ -39,8 +39,8 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
       comm_(comm),
       compactor_(&PaperlessKV::Compact, this),
       dispatcher_(&PaperlessKV::Dispatch, this),
-      get_responder_(&PaperlessKV::RespondGet, this),
-      put_responder_(&PaperlessKV::RespondPut, this),
+      get_responder_(&PaperlessKV::RespondGetAndPut, this),
+      //put_responder_(&PaperlessKV::RespondPut, this),
       dispatch_data_in_chunks_(options.dispatch_data_in_chunks) {
   MPI_Comm_rank(comm_, &rank_);
   MPI_Comm_size(comm_, &rank_size_);
@@ -65,7 +65,7 @@ void PaperlessKV::Shutdown() {
   compactor_.join();
   dispatcher_.join();
   get_responder_.join();
-  put_responder_.join();
+  //put_responder_.join();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,23 +154,46 @@ void PaperlessKV::Dispatch() {
   }
 }
 
-void PaperlessKV::RespondGet() {
+void PaperlessKV::RespondGetAndPut() {
+  int exit_count = 0;
+  while(true) {
+    MPI_Status status;
+    int get_flag = false;
+    int put_flag = false;
+    while(!get_flag && !put_flag) {
+      MPI_Iprobe(MPI_ANY_SOURCE, KEY_TAG, comm_, &get_flag, &status);
+      MPI_Iprobe(MPI_ANY_SOURCE, KEY_PUT_TAG, comm_, &put_flag, &status);
+    }
+    if(get_flag) {
+      exit_count += RespondGet();
+    } else {
+      exit_count += RespondPut();
+    }
+    if(exit_count == 2) {
+      break;
+    }
+  }
+
+}
+
+int PaperlessKV::RespondGet() {
   while(true) {
     MPI_Status status;
     MPI_Probe(MPI_ANY_SOURCE, KEY_TAG, comm_, &status);
 
     if(status.MPI_SOURCE == rank_) {
       MPI_Recv(nullptr, 0, MPI_CHAR, rank_ ,KEY_TAG,comm_, &status);
-      break;
+      return 1;
     }
     Element key = ReceiveKey(MPI_ANY_SOURCE, KEY_TAG, &status);
     QueryResult element =
         LocalGet(key.GetView(), hash_function_(key.Value(), key.Length()));
     SendValue(element, status.MPI_SOURCE, VALUE_TAG);
+    return 0;
   }
 }
 
-void PaperlessKV::RespondPut() {
+int PaperlessKV::RespondPut() {
   while(true) {
     MPI_Status status;
     MPI_Probe(MPI_ANY_SOURCE, KEY_PUT_TAG, comm_, &status);
@@ -179,7 +202,7 @@ void PaperlessKV::RespondPut() {
 
     if(status.MPI_SOURCE == rank_) {
       MPI_Recv(nullptr, 0, MPI_CHAR, rank_ ,KEY_PUT_TAG,comm_, &status);
-      break;
+      return 1;
     } else if(count == 0) {
       MPI_Recv(nullptr, 0, MPI_CHAR, status.MPI_SOURCE ,KEY_PUT_TAG,comm_, &status);
       std::lock_guard<std::mutex> lck(fence_mutex);
@@ -187,6 +210,7 @@ void PaperlessKV::RespondPut() {
       if (fence_calls_received == rank_size_ - 1) {
         fence_wait.notify_all();
       }
+      return 0;
       continue;
     }
     if(dispatch_data_in_chunks_ && consistency_ != SEQUENTIAL) {
@@ -222,6 +246,7 @@ void PaperlessKV::RespondPut() {
       Owner o = hash % rank_size_;
       local_.Put(key.GetView(), std::move(value), hash, o);
     }
+    return 0;
   }
 }
 
