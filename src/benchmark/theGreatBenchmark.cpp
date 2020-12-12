@@ -126,6 +126,8 @@ int main(int argc, char** argv)  {
   }
   update_file.close();
 
+  MPI_Barrier(MPI_COMM_WORLD);
+
   KV::Finalize();
 
 
