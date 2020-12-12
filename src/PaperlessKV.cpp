@@ -68,14 +68,16 @@ void PaperlessKV::Shutdown() {
   put_responder_.join();
 }
 
-void PaperlessKV::deleteKey(const ElementView& key) {
-  Put(key, Tomblement::getATombstone());
-}
+////////////////////////////////////////////////////////////////////////////////
+/////                                                                      /////
+/////                      Background Tasks                                 /////
+/////                                                                      /////
+////////////////////////////////////////////////////////////////////////////////
 
 void PaperlessKV::Compact() {
   while (true) {
     MemQueue::Chunk handler = local_.GetChunk();
-    if(handler.IsPoisonPill()) {
+    if (handler.IsPoisonPill()) {
       handler.Clear();
       return;
     }
@@ -83,7 +85,6 @@ void PaperlessKV::Compact() {
     handler.Clear();
   }
 }
-
 
 void PaperlessKV::Dispatch() {
   while (true) {
@@ -224,6 +225,13 @@ void PaperlessKV::RespondPut() {
   }
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+/////                                                                      /////
+/////                          Operations                                  /////
+/////                                                                      /////
+////////////////////////////////////////////////////////////////////////////////
+
 void PaperlessKV::Put(const ElementView& key, Tomblement&& value) {
   Hash hash = hash_function_(key.Value(), key.Length());
   Owner o = hash % rank_size_;
@@ -265,6 +273,10 @@ QueryResult PaperlessKV::Get(const ElementView& key) {
       return qr;
     }
   }
+}
+
+void PaperlessKV::DeleteKey(const ElementView& key) {
+  Put(key, Tomblement::getATombstone());
 }
 
 QueryResult PaperlessKV::LocalGet(const ElementView& key, Hash hash) {
@@ -407,9 +419,17 @@ std::pair<QueryStatus, size_t> PaperlessKV::get(
 }
 
 
-void PaperlessKV::deleteKey(const char *key, size_t key_len) {
-  deleteKey(ElementView(key, key_len));
+void PaperlessKV::DeleteKey(const char *key, size_t key_len) {
+  DeleteKey(ElementView(key, key_len));
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+/////                                                                      /////
+/////                          MPI CODE                                    /////
+/////                                                                      /////
+////////////////////////////////////////////////////////////////////////////////
 
 void PaperlessKV::SendValue(const Tomblement& value, int target, int tag) {
   MPI_Send(value.GetBuffer(), value.GetBufferLen(),

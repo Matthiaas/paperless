@@ -116,7 +116,7 @@ TEST_CASE("Local Put local_cache", "[1rank]")
     std::optional<QueryResult> qr = lruCache.get(ElementView(key3, klen3), hash_fun(key3, klen3));
     CHECK(!qr.has_value());
   }
-  paper.deleteKey(key1, klen1);
+  paper.DeleteKey(key1, klen1);
   {
     std::optional<QueryResult> qr = lruCache.get(ElementView(key1, klen1), hash_fun(key1, klen1));
     CHECK(qr.has_value());
