@@ -20,6 +20,7 @@ bool use_useless_waiter;
 
 
 void doWork(long count) {
+  // Lets eat some cpu
   for(int i = 0; i < count; i++) {
     work++;
   }
@@ -31,7 +32,7 @@ void WaitOnlyThread() {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    MPI_Probe(MPI_ANY_SOURCE, WAIT_ONLY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    //MPI_Probe(MPI_ANY_SOURCE, WAIT_ONLY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     MPI_Recv(nullptr, 0, MPI_CHAR, MPI_ANY_SOURCE, WAIT_ONLY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 
@@ -45,7 +46,7 @@ void AnswerTread() {
 
   while(true) {
     MPI_Status status;
-    MPI_Probe(MPI_ANY_SOURCE, QUESTION_TAG, MPI_COMM_WORLD, &status);
+    //MPI_Probe(MPI_ANY_SOURCE, QUESTION_TAG, MPI_COMM_WORLD, &status);
 
     char* q = static_cast<char*>(std::malloc(QUESTION_LEN * sizeof(char)));
     MPI_Recv(q, QUESTION_LEN, MPI_CHAR, MPI_ANY_SOURCE, QUESTION_TAG, MPI_COMM_WORLD, &status);
@@ -57,6 +58,7 @@ void AnswerTread() {
     doWork(200);
 
     char* a = static_cast<char*>(std::malloc(ANSWER_LEN));
+
     MPI_Send(a, ANSWER_LEN, MPI_CHAR, status.MPI_SOURCE, ANSWER_TAG, MPI_COMM_WORLD);
     free(q);
     free(a);
@@ -98,34 +100,24 @@ void askQuestions(int count) {
 }
 
 int main(int argc, char** argv) {
+  use_useless_waiter = true;
 
-  use_useless_waiter = false;
 
   int provided;
   MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
-
   auto start = std::chrono::high_resolution_clock::now();
-
-
   std::thread t1(&WaitOnlyThread);
   std::thread t2(&AnswerTread);
   std::cout << "Threads started" << std::endl;
-
   MPI_Barrier(MPI_COMM_WORLD);
-
   askQuestions(100);
-
   std::cout << "Work completed" << std::endl;
-
   auto end = std::chrono::high_resolution_clock::now();
   std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>((end-start)).count() << std::endl;
 
-
   t1.join();
   t2.join();
-
   MPI_Finalize();
-
 }
 
 /*
