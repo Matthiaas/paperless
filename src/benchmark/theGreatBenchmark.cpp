@@ -39,13 +39,14 @@ void BenchmarkRandomData() {
     put_time.emplace_back(TimedKV::Put(key, keylen, put_val, vallen));
   }
 
+
+  KV::SetMode(PaperlessKV::RELAXED, PaperlessKV::READONLY);
   if (update_ratio == 0) {
-    KV::SetMode(PaperlessKV::RELAXED, PaperlessKV::READONLY);
+
   } else {
-    KV::Fence();
+    //KV::Fence();
   }
-
-
+  std::cout << "afterKill" << std::endl;
   for (size_t i = 0; i < count; i++) {
     key = get_key(i);
     if (i % 100 < (size_t)update_ratio) {
@@ -92,7 +93,7 @@ int main(int argc, char** argv)  {
 
   BenchmarkRandomData();
 
-  KV::Finalize();
+
   // Write data to file:
   std::filesystem::create_directories(storage_directory);
 
@@ -125,7 +126,7 @@ int main(int argc, char** argv)  {
   }
   update_file.close();
 
-
+  KV::Finalize();
 
 
 }

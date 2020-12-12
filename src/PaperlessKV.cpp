@@ -55,12 +55,12 @@ PaperlessKV::~PaperlessKV() {
 }
 
 void PaperlessKV::Shutdown() {
-  Fence();
+  //Fence();
   shutdown_ = true;
   local_.Shutdown();
   remote_.Shutdown();
   // Send Poisonpills to own respond threads:
-  MPI_Send(nullptr, 0, MPI_CHAR, rank_, KEY_PUT_TAG, comm_);
+  //MPI_Send(nullptr, 0, MPI_CHAR, rank_, KEY_PUT_TAG, comm_);
   MPI_Send(nullptr, 0, MPI_CHAR, rank_, KEY_TAG, comm_);
   compactor_.join();
   dispatcher_.join();
@@ -186,6 +186,8 @@ void PaperlessKV::RespondPut() {
       fence_calls_received++;
       if (fence_calls_received == rank_size_ - 1) {
         fence_wait.notify_all();
+        std::cout <<"kill" << std::endl;
+        return;
       }
       continue;
     }

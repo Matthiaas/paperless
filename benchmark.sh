@@ -27,8 +27,8 @@ export STORAGE_LOCATION=/scratch/mydb
 
 for i in "${RANKS[@]}"; do
     for j in "${VALLEN[@]}"; do
-       mpirun -np $i ./build/thegreatbenchmark_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/512MB/paperless/$i
-       mpirun -np $i ./build/thegreatbenchmark_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/512MB/papyrus/$i
+       mpirun -np $i ./build/thegreatbenchmark_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/killPutTask/paperless/$i
+       #mpirun -np $i ./build/thegreatbenchmark_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/512MB/papyrus/$i
     done
 done
 
