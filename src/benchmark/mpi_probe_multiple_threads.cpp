@@ -141,8 +141,6 @@ void RunUseless(int  count) {
 }
 
 void RunRandomThreads() {
-  auto start = std::chrono::high_resolution_clock::now();
-
   std::thread t1(std::bind(&doWork, 5000000000));
   std::thread t2(std::bind(&doWork, 5000000000));
   //MPI_Barrier(MPI_COMM_WORLD);
