@@ -5,6 +5,12 @@ option(IS_CLUSTER "Indicates whether cmake is run on the cluster or not." OFF)
 
 # Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
 find_package(MPI REQUIRED)
+MESSAGE (STATUS "MPI_CXX_COMPILER ${MPI_CXX_COMPILER}")
+
+if (NOT "${MPI_CXX_COMPILER}" STREQUAL "MPI_CXX_COMPILER-NOTFOUND")
+    set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+endif()
+
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
