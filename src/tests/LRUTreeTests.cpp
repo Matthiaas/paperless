@@ -34,7 +34,7 @@ TEST_CASE("LRUCache: Put with Key Move & Get Test", "[LRUTest]") {
 
 TEST_CASE("LRUCache: Get & Put Overwrite Test", "[LRUTest]") {
   LRUTreeCache memTable(1000);
-  char key_bytes[] = "key";
+  alignas(64) char key_bytes[32] = "key";
   ElementView key{key_bytes, 3};
 
   char value_bytes[] = "value";
