@@ -17,6 +17,7 @@
 
 volatile int work = 0;
 
+bool use_probe;
 bool use_useless_waiter;
 
 
@@ -35,8 +36,12 @@ void WaitOnlyThread() {
     int size, rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    //MPI_Probe(MPI_ANY_SOURCE, WAIT_ONLY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    if(use_probe) {
+      MPI_Status status;
+      MPI_Probe(MPI_ANY_SOURCE, WAIT_ONLY_TAG, MPI_COMM_WORLD, &status);
+      int value_size;
+      MPI_Get_count(&status, MPI_CHAR, &value_size);
+    }
     MPI_Recv(nullptr, 0, MPI_CHAR, MPI_ANY_SOURCE, WAIT_ONLY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 
@@ -50,8 +55,18 @@ void AnswerTread() {
 
   while(true) {
     MPI_Status status;
-    //MPI_Probe(MPI_ANY_SOURCE, QUESTION_TAG, MPI_COMM_WORLD, &status);
+    if(use_probe) {
+      MPI_Probe(MPI_ANY_SOURCE, QUESTION_TAG, MPI_COMM_WORLD, &status);
+      int value_size;
+      MPI_Get_count(&status, MPI_CHAR, &value_size);
+    }
 
+    if(use_probe) {
+      MPI_Status status;
+      MPI_Probe(MPI_ANY_SOURCE, QUESTION_TAG, MPI_COMM_WORLD, &status);
+      int value_size;
+      MPI_Get_count(&status, MPI_CHAR, &value_size);
+    }
     char* q = static_cast<char*>(std::malloc(QUESTION_LEN * sizeof(char)));
     MPI_Recv(q, QUESTION_LEN, MPI_CHAR, MPI_ANY_SOURCE, QUESTION_TAG, MPI_COMM_WORLD, &status);
     if(q[0] == 0) {
@@ -86,7 +101,13 @@ void askQuestions(int count) {
       MPI_Send(q,QUESTION_LEN, MPI_CHAR,to, QUESTION_TAG, MPI_COMM_WORLD);
 
       MPI_Status status;
-      MPI_Probe(to, ANSWER_TAG, MPI_COMM_WORLD, &status);
+
+      if(use_probe) {
+        MPI_Status status;
+        MPI_Probe(to, ANSWER_TAG, MPI_COMM_WORLD, &status);
+        int value_size;
+        MPI_Get_count(&status, MPI_CHAR, &value_size);
+      }
       MPI_Recv(a, ANSWER_LEN, MPI_CHAR, to, ANSWER_TAG, MPI_COMM_WORLD, &status);
       doWork(200);
       free(a);
@@ -152,11 +173,27 @@ void RunRandomThreads() {
 int main(int argc, char** argv) {
   int provided;
   MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
-
+  int size, rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
   //RunRandomThreads();
-  int count = 500;
+  use_probe = true;
+  if(rank == 0)
+    std::cout << "With probe" << std::endl;
+  int count = 5000;
+  MPI_Barrier(MPI_COMM_WORLD);
   RunUseless(count);
+  MPI_Barrier(MPI_COMM_WORLD);
   RunUseFull(count);
+  MPI_Barrier(MPI_COMM_WORLD);
+  if(rank == 0)
+    std::cout << "Without probe" << std::endl;
+  use_probe = false;
+  MPI_Barrier(MPI_COMM_WORLD);
+  RunUseless(count);
+  MPI_Barrier(MPI_COMM_WORLD);
+  RunUseFull(count);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   MPI_Finalize();
 }
