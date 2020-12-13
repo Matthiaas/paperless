@@ -165,6 +165,7 @@ namespace KV {
   inline void Finalize() {
     int ret = papyruskv_close(db);
     if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
+    papyruskv_finalize();
     MPI_Finalize();
   }
 
