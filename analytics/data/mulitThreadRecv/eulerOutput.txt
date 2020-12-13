@@ -1,0 +1,63 @@
+Sender: LSF System <lsfadmin@eu-g1-039-4>
+Subject: Job 155610201: <workload> in cluster <euler> Done
+
+Job <workload> was submitted from host <eu-login-20> by user <mbungeroth> in cluster <euler> at Sat Dec 12 10:49:01 2020
+Job was executed on host(s) <40*eu-g1-039-4>, in queue <normal.4h>, as user <mbungeroth> in cluster <euler> at Sat Dec 12 10:49:12 2020
+</cluster/home/mbungeroth> was used as the home directory.
+</cluster/home/mbungeroth/paperless/src/benchmark> was used as the working directory.
+Started at Sat Dec 12 10:49:12 2020
+Terminated at Sat Dec 12 10:54:16 2020
+Results reported at Sat Dec 12 10:54:16 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/usr/bin/env bash
+#BSUB -P paperless
+#BSUB -J workload
+#BSUB -o output.o%J
+#BSUB -W 04:00
+#BSUB -n 40
+
+RANKS=(1 8 16 32) # 40 80 160 320)
+
+
+
+for i in "${RANKS[@]}"; do
+	echo $i
+	mpirun -n $i ../../build/mpi_probe_multiple_threads
+done
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   4015.68 sec.
+    Max Memory :                                 2393 MB
+    Average Memory :                             1263.46 MB
+    Total Requested Memory :                     40960.00 MB
+    Delta Memory :                               38567.00 MB
+    Max Swap :                                   -
+    Max Processes :                              36
+    Max Threads :                                204
+    Run time :                                   334 sec.
+    Turnaround time :                            315 sec.
+
+The output (if any) follows:
+
+1
+Useless: 55881391656
+Usefull: 32009871416
+8
+Useless: 48615015817
+Usefull: 22561850328
+16
+Useless: 47670093376
+Usefull: 20340915454
+32
+Useless: 50437146305
+Usefull: 20171902950

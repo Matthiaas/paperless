@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
   _w(5);
   for (size_t i = 0; i < count; i++) {
     key = get_key(i);
-    paper.deleteKey(key, keylen);
+    paper.DeleteKey(key, keylen);
     //if (ret != PAPYRUSKV_OK) {
     //  printf("ERROR [%s:%d] [%d/%d] key[%s]\n", __FILE__, __LINE__, rank, size, key);
     //  err++;

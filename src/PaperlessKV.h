@@ -106,7 +106,7 @@ class PaperlessKV {
   // value length.
   std::pair<QueryStatus, size_t> get(const char* key, size_t key_len,
                                      char* value_buff, size_t value_buff_len);
-  void deleteKey(const char* key, size_t key_len);
+  void DeleteKey(const char* key, size_t key_len);
 
   // Must be called in every rank.
   // Unblocks when all ranks processed all gets and puts.
@@ -131,7 +131,7 @@ class PaperlessKV {
 
   void Put(const ElementView& key, Tomblement&& value);
   QueryResult Get(const ElementView& key);
-  void deleteKey(const ElementView& key);
+  void DeleteKey(const ElementView& key);
 
   // Called by the Compactor Thread to call the StorageManager with the data
   // given by the MemoryTableManager
