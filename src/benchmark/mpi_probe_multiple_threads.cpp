@@ -3,8 +3,9 @@
 #include <mpi.h>
 
 #include <atomic>
-
 #include <functional>
+#include <iostream>
+
 #include "thread"
 
 #define WAIT_ONLY_TAG 1
