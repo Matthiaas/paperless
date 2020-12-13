@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
   use_probe = true;
   if(rank == 0)
     std::cout << "With probe" << std::endl;
-  int count = 5000;
+  int count = 500;
   MPI_Barrier(MPI_COMM_WORLD);
   RunUseless(count);
   MPI_Barrier(MPI_COMM_WORLD);

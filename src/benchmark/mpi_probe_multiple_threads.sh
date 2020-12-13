@@ -5,10 +5,13 @@
 #BSUB -W 04:00
 #BSUB -n 40
 
-RANKS=(1 4) #16 32) # 40 80 160 320)
+RANKS=(1 4 8 16 32) # 40 80 160 320)
 CORES=(1 2 3)
 
 for i in "${RANKS[@]}"; do
+  echo mpirun -n $i ../../build/mpi_probe_multiple_threads
+  mpirun -n $i ../../build/mpi_probe_multiple_threads
+
   for c in "${CORES[@]}"; do
     echo "Ranks" $i
     echo "Cores per rank" $c
@@ -25,6 +28,9 @@ done
  echo ""
 
  for i in "${RANKS[@]}"; do
+  echo mpirun --mca mpi_yield_when_idle 1 -n $i ../../build/mpi_probe_multiple_threads
+  mpirun --mca mpi_yield_when_idle 1 -n $i ../../build/mpi_probe_multiple_threads
+	
   for c in "${CORES[@]}"; do
     echo "Ranks" $i
     echo "Cores per rank" $c
