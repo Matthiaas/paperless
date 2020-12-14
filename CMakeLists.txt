@@ -58,6 +58,11 @@ include_directories(third_party)
 set(LIB_SOURCES
         src/PaperlessKV.cpp
         src/PaperlessKV.h
+        src/Responder.cpp
+        src/Responder.h
+        src/RemoteOperator.cpp
+        src/RemoteOperator.h
+        src/Message.h
         src/MemoryTable.h
         src/StorageManager.cpp
         src/StorageManager.h
@@ -74,7 +79,8 @@ set(LIB_SOURCES
         src/LRUHashCache.cpp
         src/LRUHashCache.h
         src/BloomFilter.cpp
-        src/BloomFilter.h)
+        src/BloomFilter.h
+        src/Common.h)
 
 set(TEST_SOURCES
         src/tests/tests_main.cpp
@@ -108,7 +114,7 @@ set(WOKRLOAD_BECHMARK_SOURCES
         src/benchmark/workload.cpp)
 
 set(BASIC_BECHMARK_SOURCES
-        src/benchmark/basic.cpp src/Common.h)
+        src/benchmark/basic.cpp)
 
 set(MTM_COMPARISON_SOURCES
         src/benchmark/mtm_comparison.cpp)

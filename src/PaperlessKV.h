@@ -7,6 +7,7 @@
 
 #include <mpi.h>
 
+#include "Responder.h"
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -19,6 +20,9 @@
 #include "ListQueue.h"
 #include "MemoryTableManager.h"
 #include "RBTreeMemoryTable.h"
+
+
+#include "RemoteOperator.h"
 #include "StorageManager.h"
 #include "Types.h"
 
@@ -139,28 +143,12 @@ class PaperlessKV {
   // Called by the Dispatcher Thread to send data to its Owner rank
   // given by the MemoryTableManager. This is only required in RELAXED mode.
   void Dispatch();
-  // Responds to remote get requests and send value back to the requesting rank.
-  void RespondGet();
-  // Works through remote put requests to store them locally.
-  // TODO: Should this actually respond?
-  void RespondPut();
+  void Respond();
 
   // Must to be called in every rank.
   // Calls MPI_Barrier and unblocks when current rank is not precessing
   // local puts from a remote rank.
   void Sync();
-
-  // Sends a Key to specified target with specified tag.
-  void SendKey(const ElementView& key, int target, int tag);
-  // Sends a QueryResult (StatusOr) to specified target with specified tag.
-  void SendValue(const QueryResult& key, int target, int tag);
-  void SendValue(const Tomblement& value, int target, int tag);
-
-  Element ReceiveKey(int source, int tag, MPI_Status* status);
-  QueryResult ReceiveQueryResult(int source, int tag, MPI_Status* status);
-  std::pair<QueryStatus, size_t> ReceiveValueIntoBuffer(
-      const ElementView& v_buff, int source, int tag, MPI_Status* status);
-  Tomblement ReceiveTomblementSequential(int source, int tag, MPI_Status* status);
 
   // Performs a LocalGet operation, given that the key is owned by this rank.
   QueryResult LocalGet(const ElementView& key, Hash hash);
@@ -171,12 +159,7 @@ class PaperlessKV {
   QueryResult RemoteGetRelaxed(const ElementView& key, Hash hash);
   std::pair<QueryStatus, size_t> RemoteGetRelaxed(
       const ElementView& key, const ElementView& v_buff, Hash hash);
-  // Get a remote value immediately (used for SEQUENTIAL consistency).
-  QueryResult RemoteGetValue(const ElementView& key, Hash hash);
-  std::pair<QueryStatus, size_t> RemoteGetValue(
-      const ElementView& key, const ElementView& v_buff, Hash hash);
-  // Puts a single value to a remote rank immediately.
-  void RemotePutSequential(const ElementView& key, Hash hash, const Tomblement& value);
+
 
   std::string id_;
 
@@ -201,32 +184,20 @@ class PaperlessKV {
   int rank_size_;
   const MPI_Comm comm_;
 
+  Responder responder_;
+  RemoteOperator remoteOperator_;
+
   std::thread compactor_;
   std::thread dispatcher_;
-  std::thread get_responder_;
-  std::thread put_responder_;
+  std::thread responder_task;
+
+
 
   /*
-  class Tagger {
-   public:
-    Tagger(int min, int max)
-      : min_get_key(min), max_get_key(max) {
-    }
-    int getNextTag() {
-      return  min_get_key + (cur_get_key++ % max_get_key);
-    }
-   private:
-    const int min_get_key;
-    const int max_get_key;
-    std::atomic<int> cur_get_key = 0;
-  };
 
-  Tagger get_value_tagger;
   */
 
-  volatile int fence_calls_received;
-  std::mutex fence_mutex;
-  std::condition_variable fence_wait;
+
 
   // Settings:
   bool dispatch_data_in_chunks_;
@@ -251,6 +222,7 @@ class PaperlessKV {
 
   // For testing:
   friend class PaperLessKVFriend;
+  friend class Responder;
 
 };
 
