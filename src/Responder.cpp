@@ -2,9 +2,16 @@
 
 
 
-Responder::Responder(PaperlessKV *kv, bool dispatch_data_in_chunks)
-    : kv_(kv), dispatch_data_in_chunks_(dispatch_data_in_chunks) {
+Responder::Responder(PaperlessKV *kv, MPI_Comm comm,
+                     bool dispatch_data_in_chunks)
+    : kv_(kv),  comm_(comm),
+      dispatch_data_in_chunks_(dispatch_data_in_chunks) {
+  MPI_Comm_size(comm_, &rank_size_);
+  big_buffer_ = static_cast<char*>(PAPERLESS::malloc(10000));
+}
 
+Responder::~Responder() {
+  free(big_buffer_);
 }
 
 
@@ -47,13 +54,14 @@ void Responder::HandlePut(PutMessage* msg, int src) {
     Tomblement value(msg->value_len - 1);
 
     MPI_Recv(key.Value(), msg->key_len, MPI_CHAR, src, msg->tag, comm_, MPI_STATUS_IGNORE);
-    MPI_Recv(key.Value(), msg->key_len, MPI_CHAR, src, msg->tag, comm_, MPI_STATUS_IGNORE);
+    MPI_Recv(value.GetBuffer(), msg->value_len, MPI_CHAR, src, msg->tag, comm_, MPI_STATUS_IGNORE);
     Owner o = msg->hash % rank_size_;
     kv_->local_.Put(std::move(key), std::move(value), msg->hash, o);
   }
 }
 
 void Responder::HandleGet(GetMessage* msg, int src) {
+
   MPI_Recv(big_buffer_, msg->key_len, MPI_CHAR, src, msg->tag, comm_, MPI_STATUS_IGNORE);
   std::pair<QueryStatus, size_t>  res =
       kv_->get(big_buffer_, msg->key_len, big_buffer_, MAX_ELEMENT_LEN);

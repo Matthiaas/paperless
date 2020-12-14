@@ -35,6 +35,7 @@ struct Message {
     PUT_REQUEST = 0, GET_REQUEST = 1, SYNC = 2, KILL = 3
   };
   int type;
+  int tag;
   size_t buff[10];
   static Message ReceiveMessage(int src, int tag, MPI_Comm comm, MPI_Status* status) {
     Message m;

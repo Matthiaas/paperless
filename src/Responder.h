@@ -25,18 +25,21 @@ class Responder {
   void HandlePut(PutMessage* msg, int src);
   void HandleGet(GetMessage* msg, int src);
   void SendQueryResult(const std::pair<QueryStatus, size_t>& val, int target, int tag);
-  Responder(PaperlessKV* kv, bool dispatch_data_in_chunks);
+  Responder(PaperlessKV* kv, MPI_Comm comm, bool dispatch_data_in_chunks);
+  ~Responder();
 
 
   void WaitForSync();
  private:
 
-  int rank_size_;
+
   PaperlessKV* kv_;
   // This is to store intermediate results
-  char* big_buffer_;
+
   MPI_Comm comm_;
+  int rank_size_;
   bool dispatch_data_in_chunks_;
+  char* big_buffer_;
 
 
   volatile int fence_calls_received = 0;

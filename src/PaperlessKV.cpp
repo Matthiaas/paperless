@@ -45,7 +45,7 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
       storage_manager_(options.strorage_location + std::to_string(GetRank(comm))),
       shutdown_(false),
       comm_(comm),
-      responder_(this, options.dispatch_data_in_chunks),
+      responder_(this, comm, options.dispatch_data_in_chunks),
       remoteOperator_(comm, options.dispatch_data_in_chunks),
       compactor_(&PaperlessKV::Compact, this),
       dispatcher_(&PaperlessKV::Dispatch, this),
@@ -69,8 +69,7 @@ void PaperlessKV::Shutdown() {
   local_.Shutdown();
   remote_.Shutdown();
   // Send Poisonpills to own respond threads:
-  MPI_Send(nullptr, 0, MPI_CHAR, rank_, KEY_PUT_TAG, comm_);
-  MPI_Send(nullptr, 0, MPI_CHAR, rank_, KEY_TAG, comm_);
+  remoteOperator_.Kill();
   compactor_.join();
   dispatcher_.join();
   responder_task.join();

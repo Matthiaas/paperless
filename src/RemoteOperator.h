@@ -23,6 +23,7 @@ class RemoteOperator {
                            const Tomblement &value);
 
   void InitSync();
+  void Kill();
 
  private:
   class Tagger {
