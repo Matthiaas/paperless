@@ -51,6 +51,10 @@ std::pair<QueryStatus, size_t> RemoteOperator::Get(
 
   QueryResultMessage* qm = m.ToQueryResultMessage();
   if(qm->value_len > v_buff.Length()) {
+
+    // TODO: Discard MPI message instead:
+    Element res(qm->value_len);
+    MPI_Recv(res.Value(), qm->value_len, MPI_CHAR,o, tag, comm_, MPI_STATUS_IGNORE);
     return {QueryStatus::BUFFER_TOO_SMALL, qm->value_len};
   } else if(qm->queryStatus == QueryStatus::FOUND) {
 

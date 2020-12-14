@@ -411,6 +411,7 @@ void PaperlessKV::DeleteKey(const char *key, size_t key_len) {
 }
 
 void PaperlessKV::Fence() {
+  MPI_Barrier(comm_);
   remote_cache_.clear();
   Sync();
   MPI_Barrier(comm_);

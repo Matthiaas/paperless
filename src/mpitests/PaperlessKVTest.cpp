@@ -146,6 +146,7 @@ TEST_CASE("LocalGet into user provided buffer ", "[1rank]")
 
 TEST_CASE("RemoteGet into user provided buffer ", "[2rank]")
 {
+
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
@@ -166,17 +167,14 @@ TEST_CASE("RemoteGet into user provided buffer ", "[2rank]")
   qr = paper.get(key1, klen1, user_buff, 0);
   CHECK(qr.first == QueryStatus::BUFFER_TOO_SMALL);
   CHECK(qr.second == vlen1);
-
-  std::cout << "end" << std::endl;
-
   MPI_Barrier(MPI_COMM_WORLD);
+
 }
 
 
 TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
 {
-
-/*  int rank;
+  int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, sequential);
@@ -210,7 +208,7 @@ TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
   }
 
   paper.Fence();
-  */
+
 
 }
 
@@ -271,7 +269,7 @@ TEST_CASE("LocalOverride", "[1rank]")
 // TODO: Test with 2 ranks
 TEST_CASE("RemoteGet", "[2rank]")
 {
-  /*
+
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
@@ -299,7 +297,7 @@ TEST_CASE("RemoteGet", "[2rank]")
   }
 
   paper.Fence();
-   */
+
 
 }
 
@@ -307,7 +305,7 @@ TEST_CASE("RemoteGet", "[2rank]")
 TEST_CASE("RemotePutAndGet SEQUENTIAL", "[2rank]")
 {
 
-/*
+
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
@@ -328,7 +326,7 @@ TEST_CASE("RemotePutAndGet SEQUENTIAL", "[2rank]")
     CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
   }
   paper.Fence();
-  */
+
 }
 
 
@@ -361,6 +359,7 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
   }
   MPI_Barrier(MPI_COMM_WORLD);
   paper.Fence();
+
 }
 
 TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
@@ -381,11 +380,13 @@ TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
   if(rank == 0) {
     int a = 1;
     QueryResult qr = paper.get(key1, klen1);
+
     CHECK(qr.hasValue());
     if(qr.hasValue()) {
       CHECK(qr->Length() == vlen1);
       CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
     }
+
   } else {
     QueryResult qr = paper.get(key1, klen1);
     CHECK(qr.hasValue());
