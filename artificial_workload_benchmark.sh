@@ -25,8 +25,9 @@ export MAX_REMOTE_MEMTABLE_SIZE=$GIGA
 export MAX_LOCAL_CACHE_SIZE=$GIGA
 export MAX_REMOTE_CACHE_SIZE=$GIGA
 export DISPATCH_IN_CHUNKS=1
-export STORAGE_LOCATION=/home/julia/eth/dphpc/paperless/analytics/data/my/checkpoints
-DATA_LOCATION=/home/julia/eth/dphpc/paperless/analytics/data/my
+EXPERIMENT=artificial_workload
+export STORAGE_LOCATION=/home/julia/eth/dphpc/paperless/analytics/data/$EXPERIMENT/checkpoints
+DATA_LOCATION=/home/julia/eth/dphpc/paperless/analytics/data/$EXPERIMENT
 
 mpirun --version
 
