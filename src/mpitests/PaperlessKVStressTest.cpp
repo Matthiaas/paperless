@@ -13,7 +13,7 @@ inline PaperlessKV::Options relaxed_options =
         .Mode(PaperlessKV::READANDWRITE)
         .DispatchInChunks(true);
 //CHECK(std::string(user_buff,len) == std::string(value,len));
-/*
+
 TEST_CASE("ManyPutsAndGets user provided buffer", "[4rank]")
 {
   int rank;
@@ -64,7 +64,7 @@ TEST_CASE("ManyPutsAndGets user provided buffer", "[4rank]")
 
   MPI_Barrier(MPI_COMM_WORLD);
 }
-*/
+
 
 TEST_CASE("ManyPutsAndGets", "[4rank]")
 {
@@ -74,7 +74,7 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
 
   PaperlessKV paper(id, MPI_COMM_WORLD, 7, relaxed_options);
 
-  int size_per_rank = 10;
+  int size_per_rank = 6;
 
   int from = rank * size_per_rank;
   int to = (rank+1) * size_per_rank;
@@ -87,8 +87,8 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
   }
 
 
-  paper.Fence();
 
+  paper.Fence();
 
   for(int i = from; i < to; i++)  {
     std::string s = std::to_string(i);
@@ -102,7 +102,10 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
     }
 
   }
-  /*
+
+  paper.Fence();
+
+
   paper.Fence();
 
   int ranks;
@@ -120,7 +123,7 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
     }
   }
   paper.Fence();
-   */
+
 }
 
 /*

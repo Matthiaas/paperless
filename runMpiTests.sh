@@ -9,7 +9,7 @@ export DISPATCH_IN_CHUNKS=0
 export STORAGE_LOCATION=/tmp/PaperlessTest
 
 
-for i in 4
+for i in 1 2 4
 do
   mpiexec -n $i ./build/mpi_tests "[${i}rank]"
   for ((j=0; j <$i; j++))
