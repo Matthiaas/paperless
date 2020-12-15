@@ -1,6 +1,6 @@
 #include "Responder.h"
 
-
+#include <zconf.h>
 
 Responder::Responder(PaperlessKV *kv, MPI_Comm comm,
                      bool dispatch_data_in_chunks)
@@ -18,10 +18,9 @@ Responder::~Responder() {
 void Responder::SendQueryResult(
     const std::pair<QueryStatus, size_t>& val, int target, int tag) {
 
-  Message m;
-  QueryResultMessage* qm = m.ToQueryResultMessage();
-  qm->queryStatus = val.first;
-  qm->value_len = val.second;
+  Message m(Message::QUERY_RESULT);
+  m.SetQueryStatus(val.first);
+  m.SetValueLen(val.second);
   m.SendMessage(target, tag, comm_);
   if (val.first == QueryStatus::FOUND) {
     MPI_Send(big_buffer_, val.second, MPI_CHAR, target, tag, comm_);
@@ -32,12 +31,12 @@ bool Responder::Respond() {
   MPI_Status status;
   Message m = Message::ReceiveMessage(
       MPI_ANY_SOURCE, PAPERLESS_MSG_TAG, comm_, &status);
-  switch (m.type) {
+  switch (m.GetType()) {
     case Message::Type::PUT_REQUEST:
-      HandlePut(m.ToPutMessage(), status.MPI_SOURCE);
+      HandlePut(m, status.MPI_SOURCE);
       return true;
     case Message::Type::GET_REQUEST:
-      HandleGet(m.ToGetMessage(), status.MPI_SOURCE);
+      HandleGet(m, status.MPI_SOURCE);
       return true;
     case Message::Type::SYNC:
       HandleSync();
@@ -48,24 +47,23 @@ bool Responder::Respond() {
   throw "This is an error";
 }
 
-void Responder::HandlePut(PutMessage* msg, int src) {
+void Responder::HandlePut(const Message& msg, int src) {
   if(!dispatch_data_in_chunks_) {
-    Element key(msg->key_len);
-    Tomblement value(msg->value_len - 1);
+    Element key(msg.GetKeyLen());
+    Tomblement value(msg.GetValueLen() - 1);
 
-    MPI_Recv(key.Value(), msg->key_len, MPI_CHAR, src, msg->tag, comm_, MPI_STATUS_IGNORE);
-    MPI_Recv(value.GetBuffer(), msg->value_len, MPI_CHAR, src, msg->tag, comm_, MPI_STATUS_IGNORE);
-    Owner o = msg->hash % rank_size_;
-    kv_->local_.Put(std::move(key), std::move(value), msg->hash, o);
+    MPI_Recv(key.Value(), msg.GetKeyLen(), MPI_CHAR, src, msg.GetTag(), comm_, MPI_STATUS_IGNORE);
+    MPI_Recv(value.GetBuffer(), msg.GetValueLen(), MPI_CHAR, src, msg.GetTag(), comm_, MPI_STATUS_IGNORE);
+    Owner o = msg.GetHash() % rank_size_;
+    kv_->local_.Put(std::move(key), std::move(value), msg.GetHash(), o);
   }
 }
 
-void Responder::HandleGet(GetMessage* msg, int src) {
-
-  MPI_Recv(big_buffer_, msg->key_len, MPI_CHAR, src, msg->tag, comm_, MPI_STATUS_IGNORE);
+void Responder::HandleGet(const Message& msg, int src) {
+  MPI_Recv(big_buffer_, msg.GetKeyLen(), MPI_CHAR, src, msg.GetTag(), comm_, MPI_STATUS_IGNORE);
   std::pair<QueryStatus, size_t>  res =
-      kv_->get(big_buffer_, msg->key_len, big_buffer_, MAX_ELEMENT_LEN);
-  SendQueryResult(res, src, msg->tag);
+      kv_->get(big_buffer_, msg.GetKeyLen(), big_buffer_, MAX_ELEMENT_LEN);
+  SendQueryResult(res, src, msg.GetTag());
 }
 
 void Responder::HandleSync() {
@@ -73,6 +71,7 @@ void Responder::HandleSync() {
   fence_calls_received++;
   if (fence_calls_received == rank_size_ - 1) {
     fence_wait.notify_all();
+
   }
 }
 
@@ -82,5 +81,6 @@ void Responder::WaitForSync() {
     fence_wait.wait(lck);
   }
   fence_calls_received = 0;
+
 }
 

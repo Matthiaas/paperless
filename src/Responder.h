@@ -22,8 +22,8 @@ class Responder {
 
   bool Respond();
   void HandleSync();
-  void HandlePut(PutMessage* msg, int src);
-  void HandleGet(GetMessage* msg, int src);
+  void HandlePut(const Message& msg, int src);
+  void HandleGet(const Message& msg, int src);
   void SendQueryResult(const std::pair<QueryStatus, size_t>& val, int target, int tag);
   Responder(PaperlessKV* kv, MPI_Comm comm, bool dispatch_data_in_chunks);
   ~Responder();

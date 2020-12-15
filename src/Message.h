@@ -2,16 +2,20 @@
 #define PAPERLESS_MESSAGE_H
 
 #include <mpi.h>
+#include <zconf.h>
+
 #include "Types.h"
 
 #define PAPERLESS_MSG_TAG 0
 #define MAX_ELEMENT_LEN (1l<<20)
 
+/*
+
 struct PutMessage {
   PutMessage() = delete;
-  int type;
-  int tag;
-  Hash hash;
+  size_t type;
+  size_t tag;
+  size_t hash;
   size_t key_len;
   size_t value_len;
 
@@ -19,45 +23,106 @@ struct PutMessage {
 
 struct GetMessage {
   GetMessage() = delete;
-  int type;
-  int tag;
-  Hash hash;
+  size_t type;
+  size_t tag;
+  size_t hash;
   size_t key_len;
 };
 
 struct QueryResultMessage {
-  char queryStatus;
+  size_t queryStatus;
+  size_t tag;
   size_t value_len;
 };
 
+*/
+
+
+
+
+
 struct Message {
+
+
+
   enum Type {
-    PUT_REQUEST = 0, GET_REQUEST = 1, SYNC = 2, KILL = 3
+    PUT_REQUEST = 0, GET_REQUEST = 1, SYNC = 3, KILL = 4, QUERY_RESULT = 5
   };
-  int type;
-  int tag;
-  size_t buff[10];
+
+  Message(Type t)  {
+    buff_ = static_cast<size_t*>(std::malloc(buff_len_ * sizeof (size_t)));
+    buff_[0] = t;
+  }
+
+  Message(const Message& ) = delete;
+  Message(Message&& m) {
+   buff_ = m.buff_;
+   m.buff_ = nullptr;
+  }
+
+  ~Message() { free(buff_); }
+
   static Message ReceiveMessage(int src, int tag, MPI_Comm comm, MPI_Status* status) {
     Message m;
-    MPI_Recv(&m, sizeof(m) *sizeof(char), MPI_CHAR, src, tag, comm, status);
+    MPI_Recv(m.buff_, buff_len_, MPI_UNSIGNED_LONG, src, tag, comm, status);
     return m;
   }
-  void SendMessage(int dest, int tag, MPI_Comm comm) {
-    Message &m = *this;
-    MPI_Send(&m, sizeof(m) *sizeof(char), MPI_CHAR, dest, tag, comm);
+  void SendMessage(int dest, int tg, MPI_Comm comm) {
+    MPI_Send(buff_, buff_len_, MPI_UNSIGNED_LONG, dest, tg, comm);
   }
-  PutMessage* ToPutMessage() {
-    type = Message::Type::PUT_REQUEST;
-    return reinterpret_cast<PutMessage*>(this);
+
+  void SetTag(size_t t) {
+    buff_[1] = t;
   }
-  GetMessage* ToGetMessage() {
-    type = Message::Type::GET_REQUEST;
-    return reinterpret_cast<GetMessage*>(this);
+
+  void SetKeyLen(size_t t) {
+    buff_[2] = t;
   }
-  QueryResultMessage* ToQueryResultMessage() {
-    type = Message::Type::GET_REQUEST;
-    return reinterpret_cast<QueryResultMessage*>(this);
+
+  void SetQueryStatus(size_t t) {
+    buff_[2] = t;
   }
+
+  void SetValueLen(size_t t) {
+    buff_[3] = t;
+  }
+
+  void SetHash(size_t t) {
+    buff_[4] = t;
+  }
+
+  size_t GetType() const {
+    return buff_[0];
+  }
+
+
+  size_t GetTag() const {
+    return buff_[1];
+  }
+
+  size_t GetKeyLen() const {
+    return buff_[2];
+  }
+
+  size_t GetQueryStatus() const {
+    return buff_[2];
+  }
+
+  size_t GetValueLen() const {
+    return buff_[3];
+  }
+
+  size_t GetHash() const {
+    return buff_[4];
+  }
+
+
+ private:
+  Message() {
+    buff_ = static_cast<size_t*>(PAPERLESS::malloc(buff_len_ * sizeof (size_t)));
+  }
+  static constexpr size_t buff_len_ = 10;
+  size_t* buff_ = nullptr;
 };
 
 
