@@ -9,6 +9,7 @@
 
 #include <atomic>
 
+#include "Message.h"
 #include "Status.h"
 #include "Types.h"
 
@@ -31,6 +32,9 @@ class RemoteOperator {
   int rank_;
 
  private:
+
+  Message InitGet(const ElementView &key, Hash hash);
+
   int min_get_key;
   int max_get_key;
   std::atomic<int> cur_get_key = 0;

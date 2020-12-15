@@ -15,7 +15,7 @@ RemoteOperator::RemoteOperator(MPI_Comm comm, bool dispatch_data_in_chunks)
   max_get_key = (rank_ + 1) * 10000;
 }
 
-QueryResult RemoteOperator::Get(const ElementView &key, Hash hash) {
+Message RemoteOperator::InitGet(const ElementView &key, Hash hash) {
   Owner o = hash % rank_size_;
   int tag = getTag();
   Message m(Message::GET_REQUEST);
@@ -24,11 +24,15 @@ QueryResult RemoteOperator::Get(const ElementView &key, Hash hash) {
   m.SetHash(hash);
   m.SendMessage(o, PAPERLESS_MSG_TAG, comm_);
   MPI_Send(key.Value(), key.Length(), MPI_CHAR, o, tag, comm_);
+  return Message::ReceiveMessage(o, tag, comm_, MPI_STATUS_IGNORE);
+}
 
-  Message m2 = Message::ReceiveMessage(o, tag, comm_, MPI_STATUS_IGNORE);
+QueryResult RemoteOperator::Get(const ElementView &key, Hash hash) {
+  Owner o = hash % rank_size_;
+  Message m2 = InitGet(key, hash);
   if (m2.GetQueryStatus() == QueryStatus::FOUND) {
     Element res(m2.GetValueLen());
-    MPI_Recv(res.Value(), res.Length(), MPI_CHAR, o, tag, comm_,
+    MPI_Recv(res.Value(), res.Length(), MPI_CHAR, o, m2.GetTag(), comm_,
              MPI_STATUS_IGNORE);
     return res;
   } else {
@@ -39,32 +43,18 @@ QueryResult RemoteOperator::Get(const ElementView &key, Hash hash) {
 std::pair<QueryStatus, size_t> RemoteOperator::Get(const ElementView &key,
                                                    const ElementView &v_buff,
                                                    Hash hash) {
+
   Owner o = hash % rank_size_;
-  int tag = getTag();
-  Message m(Message::GET_REQUEST);
-  m.SetTag(tag);
-  m.SetKeyLen(key.Length());
-  m.SetHash(hash);
-  m.SendMessage(o, PAPERLESS_MSG_TAG, comm_);
-  MPI_Send(key.Value(), key.Length(), MPI_CHAR, o, tag, comm_);
-
-  MPI_Status status;
-  MPI_Probe(o, tag, comm_, &status);
-  int count;
-  MPI_Get_count(&status, MPI_CHAR, &count);
-
-  // while(count == 1) sleep(5);
-
-  Message m2 = Message::ReceiveMessage(o, tag, comm_, MPI_STATUS_IGNORE);
+  Message m2 = InitGet(key, hash);
   if (m2.GetValueLen() > v_buff.Length() &&
       m2.GetQueryStatus() == QueryStatus::FOUND) {
     // TODO: Discard MPI message instead:
     Element res(m2.GetValueLen());
-    MPI_Recv(res.Value(), res.Length(), MPI_CHAR, o, tag, comm_,
+    MPI_Recv(res.Value(), res.Length(), MPI_CHAR, o, m2.GetTag(), comm_,
              MPI_STATUS_IGNORE);
     return {QueryStatus::BUFFER_TOO_SMALL, m2.GetValueLen()};
   } else if (m2.GetQueryStatus() == QueryStatus::FOUND) {
-    MPI_Recv(v_buff.Value(), m2.GetValueLen(), MPI_CHAR, o, tag, comm_,
+    MPI_Recv(v_buff.Value(), m2.GetValueLen(), MPI_CHAR, o, m2.GetTag(), comm_,
              MPI_STATUS_IGNORE);
     return {QueryStatus::FOUND, m2.GetValueLen()};
   } else {
@@ -101,3 +91,4 @@ void RemoteOperator::Kill() {
   Message m(Message::KILL);
   m.SendMessage(rank_, PAPERLESS_MSG_TAG, comm_);
 }
+

@@ -12,9 +12,9 @@ Responder::~Responder() { free(big_buffer_); }
 void Responder::SendQueryResult(const std::pair<QueryStatus, size_t>& val,
                                 int target, int tag) {
   Message m(Message::QUERY_RESULT);
+  m.SetTag(tag);
   m.SetQueryStatus(val.first);
   m.SetValueLen(val.second);
-
   m.SendMessage(target, tag, comm_);
   if (val.first == QueryStatus::FOUND) {
     MPI_Send(big_buffer_, val.second, MPI_CHAR, target, tag, comm_);
