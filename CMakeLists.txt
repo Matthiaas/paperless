@@ -4,9 +4,6 @@ project(paperless)
 option(IS_CLUSTER "Indicates whether cmake is run on the cluster or not." OFF)
 option(VECTORIZE "Use SIMD for comparison." OFF)
 
-set(MPI_EXECUTABLE_SUFFIX .mpich)
-set(MPI_CXX_COMPILER /usr/bin/mpicxx.mpich)
-set(MPI_C_COMPILER /usr/bin/mpicc.mpich)
 # Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
 find_package(MPI REQUIRED)
 MESSAGE (STATUS "MPI_CXX_COMPILER ${MPI_CXX_COMPILER}")
