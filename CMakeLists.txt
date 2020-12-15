@@ -2,27 +2,50 @@ cmake_minimum_required(VERSION 3.10)
 project(paperless)
 
 option(IS_CLUSTER "Indicates whether cmake is run on the cluster or not." OFF)
+option(VECTORIZE "Use SIMD for comparison." OFF)
 
 set(MPI_EXECUTABLE_SUFFIX .mpich)
 set(MPI_CXX_COMPILER /usr/bin/mpicxx.mpich)
 set(MPI_C_COMPILER /usr/bin/mpicc.mpich)
 # Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
 find_package(MPI REQUIRED)
+MESSAGE (STATUS "MPI_CXX_COMPILER ${MPI_CXX_COMPILER}")
+
+if (NOT "${MPI_CXX_COMPILER}" STREQUAL "MPI_CXX_COMPILER-NOTFOUND")
+    set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+endif()
+
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+#
+# DEFAULT FLAGS
+#
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS "-Wall")
 
+if(VECTORIZE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx2 -DVECTORIZE")
+  message("-- Set Option 'VECTORIZE': Using SIMD for comparison.")
+endif()
+
+#
+# RELEASE FLAGS
+#
 # sudo apt install libmtbl-dev
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O3")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -rdynamic")
+#
+# DEBUG FLAGS
+#
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -rdynamic")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer")
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=leak")
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
+
 
 if (IS_CLUSTER)
   # Non-global LD_LIBRARY_PATH equivalent.
@@ -65,7 +88,7 @@ set(TEST_SOURCES
         src/tests/RBTreeMemoryTableTests.cpp
         src/tests/LRUTreeTests.cpp
         src/tests/LRUHashTests.cpp
-        src/tests/BloomFilterTests.cpp)
+        src/tests/BloomFilterTests.cpp src/tests/StorageManagerTests.cpp)
 
 add_subdirectory(third_party/smhasher)
 
@@ -88,7 +111,7 @@ set(WOKRLOAD_BECHMARK_SOURCES
         src/benchmark/workload.cpp)
 
 set(BASIC_BECHMARK_SOURCES
-        src/benchmark/basic.cpp)
+        src/benchmark/basic.cpp src/Common.h)
 
 set(MTM_COMPARISON_SOURCES
         src/benchmark/mtm_comparison.cpp)

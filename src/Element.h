@@ -9,21 +9,34 @@
 #include <cstdlib>
 #include <cstring>
 #include <utility>
+#include <cassert>
+
+#include "Common.h"
 
 class Element;
 
 class ElementView {
  public:
-  ElementView(const char* v, size_t len)
-    : value_(const_cast<char*>(v)), len_(len) {}
-  ElementView() : value_(nullptr), len_(0){};
+  ElementView(const char *v, size_t len)
+      : value_(const_cast<char *>(v)), len_(len) {
+#if not defined(NDEBUG) && defined(VECTORIZE)
+    assert(0 == ((size_t) v % PAPERLESS::kStride)
+               && R"(
+                  ERROR: v needs to be 32byte aligned. Use PAPERLESS::malloc() or alignas(32).
+                  Also make sure the length is a multiple of 32.
+                  Example:
+                  alignas(32) key[32] = "__key__";
+ )");
+#endif
+  }
+  ElementView() : value_(nullptr), len_(0) {};
   // TODO: Shouldn't all of these just use defualt implementation? (roman)
-  ElementView(const ElementView& other) = default;
-  ElementView(ElementView&& other) = default;
-  ElementView& operator=(const ElementView&) = default;
-  ElementView& operator=(ElementView&&) = default;
+  ElementView(const ElementView &other) = default;
+  ElementView(ElementView &&other) = default;
+  ElementView &operator=(const ElementView &) = default;
+  ElementView &operator=(ElementView &&) = default;
 
-  [[nodiscard]] char* Value() const {
+  [[nodiscard]] char *Value() const {
     return value_;
   }
 
@@ -32,23 +45,23 @@ class ElementView {
   }
 
  private:
-  friend bool operator==(const ElementView& lhs, const ElementView& rhs);
-  friend bool operator<(const ElementView& lhs, const ElementView& rhs);
+  friend bool operator==(const ElementView &lhs, const ElementView &rhs);
+  friend bool operator<(const ElementView &lhs, const ElementView &rhs);
   friend Element;
-  char* value_;
+  char *value_;
   size_t len_;
 
 };
 
 class Element {
  public:
-  Element(const char* v, const size_t len) {
-    el_.value_ = static_cast<char*>(std::malloc(len));
+  Element(const char *v, const size_t len) {
+    el_.value_ = static_cast<char *>(PAPERLESS::malloc(len));
     el_.len_ = len;
     std::memcpy(el_.value_, v, len);
   }
-  Element(const Element& other) = delete;
-  Element(Element&& other)  noexcept {
+  Element(const Element &other) = delete;
+  Element(Element &&other) noexcept {
     el_ = std::move(other.el_);
     other.el_.value_ = nullptr;
     other.el_.len_ = 0;
@@ -58,26 +71,26 @@ class Element {
     free(el_.value_);
   }
 
-  [[nodiscard]]  static Element createFromBuffWithoutCopy(char* v, size_t len) {
+  [[nodiscard]]  static Element createFromBuffWithoutCopy(char *v, size_t len) {
     Element res;
     res.el_.value_ = v;
     res.el_.len_ = len;
     return res;
   }
 
-  [[nodiscard]]  static Element copyElementContent(const ElementView& e) {
+  [[nodiscard]]  static Element copyElementContent(const ElementView &e) {
     return Element(e.Value(), e.Length());
   }
 
-  [[nodiscard]]  static Element copyElementContent(const Element& e) {
+  [[nodiscard]]  static Element copyElementContent(const Element &e) {
     return Element(e.Value(), e.Length());
   }
 
-  [[nodiscard]] const ElementView& GetView() const {
+  [[nodiscard]] const ElementView &GetView() const {
     return el_;
   }
 
-  [[nodiscard]] char* Value() const {
+  [[nodiscard]] char *Value() const {
     return el_.value_;
   }
 
@@ -87,20 +100,19 @@ class Element {
 
  private:
   Element() = default;;
-  friend bool operator<(const Element& lhs, const Element& rhs);
-  friend bool operator<(const ElementView& lhs, const Element& rhs);
-  friend bool operator<(const Element& lhs, const ElementView& rhs);
-  friend bool operator==(const Element& lhs, const ElementView& rhs);
-  friend bool operator==(const ElementView& lhs, const Element& rhs);
-  friend bool operator==(const Element& lhs, const Element& rhs);
+  friend bool operator<(const Element &lhs, const Element &rhs);
+  friend bool operator<(const ElementView &lhs, const Element &rhs);
+  friend bool operator<(const Element &lhs, const ElementView &rhs);
+  friend bool operator==(const Element &lhs, const ElementView &rhs);
+  friend bool operator==(const ElementView &lhs, const Element &rhs);
+  friend bool operator==(const Element &lhs, const Element &rhs);
   ElementView el_;
 };
 
-
 class Tomblement {
  public:
-  Tomblement(const char* v, const size_t len) : len_(len) {
-    value_ = static_cast<char*>(std::malloc(len_ + 1));
+  Tomblement(const char *v, const size_t len) : len_(len) {
+    value_ = static_cast<char *>(PAPERLESS::malloc(len_ + 1));
     value_[0] = 0;
     std::memcpy(value_ + 1, v, len);
   }
@@ -109,33 +121,33 @@ class Tomblement {
     free(value_);
   }
 
-  Tomblement(const Tomblement& other) = delete;
-  Tomblement(Tomblement&& other)   noexcept {
+  Tomblement(const Tomblement &other) = delete;
+  Tomblement(Tomblement &&other) noexcept {
     value_ = other.value_;
-    len_= other.len_;
+    len_ = other.len_;
     other.value_ = nullptr;
     other.len_ = 0;
   }
 
-  Tomblement& operator=(Tomblement&& other)  noexcept {
+  Tomblement &operator=(Tomblement &&other) noexcept {
     free(value_);
     value_ = other.value_;
-    len_= other.len_;
+    len_ = other.len_;
     other.value_ = nullptr;
     other.len_ = 0;
     return *this;
   }
 
-  [[nodiscard]]  static Tomblement createFromBuffWithoutCopy(char* v, size_t len) {
+  [[nodiscard]]  static Tomblement createFromBuffWithoutCopy(char *v, size_t len) {
     Tomblement res;
     res.value_ = v;
     res.len_ = len - 1;
     return res;
   }
 
-  [[nodiscard]]  static Tomblement createFromBuffWithCopy(char* v, size_t len) {
+  [[nodiscard]]  static Tomblement createFromBuffWithCopy(char *v, size_t len) {
     Tomblement res;
-    res.value_ = static_cast<char*>(std::malloc(len));
+    res.value_ = static_cast<char *>(PAPERLESS::malloc(len));
     std::memcpy(res.value_, v, len);
     res.len_ = len - 1;
     return res;
@@ -157,7 +169,7 @@ class Tomblement {
     return res;
   }
 
-  [[nodiscard]] char* Value() const {
+  [[nodiscard]] char *Value() const {
     return value_ + 1;
   }
 
@@ -169,7 +181,7 @@ class Tomblement {
     return value_[0];
   }
 
-  [[nodiscard]] char* GetBuffer() const {
+  [[nodiscard]] char *GetBuffer() const {
     return value_;
   }
 
@@ -181,7 +193,7 @@ class Tomblement {
     return ElementView(value_ + 1, len_);
   }
 
-  bool operator==(const Tomblement& rhs) const {
+  bool operator==(const Tomblement &rhs) const {
     if (len_ != rhs.len_) return false;
     for (size_t i = 0; i < len_ + 1; i++) {
       if (value_[i] != rhs.value_[i]) return false;
@@ -189,7 +201,7 @@ class Tomblement {
     return true;
   }
 
-  bool operator<(const Tomblement& other) const {
+  bool operator<(const Tomblement &other) const {
     if (len_ != other.len_) return len_ < other.len_;
     for (size_t i = 0; i < len_ + 1; i++) {
       if (value_[i] != other.value_[i])
@@ -200,19 +212,18 @@ class Tomblement {
 
  private:
   Tomblement() {};
-  char* value_;
+  char *value_;
   size_t len_;
 };
 
-
-bool operator<(const ElementView& lhs, const ElementView& rhs);
-bool operator<(const Element& lhs, const Element& rhs);
-bool operator<(const ElementView& lhs, const Element& rhs);
-bool operator<(const Element& lhs, const ElementView& rhs);
-bool operator==(const ElementView& lhs, const ElementView& rhs);
-bool operator==(const Element& lhs, const Element& rhs);
-bool operator==(const Element& lhs, const ElementView& rhs);
-bool operator==(const ElementView& lhs, const Element& rhs);
+bool operator<(const ElementView &lhs, const ElementView &rhs);
+bool operator<(const Element &lhs, const Element &rhs);
+bool operator<(const ElementView &lhs, const Element &rhs);
+bool operator<(const Element &lhs, const ElementView &rhs);
+bool operator==(const ElementView &lhs, const ElementView &rhs);
+bool operator==(const Element &lhs, const Element &rhs);
+bool operator==(const Element &lhs, const ElementView &rhs);
+bool operator==(const ElementView &lhs, const Element &rhs);
 
 
 

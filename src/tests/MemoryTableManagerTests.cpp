@@ -16,9 +16,9 @@ using MemQueue = ListQueue<MemTable>;
 using RBTreeMemoryManager =
     MemoryTableManager<MemTable, MemQueue>;
 
-char kKeyBytes[] = "key";
+alignas(32) char kKeyBytes[] = "key";
 size_t kKeyLen = 3;
-char kValueBytes[] = "value";
+alignas(32) char kValueBytes[] = "value";
 size_t kValueLen = 5;
 const Element kSampleValue{kValueBytes, kValueLen};
 const ElementView kSampleKey{kKeyBytes, kKeyLen};
