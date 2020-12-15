@@ -18,6 +18,10 @@ class RemoteOperator {
   RemoteOperator(MPI_Comm comm, bool dispatch_data_in_chunks_);
   std::pair<QueryStatus, size_t> Get(const ElementView &key,
                                      const ElementView &v_buff, Hash hash);
+  FutureQueryResult IGet(const ElementView &key,
+                                     const ElementView &v_buff, Hash hash);
+
+
   QueryResult Get(const ElementView &key, Hash hash);
   void PutSequential(const ElementView &key, Hash hash,
                      const Tomblement &value);

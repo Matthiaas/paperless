@@ -114,7 +114,7 @@ set(WOKRLOAD_BECHMARK_SOURCES
         src/benchmark/workload.cpp)
 
 set(BASIC_BECHMARK_SOURCES
-        src/benchmark/basic.cpp)
+        src/benchmark/basic.cpp src/FutureQueryResult.h)
 
 set(MTM_COMPARISON_SOURCES
         src/benchmark/mtm_comparison.cpp)

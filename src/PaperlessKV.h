@@ -24,6 +24,7 @@
 
 #include "RemoteOperator.h"
 #include "StorageManager.h"
+#include "FutureQueryResult.h"
 #include "Types.h"
 
 #define SYNC_TAG 0
@@ -109,6 +110,9 @@ class PaperlessKV {
   // value length. If the buffer is too small, returns BUFFER_TOO_SMALL and
   // value length.
   std::pair<QueryStatus, size_t> get(const char* key, size_t key_len,
+                                     char* value_buff, size_t value_buff_len);
+
+  FutureQueryResult Iget(const char* key, size_t key_len,
                                      char* value_buff, size_t value_buff_len);
   void DeleteKey(const char* key, size_t key_len);
 
