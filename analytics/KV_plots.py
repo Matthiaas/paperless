@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -14,6 +14,7 @@
 # ---
 
 # + id="zeWCU8XvnRBH" pycharm={"is_executing": false}
+import warnings
 # %matplotlib inline
 
 import numpy as np
@@ -24,10 +25,14 @@ import os
 
 
 # + id="OFvbZi__9c_j" pycharm={"is_executing": false}
-def readVector(file_name):
-    matrix = np.loadtxt(file_name)
-
-    if len(matrix) == 0:
+def readVector(file_name, ignore_empty=False):
+    if ignore_empty:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore") 
+            matrix = np.loadtxt(file_name)
+    else:
+        matrix = np.loadtxt(file_name)
+    if len(matrix) == 0 and ignore_empty:
         return np.empty(0), np.empty(0)
     # return values, colors
     return matrix[:, 0], matrix[:, 1]
@@ -120,7 +125,7 @@ def throughputForRun(ratio, rank_size, run_idx, db):
         getPath = f"{p}/get{i}.txt"
         getTimes, _ = readVector(getPath)
         updatePath = f"{p}/update{i}.txt"
-        updateTimes, _ = readVector(updatePath)
+        updateTimes, _ = readVector(updatePath, ignore_empty=True)
         allGetTimes.append(getTimes)
         allUpdateTimes.append(updateTimes)
     opTimes = np.concatenate(allGetTimes + allUpdateTimes, axis=0)
@@ -128,20 +133,22 @@ def throughputForRun(ratio, rank_size, run_idx, db):
     return opThroughput
 
 
-ratio = ratios[1]
-throughputs = np.zeros((n_runs, len(rank_sizes)))
-for j, rank_size in enumerate(rank_sizes):
-    for i in range(1, n_runs + 1):
-        throughputs[i - 1, j] = throughputForRun(ratio=ratio, rank_size=rank_size, run_idx=i, db="paperless")
+throughputs = np.zeros((n_runs, len(rank_sizes), len(ratios)))
+for k, ratio in enumerate(ratios):
+    for j, rank_size in enumerate(rank_sizes):
+        for i in range(1, n_runs + 1):
+            throughputs[i - 1, j, k] = throughputForRun(ratio=ratio, rank_size=rank_size, run_idx=i, db="paperless")
 
 # The throughput value is (# of ops)/(sum of per-op timings).
 
-sns.boxplot(data=throughputs, color=sns.color_palette('Set2')[1])
-sns.swarmplot(data=throughputs, color='.25')
-plt.yscale('log')
-plt.xlabel('Number of ranks')
-plt.ylabel('KPRS (kilo requests per second')
-plt.show()
+for k, ratio in enumerate(ratios):
+    plt.title(f'Performance with {100-ratio}% gets and {ratio}% updates')
+    sns.boxplot(data=throughputs[:,:,k], color=sns.color_palette('Set2')[1])
+    sns.swarmplot(data=throughputs[:,:,k], color='.25')
+    plt.yscale('log')
+    plt.xlabel('Number of ranks')
+    plt.ylabel('KPRS (kilo requests per second')
+    plt.show()
 
 
 # + id="5t-v0JFD_Js9" pycharm={"is_executing": false}
