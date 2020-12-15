@@ -378,7 +378,6 @@ TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
 
 
   if(rank == 0) {
-    int a = 1;
     QueryResult qr = paper.get(key1, klen1);
 
     CHECK(qr.hasValue());

@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 
+#include "Common.h"
 #include "Types.h"
 
 #define PAPERLESS_MSG_TAG 0
