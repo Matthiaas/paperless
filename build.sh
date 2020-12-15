@@ -27,6 +27,6 @@ DEFAULT_BUILD_TYPE=Release
 BUILD_TYPE="${2:-$DEFAULT_BUILD_TYPE}"
 
 echo ${BUILD_TYPE}
-rm -r build
-mkdir build
-cd build && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DIS_CLUSTER=${IS_CLUSTER} .. && make -j4 $1
+#rm -r build
+#mkdir build
+cd build && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DIS_CLUSTER=${IS_CLUSTER} .. && make -j16 $1

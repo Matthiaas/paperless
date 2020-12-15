@@ -46,6 +46,15 @@ public:
     }
   }
 
+  void Put(Element&& key, Tomblement&& value, Hash hash, Owner owner) {
+    std::lock_guard<std::mutex> lock(mtable_mutex_);
+    mtable_->put(std::move(key), std::move(value));
+    if (mtable_->ByteSize() > max_mtable_size_) {
+      wbuffer_.Enqueue(std::move(mtable_));
+      mtable_ = std::make_unique<MemoryTable>();
+    }
+  }
+
   // Gets element, MemoryTable allocates memory for the result.
   QueryResult Get(const ElementView& key, Hash hash, Owner owner) const {
     {

@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py
+#     formats: ipynb,py:light
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -28,7 +28,7 @@ import os
 def readVector(file_name, ignore_empty=False):
     if ignore_empty:
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore") 
+            warnings.simplefilter("ignore")
             matrix = np.loadtxt(file_name)
     else:
         matrix = np.loadtxt(file_name)
@@ -42,10 +42,9 @@ def readVector(file_name, ignore_empty=False):
 #
 
 # + id="BJa3a46qnhdl" pycharm={"is_executing": false}
-experiments = [
-    'IprobeExperimentEuler/paperless']  # 'killPutTaskEuler/paperless', 'PE3', '8MB'] # 'nodePE2', 'nodePE3', '8MB']
-ranks = [8, 16, 32]
-show_first_n = 1
+experiments = ['IprobeExperimentEuler/paperless'] #'killPutTaskEuler/paperless', 'PE3', '8MB'] # 'nodePE2', 'nodePE3', '8MB']
+ranks = [16,32]
+show_first_n = 32
 # experiment = 'localRun'
 # ranks = [8]
 # experiment = 'local-julia'
@@ -57,11 +56,13 @@ show_first_n = 1
 # + colab={"base_uri": "https://localhost:8080/", "height": 539} id="9vWxik0KpqO8" outputId="4b83a218-c7db-484c-ac74-14a304f019a0" pycharm={"is_executing": false}
 
 
+
 for experiment in experiments:
     plt.figure(num=None, figsize=(15, 6), dpi=80, facecolor='w', edgecolor='k')
     print("Exoperiment: " + experiment)
     path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/" + experiment + "/"
     for rank in ranks:
+
 
         print("--------------------------------------")
         print("Plots for ranks n=" + str(rank))
@@ -72,8 +73,8 @@ for experiment in experiments:
             gets = readVector(path + str(rank) + "/get" + str(i) + ".txt")
             puts = readVector(path + str(rank) + "/put" + str(i) + ".txt")
 
-            # print(f"Rank owners for PUT on {i}/{rank}: {np.unique(puts[1])}")
-            # print(f"Rank owners for GET on {i}/{rank}: {np.unique(gets[1])}")
+            #print(f"Rank owners for PUT on {i}/{rank}: {np.unique(puts[1])}")
+            #print(f"Rank owners for GET on {i}/{rank}: {np.unique(gets[1])}")
 
             ax = plt.subplot(rank, 2, 2 * i + 1)
             plt.yscale('log')

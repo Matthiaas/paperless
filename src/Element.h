@@ -60,6 +60,12 @@ class Element {
     el_.len_ = len;
     std::memcpy(el_.value_, v, len);
   }
+
+  Element(const size_t len) {
+    el_.value_ = static_cast<char *>(PAPERLESS::malloc(len));
+    el_.len_ = len;
+  }
+
   Element(const Element &other) = delete;
   Element(Element &&other) noexcept {
     el_ = std::move(other.el_);
@@ -115,6 +121,10 @@ class Tomblement {
     value_ = static_cast<char *>(PAPERLESS::malloc(len_ + 1));
     value_[0] = 0;
     std::memcpy(value_ + 1, v, len);
+  }
+
+  Tomblement(const size_t len) : len_(len) {
+    value_ = static_cast<char *>(PAPERLESS::malloc(len_ + 1));
   }
 
   ~Tomblement() {

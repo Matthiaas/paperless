@@ -21,7 +21,7 @@ TEST_CASE("ManyPutsAndGets user provided buffer", "[4rank]")
   std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, 7, relaxed_options);
 
-  int size_per_rank = 1000;
+  int size_per_rank = 5;
 
   int from = rank * size_per_rank;
   int to = (rank+1) * size_per_rank;
@@ -32,34 +32,37 @@ TEST_CASE("ManyPutsAndGets user provided buffer", "[4rank]")
     size_t len = s.length();
     paper.put(value, len, value, len);
   }
+
   paper.Fence();
 
-  for(int i = from; i < to; i++)  {
-    std::string s = std::to_string(i);
-    char* value = s.data();
-    size_t len = s.length();
-    auto qr = paper.get(value, len, user_buff, user_buff_len);
-    CHECK(qr.first == QueryStatus::FOUND);
-    CHECK(qr.second== len);
-    CHECK(std::memcmp(user_buff, value, len) == 0);
+   for(int i = from; i < to; i++)  {
+     std::string s = std::to_string(i);
+     char* value = s.data();
+     size_t len = s.length();
+     auto qr = paper.get(value, len, user_buff, user_buff_len);
+     CHECK(qr.first == QueryStatus::FOUND);
+     CHECK(qr.second== len);
+     CHECK(std::memcmp(user_buff, value, len) == 0);
 
 
-  }
-  paper.Fence();
+   }
+   paper.Fence();
 
-  int ranks;
-  MPI_Comm_size(MPI_COMM_WORLD, &ranks);
+   int ranks;
+   MPI_Comm_size(MPI_COMM_WORLD, &ranks);
 
-  for(int i = 0; i < (ranks)*size_per_rank; i++)  {
-    std::string s = std::to_string(i);
-    char* value = s.data();
-    size_t len = s.length();
-    auto qr = paper.get(value, len, user_buff, user_buff_len);
-    CHECK(qr.first == QueryStatus::FOUND);
-    CHECK(qr.second== len);
-    CHECK(std::memcmp(user_buff, value, len) == 0);
-  }
-  paper.Fence();
+   for(int i = 0; i < (ranks)*size_per_rank; i++)  {
+     std::string s = std::to_string(i);
+     char* value = s.data();
+     size_t len = s.length();
+     auto qr = paper.get(value, len, user_buff, user_buff_len);
+     CHECK(qr.first == QueryStatus::FOUND);
+     CHECK(qr.second== len);
+     CHECK(std::memcmp(user_buff, value, len) == 0);
+   }
+   paper.Fence();
+
+  MPI_Barrier(MPI_COMM_WORLD);
 }
 
 
@@ -71,7 +74,7 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
 
   PaperlessKV paper(id, MPI_COMM_WORLD, 7, relaxed_options);
 
-  int size_per_rank = 1000;
+  int size_per_rank = 6;
 
   int from = rank * size_per_rank;
   int to = (rank+1) * size_per_rank;
@@ -82,6 +85,9 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
     size_t len = s.length();
     paper.put(value, len, value, len);
   }
+
+
+
   paper.Fence();
 
   for(int i = from; i < to; i++)  {
@@ -96,6 +102,10 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
     }
 
   }
+
+  paper.Fence();
+
+
   paper.Fence();
 
   int ranks;
@@ -113,8 +123,10 @@ TEST_CASE("ManyPutsAndGets", "[4rank]")
     }
   }
   paper.Fence();
+
 }
 
+/*
 
 TEST_CASE("ManyPutsAndGets READONLY Mode", "[4rank]")
 {
@@ -167,3 +179,5 @@ TEST_CASE("ManyPutsAndGets READONLY Mode", "[4rank]")
   }
   paper.Fence();
 }
+
+*/
