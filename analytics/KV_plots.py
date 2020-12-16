@@ -28,7 +28,7 @@ import os
 def readVector(file_name, ignore_empty=False):
     if ignore_empty:
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            warnings.simplefilter("ignore") 
             matrix = np.loadtxt(file_name)
     else:
         matrix = np.loadtxt(file_name)
@@ -42,9 +42,10 @@ def readVector(file_name, ignore_empty=False):
 #
 
 # + id="BJa3a46qnhdl" pycharm={"is_executing": false}
-experiments = ['IprobeExperimentEuler/paperless'] #'killPutTaskEuler/paperless', 'PE3', '8MB'] # 'nodePE2', 'nodePE3', '8MB']
-ranks = [16,32]
-show_first_n = 32
+experiments = [
+    'IprobeExperimentEuler/paperless']  # 'killPutTaskEuler/paperless', 'PE3', '8MB'] # 'nodePE2', 'nodePE3', '8MB']
+ranks = [8, 16, 32]
+show_first_n = 1
 # experiment = 'localRun'
 # ranks = [8]
 # experiment = 'local-julia'
@@ -56,13 +57,11 @@ show_first_n = 32
 # + colab={"base_uri": "https://localhost:8080/", "height": 539} id="9vWxik0KpqO8" outputId="4b83a218-c7db-484c-ac74-14a304f019a0" pycharm={"is_executing": false}
 
 
-
 for experiment in experiments:
     plt.figure(num=None, figsize=(15, 6), dpi=80, facecolor='w', edgecolor='k')
     print("Exoperiment: " + experiment)
     path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/" + experiment + "/"
     for rank in ranks:
-
 
         print("--------------------------------------")
         print("Plots for ranks n=" + str(rank))
@@ -73,8 +72,8 @@ for experiment in experiments:
             gets = readVector(path + str(rank) + "/get" + str(i) + ".txt")
             puts = readVector(path + str(rank) + "/put" + str(i) + ".txt")
 
-            #print(f"Rank owners for PUT on {i}/{rank}: {np.unique(puts[1])}")
-            #print(f"Rank owners for GET on {i}/{rank}: {np.unique(gets[1])}")
+            # print(f"Rank owners for PUT on {i}/{rank}: {np.unique(puts[1])}")
+            # print(f"Rank owners for GET on {i}/{rank}: {np.unique(gets[1])}")
 
             ax = plt.subplot(rank, 2, 2 * i + 1)
             plt.yscale('log')
@@ -101,25 +100,31 @@ for experiment in experiments:
 # + colab={"base_uri": "https://localhost:8080/", "height": 1000} id="pdmV9lquni-5" outputId="03cbd4a8-cf53-4e59-cdcc-b4d39a791bdf" pycharm={"is_executing": false, "name": "#%% \n"}
 
 # Artificial workload benchmark plots
-experiment = "artificial_workload"
-os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/julia/eth/dphpc/paperless/analytics/"
-path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/" + experiment
+os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/julia/eth/dphpc/paperless/analytics"
+path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data"
 
 # % of ops are updates
 ratios = [0, 50, 5]
-rank_sizes = [1, 2, 4, 8]
+rank_sizes = [1, 2, 4, 8, 12, 16]
 n_runs = 10
 
 NANO_TO_SEC = 1000000000
 
 
-def dataPath(ratio, rank_size, run_idx, db):
-    return f"{path}/{db}/ratio{ratio}/ranks{rank_size}/run{run_idx}"
+def dataPath(experiment_name, ratio, rank_size, run_idx, db):
+    return f"{path}/{experiment_name}/{db}/ratio{ratio}/ranks{rank_size}/run{run_idx}"
+
+
+def calculateThroughput(vector):
+    if len(vector):
+        return len(vector) / sum(vector) * NANO_TO_SEC
+    else:
+        return 0
 
 
 # We consider only get and update operations (not puts).
-def throughputForRun(ratio, rank_size, run_idx, db):
-    p = dataPath(ratio, rank_size, run_idx, db)
+def throughputForRun(experiment_name, ratio, rank_size, run_idx, db):
+    p = dataPath(experiment_name, ratio, rank_size, run_idx, db)
     allGetTimes = []
     allUpdateTimes = []
     for i in range(rank_size):
@@ -130,31 +135,50 @@ def throughputForRun(ratio, rank_size, run_idx, db):
         allGetTimes.append(getTimes)
         allUpdateTimes.append(updateTimes)
     opTimes = np.concatenate(allGetTimes + allUpdateTimes, axis=0)
-    opThroughput = len(opTimes) / sum(opTimes) * NANO_TO_SEC
-    return opThroughput
+    
+    opThroughputLikeInPaper = sum(map(calculateThroughput, allGetTimes)) + sum(map(calculateThroughput, allUpdateTimes))
+    opThroughput = calculateThroughput(opTimes)
+    return opThroughput, opThroughputLikeInPaper
 
-
-throughputs = np.zeros((n_runs, len(rank_sizes), len(ratios)))
-for k, ratio in enumerate(ratios):
-    for j, rank_size in enumerate(rank_sizes):
-        for i in range(1, n_runs + 1):
-            throughputs[i - 1, j, k] = throughputForRun(ratio=ratio, rank_size=rank_size, run_idx=i, db="paperless")
-
+def readThroughputData(experiment_name):    
+    throughputs = pd.DataFrame(columns=['throughput', 'rank_size', 'op_ratio', 'db'])
+    for k, ratio in enumerate(ratios):
+        for j, rank_size in enumerate(rank_sizes):
+            for i in range(1, n_runs + 1):
+                for db in ('paperless', 'papyrus'):
+                    val, _ = throughputForRun(experiment_name, ratio=ratio, rank_size=rank_size, run_idx=i, db=db)
+                    throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'op_ratio':ratio, 'db':db}, ignore_index=True)
+    return throughputs
 # The throughput value is (# of ops)/(sum of per-op timings).
 
-for k, ratio in enumerate(ratios):
-    plt.title(f'Performance with {100-ratio}% gets and {ratio}% updates')
-    sns.boxplot(data=throughputs[:,:,k], color=sns.color_palette('Set2')[1])
-    sns.swarmplot(data=throughputs[:,:,k], color='.25')
-    plt.yscale('log')
-    plt.xlabel('Number of ranks')
-    plt.ylabel('KPRS (kilo requests per second')
-    plt.show()
 
+
+# + pycharm={"metadata": false, "name": "#%%\n", "is_executing": false}
+
+def plotThroughputs(throughputs):
+    for k, ratio in enumerate(ratios):
+        select = throughputs['op_ratio'] == ratio
+        plt.title(f'Performance with {100-ratio}% gets and {ratio}% updates')
+        sns.boxplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
+        # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
+        plt.yscale('log')
+        plt.xlabel('Number of ranks')
+        plt.ylabel('KPRS (kilo requests per second')
+        plt.show()
+
+# + pycharm={"metadata": false, "name": "#%%#%%\n", "is_executing": false}
+
+
+single_core_data = readThroughputData('final/artificial_workload')
+two_core_data = readThroughputData('final/artificial_workload_2core')
+
+plotThroughputs(single_core_data)
+plotThroughputs(two_core_data)
 
 # + id="5t-v0JFD_Js9" pycharm={"is_executing": false}
 
 
 
 # + pycharm={"metadata": false, "name": "#%%\n"}
+
 
