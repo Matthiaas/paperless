@@ -7,7 +7,6 @@
 
 #include <mpi.h>
 
-#include "Responder.h"
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -15,16 +14,15 @@
 #include <thread>
 
 #include "Element.h"
+#include "FutureQueryInfo.h"
 #include "LRUHashCache.h"
 #include "LRUTreeCache.h"
 #include "ListQueue.h"
 #include "MemoryTableManager.h"
 #include "RBTreeMemoryTable.h"
-
-
 #include "RemoteOperator.h"
+#include "Responder.h"
 #include "StorageManager.h"
-#include "FutureQueryResult.h"
 #include "Types.h"
 
 #define SYNC_TAG 0
@@ -112,7 +110,7 @@ class PaperlessKV {
   std::pair<QueryStatus, size_t> get(const char* key, size_t key_len,
                                      char* value_buff, size_t value_buff_len);
 
-  FutureQueryResult Iget(const char* key, size_t key_len,
+  FutureQueryInfo IGet(const char* key_buff, size_t key_len,
                                      char* value_buff, size_t value_buff_len);
   void DeleteKey(const char* key, size_t key_len);
 

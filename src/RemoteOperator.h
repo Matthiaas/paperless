@@ -9,6 +9,7 @@
 
 #include <atomic>
 
+#include "FutureQueryInfo.h"
 #include "Message.h"
 #include "Status.h"
 #include "Types.h"
@@ -18,7 +19,7 @@ class RemoteOperator {
   RemoteOperator(MPI_Comm comm, bool dispatch_data_in_chunks_);
   std::pair<QueryStatus, size_t> Get(const ElementView &key,
                                      const ElementView &v_buff, Hash hash);
-  FutureQueryResult IGet(const ElementView &key,
+  FutureQueryInfo IGet(const ElementView &key,
                                      const ElementView &v_buff, Hash hash);
 
 
@@ -42,6 +43,7 @@ class RemoteOperator {
   int min_get_key;
   int max_get_key;
   std::atomic<int> cur_get_key = 0;
+  Message InitGetAsync(const ElementView &key, Hash hash);
 };
 
 #endif  // PAPERLESS_REMOTEOPERATOR_H

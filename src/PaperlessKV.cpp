@@ -409,7 +409,7 @@ std::pair<QueryStatus, size_t> PaperlessKV::get(const char *key_buff,
   }
 }
 
-FutureQueryResult PaperlessKV::Iget(const char *key_buff,
+FutureQueryInfo PaperlessKV::IGet(const char *key_buff,
                                                  size_t key_len,
                                                  char *value_buff,
                                                  size_t value_buff_len) {
@@ -421,18 +421,9 @@ FutureQueryResult PaperlessKV::Iget(const char *key_buff,
     return LocalGet(key, buff, hash);
   } else {
     if (consistency_ == RELAXED) {
-      return RemoteGetRelaxed(key, buff, hash);
+      return remoteOperator_.IGet(key, buff, hash);
     } else {  // SEQUENTIAL
-      std::pair<QueryStatus, size_t> el = remoteOperator_.Get(key, buff, hash);
-      if (mode_ == READONLY) {
-        if (el.first == QueryStatus::FOUND) {
-          remote_cache_.put(key, hash, Element(buff.Value(), el.second));
-        } else if (el.first == QueryStatus::DELETED ||
-                   el.first == QueryStatus::NOT_FOUND) {
-          remote_cache_.put(key, hash, el.first);
-        }
-      }
-      return el;
+      return remoteOperator_.IGet(key, buff, hash);
     }
   }
 }

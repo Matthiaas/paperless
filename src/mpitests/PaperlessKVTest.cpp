@@ -172,6 +172,27 @@ TEST_CASE("RemoteGet into user provided buffer ", "[2rank]")
 }
 
 
+TEST_CASE("RemoteIGet into user provided buffer", "[2rank]") {
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  std::string id = "/tmp/PaperlessTest";
+
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
+
+  if (rank == 1) {
+    paper.put(key1, klen1, value1, vlen1);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  auto future = paper.IGet(key1, klen1, user_buff, user_buff_len);
+  auto qr = future.Get();
+  CHECK(qr.first == QueryStatus::FOUND);
+  CHECK(qr.second == vlen1);
+  CHECK(memcmp(user_buff, value1, vlen1) == 0);
+  paper.Fence();
+}
+
 TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
 {
   int rank;
@@ -300,7 +321,6 @@ TEST_CASE("RemoteGet", "[2rank]")
 
 
 }
-
 
 TEST_CASE("RemotePutAndGet SEQUENTIAL", "[2rank]")
 {

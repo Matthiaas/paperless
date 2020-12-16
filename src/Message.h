@@ -41,6 +41,7 @@ struct Message {
   enum Type {
     PUT_REQUEST = 0,
     GET_REQUEST = 1,
+    I_GET_REQUEST = 1,
     SYNC = 3,
     KILL = 4,
     QUERY_RESULT = 5
@@ -51,13 +52,27 @@ struct Message {
     buff_[0] = t;
   }
 
+  Message() {
+    buff_ = static_cast<size_t*>(PAPERLESS::malloc(buff_len_ * sizeof(size_t)));
+  }
+
+  Message& operator=(const Message&) = delete;
+  Message& operator=(Message&& m) {
+    free(buff_);
+    buff_ = m.buff_;
+    m.buff_ = nullptr;
+    return *this;
+  }
+
   Message(const Message&) = delete;
   Message(Message&& m) {
     buff_ = m.buff_;
     m.buff_ = nullptr;
   }
 
-  ~Message() { free(buff_); }
+  ~Message() {
+    free(buff_);
+  }
 
   static Message ReceiveMessage(int src, int tag, MPI_Comm comm,
                                 MPI_Status* status) {
@@ -65,8 +80,18 @@ struct Message {
     MPI_Recv(m.buff_, buff_len_, MPI_UNSIGNED_LONG, src, tag, comm, status);
     return m;
   }
-  void SendMessage(int dest, int tg, MPI_Comm comm) {
-    MPI_Send(buff_, buff_len_, MPI_UNSIGNED_LONG, dest, tg, comm);
+
+  void I_ReceiveMessage(int src, int tag, MPI_Comm comm,
+                                  MPI_Request* request) {
+    MPI_Irecv(buff_, buff_len_, MPI_UNSIGNED_LONG, src, tag, comm, request);
+  }
+
+  void I_SendMessage(int dest, int tag, MPI_Comm comm, MPI_Request* request) {
+    MPI_Isend(buff_, buff_len_, MPI_UNSIGNED_LONG, dest, tag, comm, request);
+  }
+
+  void SendMessage(int dest, int tag, MPI_Comm comm) {
+    MPI_Send(buff_, buff_len_, MPI_UNSIGNED_LONG, dest, tag, comm);
   }
 
   void SetTag(size_t t) { buff_[1] = t; }
@@ -92,11 +117,10 @@ struct Message {
   size_t GetHash() const { return buff_[4]; }
 
  private:
-  Message() {
-    buff_ = static_cast<size_t*>(PAPERLESS::malloc(buff_len_ * sizeof(size_t)));
-  }
+
   static constexpr size_t buff_len_ = 10;
   size_t* buff_ = nullptr;
+
 };
 
 #endif  // PAPERLESS_MESSAGE_H
