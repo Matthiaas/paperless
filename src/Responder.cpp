@@ -1,5 +1,7 @@
 #include "Responder.h"
 
+#include <iostream>
+
 Responder::Responder(PaperlessKV* kv, MPI_Comm comm,
                      bool dispatch_data_in_chunks)
     : kv_(kv), comm_(comm), dispatch_data_in_chunks_(dispatch_data_in_chunks) {
