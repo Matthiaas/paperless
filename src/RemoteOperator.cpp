@@ -7,6 +7,8 @@
 #include "FutureQueryInfo.h"
 #include "Message.h"
 
+#include <iostream>
+
 RemoteOperator::RemoteOperator(MPI_Comm comm, bool dispatch_data_in_chunks)
     : comm_(comm), dispatch_data_in_chunks_(dispatch_data_in_chunks) {
   MPI_Comm_rank(comm_, &rank_);

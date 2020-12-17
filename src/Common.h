@@ -5,6 +5,7 @@
 #ifndef PAPERLESS_SRC_COMMON_H_
 #define PAPERLESS_SRC_COMMON_H_
 
+#include <cstdlib> 
 
 namespace PAPERLESS {
 constexpr size_t kStride = 32;

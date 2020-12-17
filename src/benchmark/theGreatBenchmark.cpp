@@ -65,7 +65,7 @@ void BenchmarkRandomData() {
 int main(int argc, char** argv)  {
 
   if (argc < 6) {
-    printf("[%s:%d] usage: %s keylen vallen count update_ratio[0:100] storage_path\n", __FILE__, __LINE__, argv[0]);
+    printf("[%s:%d] usage: %s keylen vallen count update_ratio[0:100] storage_path consistency['SEQ', default='REL']\n", __FILE__, __LINE__, argv[0]);
     return 0;
   }
 
@@ -76,6 +76,7 @@ int main(int argc, char** argv)  {
   count = atol(argv[3]);
   update_ratio = atoi(argv[4]);
   std::string storage_directory = argv[5];
+  std::string consistency = (argc == 6) ? argv[6] : "REL";
 
   int size;
 
@@ -88,6 +89,10 @@ int main(int argc, char** argv)  {
     printf("[%s:%d] update_ratio[%d%%] keylen[%lu] vallen[%lu] count[%lu] size[%0.lf]KB [%lf]MB [%lf]GB nranks[%d] total count[%lu] size[%0.lf]KB [%lf]MB [%lf]GB\n", __FILE__, __LINE__, update_ratio, keylen, vallen, count, cb / KILO, cb / MEGA, cb / GIGA, size, count * size, total / KILO, total / MEGA, total / GIGA);
   }
 
+  if (consistency == "SEQ") {
+    KV::SetMode(PaperlessKV::Consistency_t::SEQUENTIAL, PaperlessKV::Mode_t::READANDWRITE);
+  }
+  
   // Benchmark code here:
 
   BenchmarkRandomData();
