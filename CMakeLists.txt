@@ -122,6 +122,9 @@ set(MTM_COMPARISON_SOURCES
 set(MPI_PROBE_MULTIPLE_THREADS_SOURCES
         src/benchmark/mpi_probe_multiple_threads.cpp)
 
+set(CMP_VECTOR_BENCHMARK_SOURCES
+        src/benchmark/cmp_vector_benchmark.cpp)
+
 add_library(paperless STATIC ${LIB_SOURCES})
 target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})
 target_link_libraries(paperless PRIVATE Threads::Threads)
@@ -168,6 +171,10 @@ add_executable(mtm_comparison
         ${MTM_COMPARISON_SOURCES}
         ${LIB_SOURCES})
 
+add_executable(cmp_vector
+        ${CMP_VECTOR_BENCHMARK_SOURCES}
+        ${LIB_SOURCES})
+
 target_link_libraries(main PUBLIC paperless mtbl)
 
 
@@ -178,6 +185,7 @@ target_compile_definitions(thegreatbenchmark_paperless PRIVATE PAPERLESS_BENCHMA
 target_link_libraries(thegreatbenchmark_papyrus mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(thegreatbenchmark_papyrus PRIVATE PAPYRUS_BENCHMARK)
 
+target_link_libraries(cmp_vector mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(basic mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(workload mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(mtm_comparison mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)

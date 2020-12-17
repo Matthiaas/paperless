@@ -4,6 +4,10 @@
 #include <cstddef>
 #include <cstdlib>
 #include <chrono>
+#include <new>
+
+#include "../Common.h"
+#include "helper.h"
 
 int update_ratio;
 int rank;
@@ -12,22 +16,17 @@ size_t vallen;
 size_t count;
 char* key_set;
 
-void rand_str(size_t len, char* str) {
-  static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  int l = (int) (sizeof(charset) -1);
-  for (size_t i = 0; i < len - 1; i++) {
-    int key = rand() % l;
-    str[i] = charset[key];
-  }
-  str[len - 1] = 0;
-}
 
 char* get_key(int idx) {
   return key_set + (idx * (keylen + 1));
 }
 
 void generate_key_set() {
+#ifdef VECTORIZE
+  key_set = new(std::align_val_t{PAPERLESS::kStride}) char[PAPERLESS::roundToStrideLength(keylen + 1) * count];
+#else
   key_set = new char[(keylen + 1) * count];
+#endif
   for (size_t i = 0; i < count; i++) {
     rand_str(keylen, get_key(i));
   }

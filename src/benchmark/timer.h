@@ -14,12 +14,12 @@ static double _wtime() {
   return tv.tv_sec + 1.e-6 * tv.tv_usec - base_sec;
 }
 
-static double _w(int i) {
+[[maybe_unused]] static double _w(int i) {
   _t[i] = _wtime();
   return _t[i];
 }
 
-static double _ww(int i, int j) {
+[[maybe_unused]] static double _ww(int i, int j) {
   return _t[j] - _t[i];
 }
 
