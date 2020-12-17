@@ -34,7 +34,7 @@ DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 #DATA_LOCATION=/home/julia/eth/dphpc/paperless/analytics/data/$EXPERIMENT
 
 mpirun --version
-MPIRUN_FLAGS=("--report-bindings" "--map-by" "node:pe:2")
+MPIRUN_FLAGS=("--report-bindings" "--map-by" "node:pe=2")
 
 rm -rf ${STORAGE_LOCATION}*
 for i in "${RANKS[@]}"; do
@@ -45,8 +45,8 @@ for i in "${RANKS[@]}"; do
       PAPYRUS_PATH=$DATA_LOCATION/papyrus/ratio$j/ranks$i/run$k
       mkdir -p $PAPYRUS_PATH
       mkdir -p $PAPERLESS_PATH
-      echo mpirun -np $i ${MPIRUN_FLAGS[@]} --map-by node:pe:2 ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH
-      mpirun -np $i ${MPIRUN_FLAGS[@]} --map-by node:pe:2 ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH
+      echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH
+      mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH
       rm -rf ${STORAGE_LOCATION}*
       echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH
       mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH
