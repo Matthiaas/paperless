@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 MAIN_DIR=$(dirname "$0")/../..
-OUT_DIR=/tmp/paperless_bench
-
+OUT_DIR=${MAIN_DIR}/analytics/data/compare_vec
 
 # Check if we're on a cluster.
 [ -d "/cluster" ]
@@ -17,9 +16,15 @@ MCMP_OUTFILE=${OUT_DIR}/result_cmp_memcmp.txt
 
 cd ${MAIN_DIR} || exit
 
+
+# Build and run vectorized version
 rm build/* -rf
 ./build.sh cmp_vector RELEASE -DVECTORIZE=ON
-./build/cmp_vector > ${VEC_OUTFILE}
+mv ./build/cmp_vector ./build/cmp_vector_vectorized
+./build/cmp_vector_vectorized > ${VEC_OUTFILE}
 
+# Build and run memcmp version
+rm build/* -rf
 ./build.sh cmp_vector RELEASE -DVECTORIZE=OFF
-./build/cmp_vector > ${MCMP_OUTFILE}
+mv ./build/cmp_vector ./build/cmp_vector_memcmp
+./build/cmp_vector_memcmp > ${MCMP_OUTFILE}

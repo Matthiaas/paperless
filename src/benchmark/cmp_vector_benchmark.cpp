@@ -18,22 +18,31 @@ Element generateRandomElement(size_t length) {
 }
 
 int main() {
-  std::vector<std::tuple<size_t, bool, Element, Element>> pairs{};
-  std::vector<std::tuple<size_t, bool, double>> measurements{};
+#ifdef VECTORIZE
+  std::string bench_name = "vector";
+#else
+  std::string bench_name = "memcmp";
+#endif
+
+  std::vector<std::tuple<size_t, bool, ElementView, ElementView>> pairs{};
+  std::vector<std::tuple<size_t, bool, uint64_t>> measurements{};
   pairs.reserve(NUM_COMPARES);
-  measurements.reserve(NUM_COMPARES / 2);
 
   std::cerr << "Setting up...\n";
   // Setup phase.
-  for (size_t l = 1; l < 4096u; l += 16) {
+  for (size_t l = 1; l < 4096u; l += 1024) {
+    Element e = generateRandomElement(l);
+    Element ce = Element::copyElementContent(e);
+    Element de = Element::copyElementContent(e);
+    de.Value()[0]++;
+
     for (int i = 0; i < NUM_COMPARES; i++) {
-      Element e = generateRandomElement(l);
-      Element ce = Element::copyElementContent(e);
       bool equal = i % 2;
-      if (!equal) {
-        e.Value()[0]++;
+      if (equal) {
+        pairs.emplace_back(l, equal, e.GetView(), ce.GetView());
+      } else {
+        pairs.emplace_back(l, equal, e.GetView(), de.GetView());
       }
-      pairs.emplace_back(l, equal, std::move(ce), std::move(e));
     }
   }
 
@@ -44,16 +53,18 @@ int main() {
 
 
   for (auto &[len, equal, lhs, rhs] : pairs) {
-    auto start = _wtime();
+    auto start = _rdtsc();
     _mm_lfence();
     _mm_mfence();
     bool res = lhs < rhs;
     _mm_lfence();
     _mm_mfence();
-    measurements.emplace_back(len, equal & (!res), _wtime() - start);
+    measurements.emplace_back(len, equal && (!res), _rdtsc() - start);
   }
 
-  for (auto &[len, equal, time] : measurements) {
-    std::cout << len << ", " << equal << ", " << time << "\n";
+
+  std::cout << "bench_name" << ", "<< "key_len" << ", " << "equal" << ", " << "cycles" << "\n";
+  for (auto &[key_len, equal, cycles] : measurements) {
+    std::cout << bench_name << ", " << key_len << ", " << equal << ", " << cycles << "\n";
   }
 }
