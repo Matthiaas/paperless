@@ -5,5 +5,5 @@
 eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)"
 conda activate paperless
 export PAPERLESS_KV_DATA_DIR=$PWD"/""$(dirname "$BASH_SOURCE")"
-
+jupytext --set-formats ipynb,py KV_plots.py
 jupyter notebook $PAPERLESS_KV_DATA_DIR/KV_plots.ipynb
