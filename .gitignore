@@ -1,6 +1,6 @@
 # Build
 build/
-papyrus/
+./papyrus/
 
 # Prerequisites
 *.d
