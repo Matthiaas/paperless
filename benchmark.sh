@@ -28,8 +28,11 @@ export STORAGE_LOCATION=/scratch/mydb
 for c in "${CORES[@]}"; do
   for i in "${RANKS[@]}"; do
       for j in "${VALLEN[@]}"; do
-         mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/run/paperless/$i
-         mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/run/papyrus/$i
+         echo mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/exp/paperless/ranks$i
+         mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/exp/paperless/ranks$i
+         echo mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/exp/papyrus/ranks$i
+         mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/exp/papyrus/ranks$i
+         rm -r $STORAGE_LOCATION
       done
   done
 done
