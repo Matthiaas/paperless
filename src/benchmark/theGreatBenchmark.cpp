@@ -76,7 +76,8 @@ int main(int argc, char** argv)  {
   count = atol(argv[3]);
   update_ratio = atoi(argv[4]);
   std::string storage_directory = argv[5];
-  std::string consistency = (argc == 6) ? argv[6] : "REL";
+  std::string consistency = (argc == 7) ? argv[6] : "REL";
+  std::cout << consistency << std::endl;
 
   int size;
 
