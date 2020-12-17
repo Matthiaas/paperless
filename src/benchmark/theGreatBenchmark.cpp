@@ -4,6 +4,7 @@
 
 #include "KVWrapper.h"
 #include <filesystem>
+#include <chrono>
 
 #define KILO    (1024UL)
 #define MEGA    (1024 * KILO)
@@ -13,7 +14,7 @@
 std::vector<std::pair<long,int>> put_time;
 std::vector<std::pair<long,int>> get_time;
 std::vector<std::pair<long,int>> update_time;
-
+long put_phase_time_ns = 0;
 
 void BenchmarkRandomData() {
   char* key;
@@ -34,6 +35,7 @@ void BenchmarkRandomData() {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
+  auto puts_phase_start = std::chrono::high_resolution_clock::now();
   for (size_t i = 0; i < count; i++) {
     key = get_key(i);
     put_time.emplace_back(TimedKV::Put(key, keylen, put_val, vallen));
@@ -45,6 +47,9 @@ void BenchmarkRandomData() {
     KV::Fence();
   }
 
+  auto puts_phase_end = std::chrono::high_resolution_clock::now();
+  put_phase_time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      puts_phase_end-puts_phase_start).count();
 
   for (size_t i = 0; i < count; i++) {
     key = get_key(i);
@@ -130,7 +135,9 @@ int main(int argc, char** argv)  {
   }
   update_file.close();
 
-
+  std::ofstream put_total_file(storage_directory + "/put_total" + std::to_string(rank) + ".txt");
+  put_total_file << put_phase_time_ns << std::endl;
+  put_total_file.close();
 
 
 }
