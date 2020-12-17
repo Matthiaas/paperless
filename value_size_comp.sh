@@ -33,6 +33,8 @@ for c in "${CORES[@]}"; do
   for i in "${RANKS[@]}"; do
       for j in "${VALLEN[@]}"; do
          echo mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${KEYLEN}"ksize"${j}"vsize/ranks$i
+         mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${KEYLEN}"ksize"${j}"vsize/ranks$i
+
       done
   done
 done
@@ -41,6 +43,7 @@ for c in "${CORES[@]}"; do
   for i in "${RANKS[@]}"; do
       for j in "${VALLEN[@]}"; do
          echo mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_paperless $j $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${j}"ksize"${j}"vsize/ranks$i
+         mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_paperless $j $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${j}"ksize"${j}"vsize/ranks$i
       done
   done
 done
