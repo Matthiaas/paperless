@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: $ ./build.sh <target> <Debug|Release>
+# Usage: $ ./build.sh <target> <Debug|Release> <cmake flags>
 #   e.g. $ ./build.sh tests
 
 # Check if we're on a cluster.
@@ -29,4 +29,4 @@ BUILD_TYPE="${2:-$DEFAULT_BUILD_TYPE}"
 echo ${BUILD_TYPE}
 #rm -r build
 #mkdir build
-cd build && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DIS_CLUSTER=${IS_CLUSTER} .. && make -j16 $1
+cd build && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DIS_CLUSTER=${IS_CLUSTER} ${@:3} .. && make -j16 $1
