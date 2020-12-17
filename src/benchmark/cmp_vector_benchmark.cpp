@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <x86intrin.h>
 #include <iostream>
 #include <vector>
