@@ -30,6 +30,9 @@ import os
 
 # Data Path
 #os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/julia/eth/dphpc/paperless/analytics"
+os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/wfloris/github/paperless/analytics"
+
+
 data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data"
 
 
@@ -220,6 +223,7 @@ PlotSingleOperionTimes(plot_data_2_core)
 ratios = [0, 50, 5]
 rank_sizes = [1, 2, 4, 8, 12, 16]
 n_runs = 10
+
 NANO_TO_SEC = 1000000000
 
 
@@ -320,7 +324,7 @@ class RelSeqBench:
         return (rank_size * self.count) / (total_put_t / NANO_TO_SEC)
 
     # The throughput value is (# of ops)/(sum of per-op timings).
-    def readThroughputData(self):    
+    def readThroughputData(self):
         throughputs = pd.DataFrame(columns=['throughput', 'rank_size', 'mode'])
         for mode in ("rel", "seq"):
             for _, rank_size in enumerate(self.rank_sizes):
@@ -344,6 +348,31 @@ class RelSeqBench:
 bench = RelSeqBench('seq_vs_rel_2core/paperless', rank_sizes=[1,2, 4, 8, 12, 16, 24], n_runs=30, count=1000)
 bench.plotThroughputs()
 
+
+
+
+
+# # Vector Compare
+
+# +
+m_path = data_path + "/compare_vec/result_cmp_memcmp.txt"
+v_path = data_path + "/compare_vec/result_cmp_vectorized.txt"
+
+memcmp_cycles = pd.read_csv(m_path)
+vector_cycles = pd.read_csv(v_path)
+
+cycles = pd.concat([memcmp_cycles, vector_cycles])
+
+def plotCompare(cycles):
+    plt.title(f'Cycles < operator')
+    sns.boxplot(data=cycles, x='key_len', y='cycles', hue='bench_name', showfliers=False)
+    # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
+    
+    plt.xlabel('key_length')
+    plt.ylabel('cycles')
+    plt.show()
+
+plotCompare(cycles)
 
 
 

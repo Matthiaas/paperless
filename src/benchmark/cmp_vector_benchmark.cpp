@@ -52,7 +52,7 @@ int main() {
   std::cerr << "Setting up...\n";
   // Setup phase.
   //  for (size_t l = 16; l < 1 * 128; l += 16 ) {
-  for (size_t l = 16; l < 4 * 4096; l += 2048) {
+  for (size_t l = 0; l < 4 * 4096; l += 2048) {
     Element e = generateRandomElement(l);
     Element ce = Element::copyElementContent(e);
 
