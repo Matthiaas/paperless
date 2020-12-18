@@ -15,6 +15,7 @@
 
 # # Paperless and Papyrus plots
 #
+# Damn this file is a mess
 
 # + id="zeWCU8XvnRBH" pycharm={"is_executing": false}
 import warnings
@@ -219,7 +220,6 @@ PlotSingleOperionTimes(plot_data_2_core)
 ratios = [0, 50, 5]
 rank_sizes = [1, 2, 4, 8, 12, 16]
 n_runs = 10
-
 NANO_TO_SEC = 1000000000
 
 
@@ -287,10 +287,63 @@ two_core_data = readThroughputData('final/artificial_workload_2core')
 plotThroughputs(single_core_data)
 plotThroughputs(two_core_data)
 
-# + id="5t-v0JFD_Js9" pycharm={"is_executing": false}
+# -
+# # Relaxed vs sequential mode
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import os
+
+data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data"
+NANO_TO_SEC = 1000000000
+# % of ops are updates
+
+# I put it into class to not collide with Julia's code.
+class RelSeqBench:
+    def __init__(self, experiment_name, rank_sizes, n_runs, count):
+        self.experiment_name = experiment_name
+        self.rank_sizes = rank_sizes
+        self.n_runs = n_runs
+        self.count = count
+
+    def dataPath(self, rank_size, run_idx, mode):
+        return f"{data_path}/{self.experiment_name}/{mode}/ratio0/ranks{rank_size}/run{run_idx}"
+
+    def throughputForRun(self, rank_size, run_idx, mode):
+        p = self.dataPath(rank_size, run_idx, mode)
+        total_put_t = 0
+        for i in range(rank_size):
+            with open(f'{p}/put_total{i}.txt') as f:
+                total_put_t = total_put_t + int(f.read())
+        return (rank_size * self.count) / (total_put_t / NANO_TO_SEC)
+
+    # The throughput value is (# of ops)/(sum of per-op timings).
+    def readThroughputData(self):    
+        throughputs = pd.DataFrame(columns=['throughput', 'rank_size', 'mode'])
+        for mode in ("rel", "seq"):
+            for _, rank_size in enumerate(self.rank_sizes):
+                for i in range(1, self.n_runs + 1):
+                    val = self.throughputForRun(rank_size=rank_size, run_idx=i, mode=mode)
+                    throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'mode':mode}, ignore_index=True)
+        return throughputs
 
 
+    def plotThroughputs(self):
+        throughput = self.readThroughputData()
+        plt.title(f'Throughput in single rank per consistency')
+        sns.boxplot(data=throughput, x='rank_size', y='throughput', hue='mode')
+        # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
+        plt.yscale('log')
+        plt.xlabel('Number of ranks')
+        plt.ylabel('KPRS (kilo requests per second')
+        plt.show()
 
-# + pycharm={"metadata": false, "name": "#%%\n"}
+
+bench = RelSeqBench('seq_vs_rel_2core/paperless', rank_sizes=[1,2, 4, 8, 12, 16, 24], n_runs=30, count=1000)
+bench.plotThroughputs()
+
+
 
 
