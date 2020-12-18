@@ -16,9 +16,9 @@ using MemQueue = ListQueue<MemTable>;
 using RBTreeMemoryManager =
     MemoryTableManager<MemTable, MemQueue>;
 
-alignas(32) char kKeyBytes[] = "key";
+alignas(PAPERLESS::kStride) char kKeyBytes[64] = "key";
 size_t kKeyLen = 3;
-alignas(32) char kValueBytes[] = "value";
+char kValueBytes[] = "value";
 size_t kValueLen = 5;
 const Element kSampleValue{kValueBytes, kValueLen};
 const ElementView kSampleKey{kKeyBytes, kKeyLen};
@@ -124,9 +124,9 @@ struct Producer {
     for (int i = start; i < start + count; ++i) {
       std::string key = CreateIthKey(i);
       std::string value = CreateIthValue(i);
-      ElementView key_elem(&key[0], key.size());
+      Element key_element{key.c_str(), key.length()};
       Tomblement value_tombl(&value[0], value.size());
-      manager->Put(key_elem, std::move(value_tombl), /*hash=*/0, /*owner=*/0);
+      manager->Put(key_element.GetView(), std::move(value_tombl), /*hash=*/0, /*owner=*/0);
     }
   }
 };

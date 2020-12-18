@@ -1,58 +1,93 @@
-#include <algorithm>
 #include <x86intrin.h>
+
+#include <algorithm>
 #include <iostream>
+#include <random>
 #include <vector>
 
 #include "../Element.h"
-
-#include "timer.h"
 #include "helper.h"
+#include "timer.h"
 
 #define NUM_COMPARES 100000
 
-Element generateRandomElement() {
-  size_t length = rand() % 4096;
+Element generateRandomElement(size_t length) {
   Element e{length};
   rand_str(length, e.Value());
   return e;
 }
 
+//#pragma GCC push_options
+////#pragma GCC optimize ("O0")
+// std::vector<std::tuple<size_t, bool, uint64_t>> measure(
+//    const std::vector<std::tuple<size_t, bool, ElementView, ElementView>>
+//        &pairs) {
+//  std::vector<std::tuple<size_t, bool, uint64_t>> measurements{};
+//  bool thingy = true;
+//  for (auto &[len, equal, lhs, rhs] : pairs) {
+//    uint64_t start = __builtin_ia32_rdtsc();
+//    _mm_lfence();
+//    _mm_mfence();
+//    bool res = lhs < rhs;
+//    _mm_lfence();
+//    _mm_mfence();
+//    measurements.emplace_back(len, equal, __builtin_ia32_rdtsc() - start);
+//    thingy = thingy != res;
+//  }
+//  return measurements;
+//}
+//#pragma GCC pop_options
+
 int main() {
-  std::vector<std::pair<Element, Element>> pairs{};
-  std::vector<std::pair<uint64_t, bool>> measurements{};
+#ifdef VECTORIZE
+  std::string bench_name = "vector";
+#else
+  std::string bench_name = "memcmp";
+#endif
+
+  std::vector<Element> elements{};
+  std::vector<std::tuple<size_t, bool, ElementView, ElementView>> pairs{};
   pairs.reserve(NUM_COMPARES);
-  measurements.reserve(NUM_COMPARES / 2);
 
   std::cerr << "Setting up...\n";
   // Setup phase.
-  for (int i = 0; i < NUM_COMPARES; i++) {
-    if (i % 2) {
-      pairs.emplace_back(generateRandomElement(), generateRandomElement());
-    } else {
-      Element e = generateRandomElement();
-      Element ce = Element::copyElementContent(e);
-      pairs.emplace_back(std::move(ce), std::move(e));
+  //  for (size_t l = 16; l < 1 * 128; l += 16 ) {
+  for (size_t l = 0; l < 4 * 4096; l += 2048) {
+    Element e = generateRandomElement(l);
+    Element ce = Element::copyElementContent(e);
+
+    for (int i = 0; i < NUM_COMPARES; i++) {
+      pairs.emplace_back(l, true, e.GetView(), ce.GetView());
     }
+    elements.emplace_back(std::move(e));
+    elements.emplace_back(std::move(ce));
   }
 
+  //  auto&[size, equal, view1, view2] = pairs.back();
+  //  std::cout << view1.Value() << "\n" << view2.Value() << "\n";
+
+  std::random_device rd;
+  std::mt19937 g(rd());
+  std::shuffle(pairs.begin(), pairs.end(), g);
   std::cerr << "Start Measurements\n";
 
-  auto start = _rdtsc();
-  for (auto &[a, b] : pairs) {
+  //  auto measurements = measure(pairs);
+  std::vector<std::tuple<size_t, bool, uint64_t>> measurements{};
+  bool thingy = true;
+  for (auto &[len, equal, lhs, rhs] : pairs) {
+    uint64_t start = __builtin_ia32_rdtsc();
     _mm_lfence();
     _mm_mfence();
-    bool res = a < b;
+    bool res = lhs < rhs;
     _mm_lfence();
     _mm_mfence();
-    measurements.emplace_back(_rdtsc() - start, res);
+    measurements.emplace_back(len, equal, __builtin_ia32_rdtsc() - start);
+    thingy = thingy != res;
   }
 
-  std::cout << "Total wall time: " << _wtime() - start;
-
-  for (auto &[time, r] : measurements) {
-    std::cout << time << "\n";
+  std::cout << "bench_name,key_len,equal,cycles\n";
+  for (auto &[key_len, equal, cycles] : measurements) {
+    std::cout << bench_name << "," << key_len << "," << equal << "," << cycles
+              << "\n";
   }
-  std::cout << "------\n";
-  std::sort(measurements.begin(), measurements.end());
-  std::cout << "median: " << measurements[measurements.size()/2].first << "\n";
 }

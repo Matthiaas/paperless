@@ -9,7 +9,7 @@
 #include <cstring>
 
 namespace PAPERLESS {
-constexpr size_t kStride = 32;
+constexpr size_t kStride = 64;
 
 static inline __attribute__((always_inline))
 size_t roundToStrideLength(size_t len) {

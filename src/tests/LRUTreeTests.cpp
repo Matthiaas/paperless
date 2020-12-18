@@ -4,7 +4,7 @@
 
 TEST_CASE("LRUCache: Put with View & Get Test", "[LRUTest]") {
   LRUTreeCache memTable(1000);
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[64] = "key";
   ElementView n_key{key_bytes, 3};
   char value_bytes[] = "value";
   Element val_expected{value_bytes, 5};
@@ -20,7 +20,7 @@ TEST_CASE("LRUCache: Put with View & Get Test", "[LRUTest]") {
 
 TEST_CASE("LRUCache: Put with Key Move & Get Test", "[LRUTest]") {
   LRUTreeCache memTable(1000);
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[64] = "key";
   ElementView key{key_bytes, 3};
   Element keyToMove{key_bytes, 3};
   char value_bytes[] = "value";
@@ -34,7 +34,7 @@ TEST_CASE("LRUCache: Put with Key Move & Get Test", "[LRUTest]") {
 
 TEST_CASE("LRUCache: Get & Put Overwrite Test", "[LRUTest]") {
   LRUTreeCache memTable(1000);
-  alignas(64) char key_bytes[32] = "key";
+  alignas(64) char key_bytes[64] = "key";
   ElementView key{key_bytes, 3};
 
   char value_bytes[] = "value";
@@ -100,7 +100,7 @@ TEST_CASE("RBTreeMemoryTable: Put & Get with user-provided buffer") {
 
 TEST_CASE("LRUCache: Put, Delete & Get Test", "[LRUTest]") {
   LRUTreeCache memTable(1000);
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[64] = "key";
   ElementView key{key_bytes, 3};
   char value_bytes[] = "value";
   Element val_expected{value_bytes, 5};
@@ -117,7 +117,7 @@ TEST_CASE("LRUCache: Old Elements Get Removed Test", "[LRUTest]") {
 
   CHECK(memTable.size() == 0);
 
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[64] = "key";
   ElementView key{key_bytes, 3};
   char value_bytes[] = "value";
   Element val_expected{value_bytes, 5};
@@ -128,7 +128,7 @@ TEST_CASE("LRUCache: Old Elements Get Removed Test", "[LRUTest]") {
   CHECK(res.has_value());
   CHECK(val_expected == (**res));
 
-  char another_key_bytes[] = "another_key";
+  alignas(PAPERLESS::kStride) char another_key_bytes[64] = "another_key";
   ElementView another_key{another_key_bytes, 11};
   char another_value_bytes[] = "another_value";
   Element another_value_expected{another_value_bytes, 13};
@@ -150,7 +150,7 @@ TEST_CASE("LRUCache: Size Test", "[LRUTest]") {
 
   CHECK(memTable.size() == 0);
 
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[64] = "key";
   ElementView key{key_bytes, 3};
   char value_bytes[] = "value";
   Element val_expected{value_bytes, 5};
@@ -165,7 +165,7 @@ TEST_CASE("LRUCache: Size Test", "[LRUTest]") {
   memTable.put(key, 0, Element::copyElementContent(val_overwrite_expected));
   CHECK(memTable.size() == key.Length() + val_overwrite_expected.Length() );
 
-  char another_key_bytes[] = "another_key";
+  alignas(PAPERLESS::kStride) char another_key_bytes[] = "another_key";
   ElementView another_key{another_key_bytes, 11};
   char another_value_bytes[] = "another_value";
   Element another_value_expected{another_value_bytes, 13};

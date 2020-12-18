@@ -13,7 +13,7 @@ TEST_CASE("Example Test Case") {
 
 
 TEST_CASE("ElementView Constructor Copys Data") {
-  char bytes[] = "ThisIsATestString";
+  alignas(PAPERLESS::kStride) char bytes[64] = "ThisIsATestString";
   size_t len = 17;
   Element e(bytes, len);
   CHECK(e.Length() == len);
@@ -24,7 +24,7 @@ TEST_CASE("ElementView Constructor Copys Data") {
 }
 
 TEST_CASE("Construct ElementView") {
-  char bytes[] = "ThisIsATestString";
+  alignas(PAPERLESS::kStride) char bytes[64] = "ThisIsATestString";
   size_t len = 17;
   ElementView e(bytes, len);
   CHECK(e.Length() == len);
@@ -32,8 +32,8 @@ TEST_CASE("Construct ElementView") {
 }
 
 TEST_CASE("Compare Element and ElementView") {
-  char bytes[] = "ThisIsATestString";
-  char bytes1[] = "ThisIsATestStrinh";
+  alignas(PAPERLESS::kStride) char bytes[64] = "ThisIsATestString";
+  alignas(PAPERLESS::kStride) char bytes1[64] = "ThisIsATestStrinh";
   size_t len = 17;
   ElementView e(bytes, len);
   Element eo(bytes, len);
