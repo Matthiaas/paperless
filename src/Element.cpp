@@ -33,7 +33,7 @@ uint64_t first_zero(uint64_t input) {
 bool operator<(const ElementView &lhs, const ElementView &rhs) {
 #ifdef VECTORIZE
   size_t len = PAPERLESS::roundToStrideLength(std::min(lhs.len_, rhs.len_));
-  for (size_t index = 0; index < len; index += PAPERLESS::kStride) {
+  for (size_t index = 0; index < len; index += 32 ) { // PAPERLESS::kStride) {
     const __m256i pa_l = _mm256_load_si256(reinterpret_cast<const __m256i *>(lhs.Value() + index));
     const __m256i pa_r = _mm256_load_si256(reinterpret_cast<const __m256i *>(rhs.Value() + index));
     const __m256i vcmp = _mm256_cmpeq_epi8(pa_l, pa_r);

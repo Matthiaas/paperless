@@ -4,7 +4,7 @@
 
 TEST_CASE("RBTreeMemoryTable: Put with View & Get Test") {
   RBTreeMemoryTable memTable;
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[PAPERLESS::kStride] = "key";
   ElementView n_key{key_bytes, 3};
   char value_bytes[] = "value";
   Element val_expected{value_bytes, 5};
@@ -19,7 +19,7 @@ TEST_CASE("RBTreeMemoryTable: Put with View & Get Test") {
 
 TEST_CASE("RBTreeMemoryTable: Put with Key Move & Get Test") {
   RBTreeMemoryTable memTable;
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[PAPERLESS::kStride] = "key";
   ElementView key{key_bytes, 3};
   Element keyToMove{key_bytes, 3};
   char value_bytes[] = "value";
@@ -33,7 +33,7 @@ TEST_CASE("RBTreeMemoryTable: Put with Key Move & Get Test") {
 
 TEST_CASE("RBTreeMemoryTable: Get & Put Overwrite Test") {
   RBTreeMemoryTable memTable;
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[PAPERLESS::kStride] = "key";
   ElementView key{key_bytes, 3};
 
   char value_bytes[] = "value";
@@ -57,7 +57,7 @@ TEST_CASE("RBTreeMemoryTable: Get & Put Overwrite Test") {
 
 TEST_CASE("RBTreeMemoryTable: Put & Get with user-provided buffer") {
   RBTreeMemoryTable memTable;
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[PAPERLESS::kStride] = "key";
   ElementView key{key_bytes, 3};
   char value_bytes[] = "value";
   size_t value_len = 5;
@@ -86,10 +86,11 @@ TEST_CASE("RBTreeMemoryTable: Put & Get with user-provided buffer") {
   }
 
   SECTION("not found") {
+    alignas(PAPERLESS::kStride) char nonexistent[PAPERLESS::kStride] = "nonexistent";
     size_t buffer_len = 3;
     char* buffer[buffer_len];
     const auto result = memTable.get(
-        {"nonexistent", 11}, reinterpret_cast<char*>(buffer), buffer_len);
+        {nonexistent, 11}, reinterpret_cast<char*>(buffer), buffer_len);
     CHECK(result.first == QueryStatus::NOT_FOUND);
     CHECK(result.second == 0);
   }
@@ -97,7 +98,7 @@ TEST_CASE("RBTreeMemoryTable: Put & Get with user-provided buffer") {
 
 TEST_CASE("RBTreeMemoryTable: Put, Delete & Get Test") {
   RBTreeMemoryTable memTable;
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[PAPERLESS::kStride] = "key";
   ElementView key{key_bytes, 3};
   char value_bytes[] = "value";
   Element val_expected{value_bytes, 5};
@@ -114,7 +115,7 @@ TEST_CASE("RBTreeMemoryTable: Size Test") {
 
   CHECK(memTable.ByteSize() == 0);
 
-  char key_bytes[] = "key";
+  alignas(PAPERLESS::kStride) char key_bytes[PAPERLESS::kStride] = "key";
   ElementView key{key_bytes, 3};
   char value_bytes[] = "value";
   Element val_expected{value_bytes, 5};
@@ -130,7 +131,7 @@ TEST_CASE("RBTreeMemoryTable: Size Test") {
   memTable.put(key, std::move(val_overwrite));
   CHECK(memTable.ByteSize() == key.Length() + val_overwrite_expected.Length() + 1);
 
-  char another_key_bytes[] = "another_key";
+  alignas(PAPERLESS::kStride) char another_key_bytes[PAPERLESS::kStride] = "another_key";
   ElementView another_key{another_key_bytes, 11};
   char another_value_bytes[] = "another_value";
   Element another_value_expected{another_value_bytes, 13};
