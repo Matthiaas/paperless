@@ -11,15 +11,6 @@ Responder::Responder(PaperlessKV* kv, MPI_Comm comm,
 
 Responder::~Responder() { free(big_buffer_); }
 
-
-size_t getMsgLenA(int src, int tag, MPI_Comm comm) {
-  MPI_Status status;
-  MPI_Probe(src, tag, comm, &status);
-  int count;
-  MPI_Get_count(&status, MPI_CHAR, &count);
-  return count;
-}
-
 void Responder::SendQueryResult(const std::pair<QueryStatus, size_t>& val,
                                 int target, int tag) {
   Message m(Message::QUERY_RESULT);
@@ -56,15 +47,8 @@ void Responder::HandlePut(const Message& msg, int src) {
   if (!dispatch_data_in_chunks_) {
     Element key(msg.GetKeyLen());
     Tomblement value(msg.GetValueLen() - 1);
-
-    if(getMsgLenA(src, msg.GetTag(), comm_) != msg.GetKeyLen()) {
-      std::cerr << "This is an error1" << std::endl << std::flush;
-    }
     MPI_Recv(key.Value(), msg.GetKeyLen(), MPI_CHAR, src, msg.GetTag(), comm_,
              MPI_STATUS_IGNORE);
-    if(getMsgLenA(src, msg.GetTag(), comm_) != msg.GetValueLen()) {
-      std::cerr << "This is an error2" << std::endl << std::flush;
-    }
     MPI_Recv(value.GetBuffer(), msg.GetValueLen(), MPI_CHAR, src, msg.GetTag(),
              comm_, MPI_STATUS_IGNORE);
     Owner o = msg.GetHash() % rank_size_;
@@ -73,9 +57,6 @@ void Responder::HandlePut(const Message& msg, int src) {
 }
 
 void Responder::HandleGet(const Message& msg, int src) {
-  if(getMsgLenA(src, msg.GetTag(), comm_) != msg.GetKeyLen()) {
-    std::cerr << "This is an error3" << std::endl << std::flush;
-  }
   MPI_Recv(big_buffer_, msg.GetKeyLen(), MPI_CHAR, src, msg.GetTag(), comm_,
            MPI_STATUS_IGNORE);
   std::pair<QueryStatus, size_t> res =

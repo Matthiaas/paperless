@@ -14,8 +14,8 @@ RemoteOperator::RemoteOperator(MPI_Comm comm, bool dispatch_data_in_chunks)
   MPI_Comm_rank(comm_, &rank_);
   MPI_Comm_size(comm_, &rank_size_);
 
-  min_get_key = (rank_)*10000 + 1;
-  max_get_key = (rank_ + 1) * 10000;
+  min_get_key = (rank_ + rank_size_ )*1000 + 1;
+  max_get_key = ((rank_ + rank_size_) + 1) * 1000;
 }
 
 Message RemoteOperator::InitGet(const ElementView &key, Hash hash) {
@@ -50,7 +50,7 @@ Message RemoteOperator::InitGetAsync(const ElementView &key, Hash hash) {
 
 QueryResult RemoteOperator::Get(const ElementView &key, Hash hash) {
   Owner o = hash % rank_size_;
-  Message m2 = InitGet(key, hash);
+  Message m2 = InitGetAsync(key, hash);
   if (m2.GetQueryStatus() == QueryStatus::FOUND) {
     Element res(m2.GetValueLen());
     MPI_Recv(res.Value(), res.Length(), MPI_CHAR, o, m2.GetTag(), comm_,
@@ -80,35 +80,20 @@ FutureQueryInfo RemoteOperator::IGet(const ElementView &key,
   return res;
 }
 
-
-size_t getMsgLen(int src, int tag, MPI_Comm comm) {
-  MPI_Status status;
-  MPI_Probe(src, tag, comm, &status);
-  int count;
-  MPI_Get_count(&status, MPI_CHAR, &count);
-  return count;
-}
-
 std::pair<QueryStatus, size_t> RemoteOperator::Get(const ElementView &key,
                                                    const ElementView &v_buff,
                                                    Hash hash) {
 
   Owner o = hash % rank_size_;
-  Message m2 = InitGet(key, hash);
+  Message m2 = InitGetAsync(key, hash);
   if (m2.GetValueLen() > v_buff.Length() &&
       m2.GetQueryStatus() == QueryStatus::FOUND) {
     // TODO: Discard MPI message instead:
     Element res(m2.GetValueLen());
-    if(getMsgLen(o, m2.GetTag(), comm_) != res.Length()) {
-      std::cerr << "This is an error" << std::endl << std::flush;
-    }
     MPI_Recv(res.Value(), res.Length(), MPI_CHAR, o, m2.GetTag(), comm_,
              MPI_STATUS_IGNORE);
     return {QueryStatus::BUFFER_TOO_SMALL, m2.GetValueLen()};
   } else if (m2.GetQueryStatus() == QueryStatus::FOUND) {
-    if(getMsgLen(o, m2.GetTag(), comm_) !=  m2.GetValueLen()) {
-      std::cerr << "This is an error" << std::endl << std::flush;
-    }
     MPI_Recv(v_buff.Value(), m2.GetValueLen(), MPI_CHAR, o, m2.GetTag(), comm_,
              MPI_STATUS_IGNORE);
     return {QueryStatus::FOUND, m2.GetValueLen()};
@@ -140,7 +125,7 @@ void RemoteOperator::InitSync() {
   }
 }
 int RemoteOperator::getTag() {
-  return min_get_key + (cur_get_key++ % max_get_key);
+  return min_get_key + (cur_get_key++ % (max_get_key - min_get_key));
 }
 void RemoteOperator::Kill() {
   Message m(Message::KILL);
