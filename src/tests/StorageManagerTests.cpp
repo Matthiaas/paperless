@@ -1,5 +1,6 @@
 
 #include <catch.hpp>
+
 #include "../StorageManager.h"
 
 #define ELEMENTVIEW(e) ElementView{e, sizeof(e)}
@@ -47,19 +48,19 @@ TEST_CASE("general StorageManager test") {
 }
 
 TEST_CASE("Check with on-disk bloomfilter") {
-//  std::string dir = "/tmp/StorageManagerTest/";
-//  StorageManager storage_manager {dir, 1};
-//
-//  RBTreeMemoryTable mtable1{};
-//  mtable1.put(ELEMENTVIEW(key1), TOMBLEMENT(value1));
-//  mtable1.put(ELEMENTVIEW(key2), TOMBLEMENT(value2));
-//
-//  RBTreeMemoryTable mtable2{};
-//  mtable2.put(ELEMENTVIEW(key2), TOMBLEMENT(value2));
-//
-//  storage_manager.flushToDisk(mtable1);
-//
-//  REQUIRE(storage_manager.readFromDisk(ELEMENTVIEW(key1)).Value() == ELEMENTVIEW(value1));
-//
-//  storage_manager.deleteDisk();
+  std::string dir = "/tmp/StorageManagerTest/";
+  StorageManager storage_manager {dir, 1};
+
+  RBTreeMemoryTable mtable1{};
+  mtable1.put(ELEMENTVIEW(key1), TOMBLEMENT(value1));
+  mtable1.put(ELEMENTVIEW(key2), TOMBLEMENT(value2));
+
+  RBTreeMemoryTable mtable2{};
+  mtable2.put(ELEMENTVIEW(key2), TOMBLEMENT(value2));
+
+  storage_manager.flushToDisk(mtable1);
+
+  REQUIRE(storage_manager.readFromDisk(ELEMENTVIEW(key1)).Value() == ELEMENTVIEW(value1));
+
+  storage_manager.deleteDisk();
 }
