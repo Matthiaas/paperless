@@ -13,9 +13,9 @@
 #     name: python3
 # ---
 
+# + [markdown] pycharm={}
 # # Paperless and Papyrus plots
 #
-# Damn this file is a mess
 
 # + id="zeWCU8XvnRBH" pycharm={"is_executing": false}
 import warnings
@@ -36,8 +36,7 @@ os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/wfloris/github/paperless/analytics"
 data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data"
 
 
-# -
-
+# + [markdown] pycharm={}
 # ## FileOperations
 
 # + id="OFvbZi__9c_j" pycharm={"is_executing": false}
@@ -86,7 +85,7 @@ def PlotOperationTimingOverTime(experiment):
             legend1 = ax.legend(*scatter.legend_elements(),
                                 loc="upper right", title="Key owner")
             ax.add_artist(legend1)
-            plt.title(f"Put rank {i}/{rank}")
+            plt.title(f"Put rank {i+1}/{rank}")
             plt.ylabel("time")
             plt.xlabel("nth operation")
 
@@ -98,7 +97,7 @@ def PlotOperationTimingOverTime(experiment):
             ax.add_artist(legend1)
             plt.ylabel("time")
             plt.xlabel("nth operation")
-            plt.title(f"Get rank {i}/{rank}")
+            plt.title(f"Get rank {i+1}/{rank}")
         plt.show()
 
 
@@ -134,7 +133,7 @@ def GetRemoteDataPoints(times, lables, local_rank):
 
 
 def OpTimeForRunPerRank(experiment_name, run_idx, plot_data):
-    
+
     def dataPath(experiment_name, ratio, rank_size, run_idx, db):
         return f"{data_path}/{experiment_name}/{db}/ratio{ratio}/ranks{rank_size}/run{run_idx}"
 
@@ -179,7 +178,7 @@ def OpTimeForRunPerRank(experiment_name, run_idx, plot_data):
                           
     return plot_data
 
-    
+
 
 
 
@@ -212,7 +211,7 @@ def OpTimeForRunPerSize(experiment_name, rank_size, key_size, plot_data, keysize
             k_size = value_size
         print(value_size)
         for i in range(rank_size):
-            
+
             p = f"{data_path}/{experiment_name}/{k_size}ksize{value_size}vsize/ranks{rank_size}"
             getPath = f"{p}/get{i}.txt"
             getTimes, getLabels = readOpTimes(getPath)
@@ -225,26 +224,26 @@ def OpTimeForRunPerSize(experiment_name, rank_size, key_size, plot_data, keysize
             remotePuts = GetRemoteDataPoints(putTimes, putLables, i)
             remoteGets = GetRemoteDataPoints(getTimes, getLabels, i)
 
-            plot_data = plot_data.append(pd.DataFrame({'optime': localPuts, 
+            plot_data = plot_data.append(pd.DataFrame({'optime': localPuts,
                                       'optype' : np.full(len(localPuts), "localPut"),
                                       'value_size': np.full(len(localPuts), value_size),
-                                      'rank_size':np.full(len(localPuts), rank_size), 
+                                      'rank_size':np.full(len(localPuts), rank_size),
                                       'db':np.full(len(localPuts), db)}))
-            plot_data = plot_data.append(pd.DataFrame({'optime': localGets, 
+            plot_data = plot_data.append(pd.DataFrame({'optime': localGets,
                                       'optype' : np.full(len(localGets), "localGet"),
                                       'value_size': np.full(len(localGets), value_size),
-                                      'rank_size':np.full(len(localGets), rank_size), 
+                                      'rank_size':np.full(len(localGets), rank_size),
                                       'db':np.full(len(localGets), db)}))
 
-            plot_data = plot_data.append(pd.DataFrame({'optime': remotePuts, 
+            plot_data = plot_data.append(pd.DataFrame({'optime': remotePuts,
                                       'optype' : np.full(len(remotePuts), "remotePut"),
                                       'value_size': np.full(len(remotePuts), value_size),
-                                      'rank_size':np.full(len(remotePuts), rank_size), 
+                                      'rank_size':np.full(len(remotePuts), rank_size),
                                       'db':np.full(len(remotePuts), db)}))
-            plot_data =  plot_data.append(pd.DataFrame({'optime': remoteGets, 
+            plot_data =  plot_data.append(pd.DataFrame({'optime': remoteGets,
                                       'optype' : np.full(len(remoteGets), "remoteGet"),
                                       'value_size': np.full(len(remoteGets), value_size),
-                                      'rank_size':np.full(len(remoteGets), rank_size), 
+                                      'rank_size':np.full(len(remoteGets), rank_size),
                                       'db':np.full(len(remoteGets), db)}))
 
     return plot_data
@@ -271,9 +270,9 @@ def PlotSingleOperionTimesPerSize(plot_data, rank_size, lable):
         plt.ylabel('Operation time in nanoseconds')
         plt.ylim((100,30000))
         plt.show()
-        
+
 PlotSingleOperionTimesPerSize(plot_data_1_core_per_size, 16, 'Size of value im Bytes')
-        
+
 PlotSingleOperionTimesPerSize(plot_data_1_core_per_size, 16, 'Size of value=key im Bytes')
 
 
@@ -340,18 +339,24 @@ def throughputForRun(experiment_name, ratio, rank_size, run_idx, db):
         allUpdateTimes.append(updateTimes)
     opTimes = np.concatenate(allGetTimes + allUpdateTimes, axis=0)
     
-    opThroughputLikeInPaper = sum(map(calculateThroughput, allGetTimes)) + sum(map(calculateThroughput, allUpdateTimes))
-    opThroughput = calculateThroughput(opTimes)
-    return opThroughput, opThroughputLikeInPaper
+    opThroughputTotal = sum(map(calculateThroughput, allGetTimes)) + sum(map(calculateThroughput, allUpdateTimes))
+    opThroughputPerRank = calculateThroughput(opTimes)
+    return opThroughputPerRank, opThroughputTotal
 
 def readThroughputData(experiment_name):    
-    throughputs = pd.DataFrame(columns=['throughput', 'rank_size', 'op_ratio', 'db'])
+    throughputs = pd.DataFrame(columns=['throughput', 'throughput_per_rank', 'rank_size', 'op_ratio', 'KV store'])
     for k, ratio in enumerate(ratios):
         for j, rank_size in enumerate(rank_sizes):
             for i in range(1, n_runs + 1):
                 for db in ('paperless', 'papyrus'):
-                    val, _ = throughputForRun(experiment_name, ratio=ratio, rank_size=rank_size, run_idx=i, db=db)
-                    throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'op_ratio':ratio, 'db':db}, ignore_index=True)
+                    valPerRank, valTotal = throughputForRun(experiment_name, ratio=ratio, rank_size=rank_size, run_idx=i, db=db)
+                    throughputs = throughputs.append({
+                        'throughput': valTotal, 
+                        'throughput_per_rank': valPerRank, 
+                        'rank_size': rank_size, 
+                        'op_ratio': ratio, 
+                        'KV store': db
+                    }, ignore_index=True)
     return throughputs
 # The throughput value is (# of ops)/(sum of per-op timings).
 
@@ -359,19 +364,25 @@ def readThroughputData(experiment_name):
 
 # + pycharm={"metadata": false, "name": "#%%\n", "is_executing": false}
 
-def plotThroughputs(throughputs):
+def plotThroughputs(throughputs, name, per_rank=False):
     for k, ratio in enumerate(ratios):
         select = throughputs['op_ratio'] == ratio
-        plt.title(f'Performance with {100-ratio}% gets and {ratio}% updates')
-        sns.boxplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
+        val_column = 'throughput_per_rank' if per_rank else 'throughput'
+        if per_rank:
+            title = f'Micro-averaged throughput (per rank) with {100-ratio}% gets and {ratio}% updates'
+        else:
+            title = f'Total throughput with {100-ratio}% gets and {ratio}% updates'
+        plt.title(title)
+        sns.boxplot(data=throughputs[select], x='rank_size', y=val_column, hue='KV store')
         # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
         plt.yscale('log')
         plt.xlabel('Number of ranks')
-        plt.ylabel('KPRS (kilo requests per second')
+        plt.ylabel('KPRS (kilo requests per second)')
+        plt.savefig(f"./plots/{name}_{ratio}_{'per_rank' if per_rank else 'total'}.png", dpi=600)
         plt.show()
 
-# + pycharm={"metadata": false, "name": "#%%#%%\n", "is_executing": false}
 
+# + pycharm={"is_executing": false, "metadata": false, "name": "#%%#%%\n"}
 
 single_core_data = readThroughputData('final/artificial_workload')
 two_core_data = readThroughputData('final/artificial_workload_2core')
@@ -391,6 +402,7 @@ import os
 data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data"
 NANO_TO_SEC = 1000000000
 # % of ops are updates
+
 
 # I put it into class to not collide with Julia's code.
 class RelSeqBench:
@@ -455,7 +467,7 @@ def plotCompare(cycles):
     plt.title(f'Cycles < operator')
     sns.boxplot(data=cycles, x='key_len', y='cycles', hue='bench_name', showfliers=False)
     # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
-    
+
     plt.xlabel('key_length')
     plt.ylabel('cycles')
     plt.show()
