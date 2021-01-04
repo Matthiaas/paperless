@@ -4,10 +4,10 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <tuple>
 
 #include "../Element.h"
 #include "helper.h"
-#include "timer.h"
 
 #define NUM_COMPARES 100000
 
@@ -16,27 +16,6 @@ Element generateRandomElement(size_t length) {
   rand_str(length, e.Value());
   return e;
 }
-
-//#pragma GCC push_options
-////#pragma GCC optimize ("O0")
-// std::vector<std::tuple<size_t, bool, uint64_t>> measure(
-//    const std::vector<std::tuple<size_t, bool, ElementView, ElementView>>
-//        &pairs) {
-//  std::vector<std::tuple<size_t, bool, uint64_t>> measurements{};
-//  bool thingy = true;
-//  for (auto &[len, equal, lhs, rhs] : pairs) {
-//    uint64_t start = __builtin_ia32_rdtsc();
-//    _mm_lfence();
-//    _mm_mfence();
-//    bool res = lhs < rhs;
-//    _mm_lfence();
-//    _mm_mfence();
-//    measurements.emplace_back(len, equal, __builtin_ia32_rdtsc() - start);
-//    thingy = thingy != res;
-//  }
-//  return measurements;
-//}
-//#pragma GCC pop_options
 
 int main() {
 #ifdef VECTORIZE

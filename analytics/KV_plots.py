@@ -364,7 +364,7 @@ vector_cycles = pd.read_csv(v_path)
 cycles = pd.concat([memcmp_cycles, vector_cycles])
 
 def plotCompare(cycles):
-    plt.title(f'Cycles < operator')
+    plt.title(f'Cycles operator< (avx2 vs memcmp)')
     sns.boxplot(data=cycles, x='key_len', y='cycles', hue='bench_name', showfliers=False)
     # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
     
