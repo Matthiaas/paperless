@@ -3,7 +3,7 @@
 #include "../LRUHashCache.h"
 
 TEST_CASE("LRUHashCache: Put with View & Get Test", "[LRUHashTest]") {
-  LRUHashCache memTable(1000);
+  LRUHashCache memTable(1000,3);
   alignas(PAPERLESS::kStride) char key_bytes[] = "key";
   ElementView n_key{key_bytes, 3};
   char value_bytes[] = "value";
@@ -19,7 +19,7 @@ TEST_CASE("LRUHashCache: Put with View & Get Test", "[LRUHashTest]") {
 
 
 TEST_CASE("LRUHashCache: Put with Key Move & Get Test", "[LRUHashTest]") {
-  LRUHashCache memTable(1000);
+  LRUHashCache memTable(1000,3);
   alignas(PAPERLESS::kStride) char key_bytes[64] = "key";
   ElementView key{key_bytes, 3};
   Element keyToMove{key_bytes, 3};
@@ -33,7 +33,7 @@ TEST_CASE("LRUHashCache: Put with Key Move & Get Test", "[LRUHashTest]") {
 }
 
 TEST_CASE("LRUHashCache: Get & Put Overwrite Test", "[LRUHashTest]") {
-  LRUHashCache memTable(1000);
+  LRUHashCache memTable(1000,3);
   alignas(PAPERLESS::kStride) char key_bytes[64] = "key";
   ElementView key{key_bytes, 3};
 
@@ -99,7 +99,7 @@ TEST_CASE("RBTreeMemoryTable: Put & Get with user-provided buffer") {
 */
 
 TEST_CASE("LRUHashCache: Put, Delete & Get Test", "[LRUHashTest]") {
-  LRUHashCache memTable(1000);
+  LRUHashCache memTable(1000,3);
   alignas(PAPERLESS::kStride) char key_bytes[64] = "key";
   ElementView key{key_bytes, 3};
   char value_bytes[] = "value";
@@ -113,7 +113,7 @@ TEST_CASE("LRUHashCache: Put, Delete & Get Test", "[LRUHashTest]") {
 }
 
 TEST_CASE("LRUHashCache: Old Elements Get Removed Test", "[LRUHashTest]") {
-  LRUHashCache memTable(25);
+  LRUHashCache memTable(25,3);
 
   CHECK(memTable.size() == 0);
 
@@ -146,7 +146,7 @@ TEST_CASE("LRUHashCache: Old Elements Get Removed Test", "[LRUHashTest]") {
 
 
 TEST_CASE("LRUHashCache: Size Test", "[LRUHashTest]") {
-  LRUHashCache memTable(1000);
+  LRUHashCache memTable(1000,3);
 
   CHECK(memTable.size() == 0);
 

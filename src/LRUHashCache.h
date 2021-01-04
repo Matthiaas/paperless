@@ -16,7 +16,7 @@
 
 class LRUHashCache {
  public:
-  explicit LRUHashCache(size_t max_size);
+  LRUHashCache(size_t max_size, size_t avg_key_size);
   void put(const ElementView& key, Hash h, const QueryResult& value);
 
   void put(Element&& key, Hash h, const QueryResult& value);

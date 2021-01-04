@@ -8,6 +8,7 @@ std::map<std::string, std::function<Options(Options*, size_t)>> size_t_options =
     {"MAX_LOCAL_CACHE_SIZE", &Options::MaxLocalCacheSize},
     {"MAX_REMOTE_CACHE_SIZE", &Options::MaxRemoteCacheSize},
     {"DISPATCH_IN_CHUNKS", &Options::DispatchInChunks},
+    {"AVG_KEY_SIZE", &Options::AvgKeySize},
 };
 
 std::map<std::string, std::function<Options(Options*, std::string)>> string_options = {

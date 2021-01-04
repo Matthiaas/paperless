@@ -43,8 +43,13 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
       hash_function_(hf),
       local_(1, options.max_local_memtable_size),
       remote_(1, options.max_remote_memtable_size),
+#ifdef  PAPERLESS_USE_HASH_CACHE
+      local_cache_(options.max_local_cache_size, options.avg_key_size),
+      remote_cache_(options.max_remote_cache_size, options.avg_key_size),
+#else
       local_cache_(options.max_local_cache_size),
       remote_cache_(options.max_remote_cache_size),
+#endif
       storage_manager_(options.strorage_location +
                        std::to_string(GetRank(comm))),
       shutdown_(false),

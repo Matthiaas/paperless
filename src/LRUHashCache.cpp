@@ -2,8 +2,10 @@
 #include <mpi.h>
 #include <iostream>
 
-LRUHashCache::LRUHashCache(size_t max_size) :
-    max_byte_size_(max_size), cur_byte_size_(0) {}
+LRUHashCache::LRUHashCache(size_t max_size, size_t avg_key_size) :
+    container_((max_size/avg_key_size) * 1.3 ), max_byte_size_(max_size), cur_byte_size_(0) {
+  container_.max_load_factor(0.8);
+}
 
 void LRUHashCache::put(const ElementView& key, Hash h, const QueryResult& value) {
   put(Element::copyElementContent(key), h, value);

@@ -44,6 +44,7 @@ class PaperlessKV {
     size_t max_remote_memtable_size = 1000000;
     size_t max_local_cache_size = 1000000;
     size_t max_remote_cache_size = 1000000;
+    size_t avg_key_size = 32;
     std::string strorage_location;
 
     Consistency_t consistency = RELAXED;
@@ -89,6 +90,12 @@ class PaperlessKV {
     Options StorageLocation(std::string sl) {
       Options res = *this;
       res.strorage_location = sl;
+      return res;
+    }
+
+    Options AvgKeySize(size_t s) {
+      Options res = *this;
+      res.avg_key_size = s;
       return res;
     }
   };
