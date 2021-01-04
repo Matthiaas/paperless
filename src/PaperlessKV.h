@@ -172,11 +172,17 @@ class PaperlessKV {
   RBTreeMemoryManager local_;
   RBTreeMemoryManager remote_;
 
+#ifdef  PAPERLESS_USE_HASH_CACHE
+  LRUHashCache local_cache_;
+  LRUHashCache remote_cache_;
+#else
   LRUTreeCache local_cache_;
   LRUTreeCache remote_cache_;
+#endif
 
-  //LRUHashCache local_cache_;
-  //LRUHashCache remote_cache_;
+
+
+
 
   StorageManager storage_manager_;
 

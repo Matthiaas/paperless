@@ -113,6 +113,12 @@ int main(int argc, char** argv)  {
     put_file << "vallen: " << vallen << std::endl;
     put_file << "count: " << count << std::endl;
     put_file << "update_ratio: " << update_ratio << std::endl;
+    put_file << "cache_type: ";
+#ifdef PAPERLESS_USE_HASH_CACHE
+    put_file << "hash" << std::endl;
+#else
+    put_file << "tree" << std::endl;
+#endif
     put_file.close();
   }
 

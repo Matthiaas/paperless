@@ -152,6 +152,11 @@ add_executable(thegreatbenchmark_paperless
         ${THE_GREAT_BECHMARK_SOURCES}
         ${LIB_SOURCES})
 
+add_executable(thegreatbenchmark_paperless_hash_cache
+        ${BENCHMARK_SOURCES}
+        ${THE_GREAT_BECHMARK_SOURCES}
+        ${LIB_SOURCES})
+
 add_executable(thegreatbenchmark_papyrus
         ${BENCHMARK_SOURCES}
         ${THE_GREAT_BECHMARK_SOURCES}
@@ -182,6 +187,8 @@ target_link_libraries(main PUBLIC paperless mtbl)
 
 target_link_libraries(thegreatbenchmark_paperless mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(thegreatbenchmark_paperless PRIVATE PAPERLESS_BENCHMARK)
+target_link_libraries(thegreatbenchmark_paperless_hash_cache mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_compile_definitions(thegreatbenchmark_paperless_hash_cache PRIVATE PAPERLESS_BENCHMARK PAPERLESS_USE_HASH_CACHE)
 target_link_libraries(thegreatbenchmark_papyrus mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(thegreatbenchmark_papyrus PRIVATE PAPYRUS_BENCHMARK)
 
