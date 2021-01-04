@@ -67,14 +67,14 @@ PaperlessKV::~PaperlessKV() {
 }
 
 void PaperlessKV::Shutdown() {
-  Fence();
   shutdown_ = true;
+  Fence();
+  // Send Poisonpills to own respond threads:
   local_.Shutdown();
   remote_.Shutdown();
-  // Send Poisonpills to own respond threads:
-  remoteOperator_.Kill();
   compactor_.join();
   dispatcher_.join();
+  remoteOperator_.Kill();
   responder_task.join();
 }
 
