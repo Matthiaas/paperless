@@ -1,0 +1,5 @@
+rank_count: 20
+keylen: 16
+vallen: 8
+count: 10000
+update_ratio: 0

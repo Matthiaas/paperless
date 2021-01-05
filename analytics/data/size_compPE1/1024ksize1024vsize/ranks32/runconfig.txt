@@ -1,0 +1,5 @@
+rank_count: 32
+keylen: 1024
+vallen: 1024
+count: 4000
+update_ratio: 0

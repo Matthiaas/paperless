@@ -1,0 +1,6 @@
+rank_count: 4
+keylen: 32
+vallen: 32
+count: 1000000
+update_ratio: 0
+cache_type: tree

@@ -1,0 +1,5 @@
+rank_count: 8
+keylen: 4096
+vallen: 4096
+count: 4000
+update_ratio: 0
