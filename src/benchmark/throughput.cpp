@@ -43,17 +43,18 @@ void BenchmarkRandomData() {
   }
 
   if (update_ratio == 0) {
-    //KV::SetMode(PaperlessKV::RELAXED, PaperlessKV::READONLY);
+    KV::SetMode(PaperlessKV::RELAXED, PaperlessKV::READONLY);
   } else {
-    //KV::Fence();
+    KV::Fence();
   }
-  KV::Fence();
+
 
   auto puts_phase_end = std::chrono::high_resolution_clock::now();
   put_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
       puts_phase_end-puts_phase_start).count();
 
-  KV::SetQueryAmount(count);
+  int batch_size = 1000;
+  KV::SetQueryAmount(batch_size);
 
   auto gets_phase_start = std::chrono::high_resolution_clock::now();
   for (size_t i = 0; i < count; i++) {
@@ -64,6 +65,11 @@ void BenchmarkRandomData() {
     } else {
       KV::Get(key, keylen, get_val, get_vallen);
       cnt_get++;
+    }
+
+    if(count % 1000 == 0)  {
+      KV::SetQueryAmount(batch_size);
+      KV::WaitForGetComplete();
     }
   }
 

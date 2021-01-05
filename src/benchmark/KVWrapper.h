@@ -115,6 +115,7 @@ namespace KV {
   }
 
   inline void SetQueryAmount(size_t l) {
+    futures.clear();
     futures.reserve(l);
   }
 
@@ -137,7 +138,8 @@ namespace KV {
 
   inline void Get(const char* key, size_t key_len,
                   char* value, size_t value_len) {
-    futures.push_back(paper->IGet(key, key_len, value, value_len));
+    //futures.push_back();
+    paper->IGet(key, key_len, value, value_len).Get();
   }
 
   inline void WaitForGetComplete() {
