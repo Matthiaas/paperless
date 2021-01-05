@@ -110,6 +110,11 @@ set(THE_GREAT_BECHMARK_SOURCES
         src/benchmark/KVWrapper.h
         src/benchmark/theGreatBenchmark.cpp)
 
+set(THROUGHPUT_BECHMARK_SOURCES
+        src/benchmark/KVWrapper.h
+        src/benchmark/throughput.cpp)
+
+
 set(WOKRLOAD_BECHMARK_SOURCES
         src/benchmark/workload.cpp)
 
@@ -162,6 +167,21 @@ add_executable(thegreatbenchmark_papyrus
         ${THE_GREAT_BECHMARK_SOURCES}
         ${LIB_SOURCES})
 
+add_executable(throughput_Ipaperless
+        ${BENCHMARK_SOURCES}
+        ${THROUGHPUT_BECHMARK_SOURCES}
+        ${LIB_SOURCES})
+
+add_executable(throughput_paperless
+        ${BENCHMARK_SOURCES}
+        ${THROUGHPUT_BECHMARK_SOURCES}
+        ${LIB_SOURCES})
+
+add_executable(throughput_papyrus
+        ${BENCHMARK_SOURCES}
+        ${THROUGHPUT_BECHMARK_SOURCES}
+        ${LIB_SOURCES})
+
 add_executable(workload
         ${BENCHMARK_SOURCES}
         ${WOKRLOAD_BECHMARK_SOURCES}
@@ -191,6 +211,13 @@ target_link_libraries(thegreatbenchmark_paperless_hash_cache mtbl papyruskv smha
 target_compile_definitions(thegreatbenchmark_paperless_hash_cache PRIVATE PAPERLESS_BENCHMARK PAPERLESS_USE_HASH_CACHE)
 target_link_libraries(thegreatbenchmark_papyrus mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(thegreatbenchmark_papyrus PRIVATE PAPYRUS_BENCHMARK)
+
+target_link_libraries(throughput_Ipaperless mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_compile_definitions(throughput_Ipaperless PRIVATE I_PAPERLESS_BENCHMARK)
+target_link_libraries(throughput_paperless mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_compile_definitions(throughput_paperless PRIVATE PAPERLESS_BENCHMARK)
+target_link_libraries(throughput_papyrus mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_compile_definitions(throughput_papyrus PRIVATE PAPYRUS_BENCHMARK)
 
 target_link_libraries(cmp_vector mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(basic mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)

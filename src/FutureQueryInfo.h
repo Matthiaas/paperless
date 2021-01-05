@@ -60,14 +60,24 @@ class FutureQueryInfo {
     if(has_value_) {
       return true;
     } else {
-      MPI_Testall(4, requests_, &has_value_, MPI_STATUSES_IGNORE);
+      MPI_Testall(3, requests_, &has_value_, MPI_STATUSES_IGNORE);
+      if(has_value_ && msg_.GetQueryStatus() == QueryStatus::FOUND) {
+        MPI_Test(requests_ + 3, &has_value_, MPI_STATUSES_IGNORE);
+      } else {
+        MPI_Request_free(requests_+3);
+      }
       return has_value_;
     }
   }
 
   std::pair<QueryStatus, size_t> Get() {
     if(!has_value_) {
-      MPI_Waitall(4, requests_, MPI_STATUSES_IGNORE);
+      MPI_Waitall(3, requests_, MPI_STATUSES_IGNORE);
+      if(msg_.GetQueryStatus() == QueryStatus::FOUND) {
+        MPI_Wait(requests_+3, MPI_STATUSES_IGNORE);
+      }else {
+        MPI_Request_free(requests_+3);
+      }
       result_ = {static_cast<QueryStatus>(msg_.GetQueryStatus()),
                  msg_.GetValueLen()};
     }

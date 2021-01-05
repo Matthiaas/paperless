@@ -14,8 +14,8 @@ RemoteOperator::RemoteOperator(MPI_Comm comm, bool dispatch_data_in_chunks)
   MPI_Comm_rank(comm_, &rank_);
   MPI_Comm_size(comm_, &rank_size_);
 
-  min_get_key = (rank_ + rank_size_ )*1000 + 1;
-  max_get_key = ((rank_ + rank_size_) + 1) * 1000;
+  min_get_key = (rank_ + rank_size_ )*10000 + 1;
+  max_get_key = ((rank_ + rank_size_) + 1) * 10000;
 }
 
 Message RemoteOperator::InitGet(const ElementView &key, Hash hash) {

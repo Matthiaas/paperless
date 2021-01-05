@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <chrono>
 #include <new>
+#include <utility>
+#include <string>
 
 #include "../Common.h"
 #include "helper.h"
@@ -32,6 +34,8 @@ void generate_key_set() {
   }
 }
 
+
+
 #ifdef PAPERLESS_BENCHMARK
 
 #include "../PaperlessKV.h"
@@ -39,16 +43,79 @@ void generate_key_set() {
 #include <mpi.h>
 
 namespace KV {
+std::unique_ptr<PaperlessKV> paper;
+
+int found = 0;
+
+inline void WaitForGetComplete() {}
+inline void SetQueryAmount(size_t l) {}
+
+inline void Init(int argc, char** argv, std::string name) {
+  int provided;
+  MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
+
+  auto options = ReadOptionsFromEnvVariables()
+      .Consistency(PaperlessKV::RELAXED)
+      .Mode(PaperlessKV::READANDWRITE);
+  paper = std::make_unique<PaperlessKV>(name, MPI_COMM_WORLD, 1, options);
+}
+
+inline void Fence() {
+  paper->Fence();
+}
+
+inline void Checkpoint() {
+  paper->FenceAndCheckPoint();
+}
+
+inline void SetMode(PaperlessKV::Consistency_t c, PaperlessKV::Mode_t  m) {
+  paper->FenceAndChangeOptions(c, m);
+}
+
+inline void Put(const char* key, size_t key_len,
+                const char* value, size_t value_len) {
+  paper->put(key, key_len, value, value_len);
+}
+
+inline void Get(const char* key, size_t key_len,
+                char* value, size_t value_len) {
+  found += paper->get(key, key_len, value, value_len).first == FOUND;
+}
+
+inline void Finalize() {
+  //std::cout << "found: " << found << std::endl;
+  paper->Shutdown();
+  MPI_Finalize();
+}
+
+inline int GetOwner(const char* key, size_t key_len) {
+  return paper->GetOwner(key, key_len);
+}
+}
+
+#elif defined I_PAPERLESS_BENCHMARK
+
+#include "../PaperlessKV.h"
+#include "OptionReader.h"
+#include <mpi.h>
+
+namespace KV {
   std::unique_ptr<PaperlessKV> paper;
+  std::vector<FutureQueryInfo> futures;
 
   inline void Init(int argc, char** argv, std::string name) {
     int provided;
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 
+
     auto options = ReadOptionsFromEnvVariables()
         .Consistency(PaperlessKV::RELAXED)
         .Mode(PaperlessKV::READANDWRITE);
     paper = std::make_unique<PaperlessKV>(name, MPI_COMM_WORLD, 1, options);
+  }
+
+  inline void SetQueryAmount(size_t l) {
+    futures.reserve(l);
   }
 
   inline void Fence() {
@@ -70,7 +137,13 @@ namespace KV {
 
   inline void Get(const char* key, size_t key_len,
                   char* value, size_t value_len) {
-    paper->get(key, key_len, value, value_len);
+    futures.push_back(paper->IGet(key, key_len, value, value_len));
+  }
+
+  inline void WaitForGetComplete() {
+    for(auto& f : futures) {
+      f.Get()
+    }
   }
 
   inline void Finalize() {
@@ -83,6 +156,7 @@ namespace KV {
   }
 }
 
+
 #elif defined PAPYRUS_BENCHMARK
 
 #include <mpi.h>
@@ -92,6 +166,9 @@ namespace KV {
 #include "../../papyrus/include/papyrus/mpi.h"
 
 namespace KV {
+  inline void WaitForGetComplete() {}
+  inline void SetQueryAmount(size_t l) {}
+
   // Copypaste of deafult Papyrus hash function.
   int papyruskv_hash_fn(const char* key, size_t keylen, size_t nranks) {
     uint64_t hash = 5381;
@@ -176,60 +253,60 @@ namespace KV {
 #endif
 
 namespace TimedKV {
-  using namespace std::chrono;
+using namespace std::chrono;
 
-  inline long Init(int argc, char** argv, std::string name) {
-    auto start = high_resolution_clock::now();
-    KV::Init(argc, argv, name);
-    auto end = high_resolution_clock::now();
-    return (duration_cast<nanoseconds>(end-start)).count();
-  }
+inline long Init(int argc, char** argv, std::string name) {
+  auto start = high_resolution_clock::now();
+  KV::Init(argc, argv, name);
+  auto end = high_resolution_clock::now();
+  return (duration_cast<nanoseconds>(end-start)).count();
+}
 
-  inline long Fence() {
-    auto start = high_resolution_clock::now();
-    KV::Fence();
-    auto end = high_resolution_clock::now();
-    return (duration_cast<nanoseconds>(end-start)).count();
-  }
+inline long Fence() {
+  auto start = high_resolution_clock::now();
+  KV::Fence();
+  auto end = high_resolution_clock::now();
+  return (duration_cast<nanoseconds>(end-start)).count();
+}
 
-  inline long Checkpoint() {
-    auto start = high_resolution_clock::now();
-    KV::Checkpoint();
-    auto end = high_resolution_clock::now();
-    return (duration_cast<nanoseconds>(end-start)).count();
-  }
+inline long Checkpoint() {
+  auto start = high_resolution_clock::now();
+  KV::Checkpoint();
+  auto end = high_resolution_clock::now();
+  return (duration_cast<nanoseconds>(end-start)).count();
+}
 
-  inline long SetMode(PaperlessKV::Consistency_t c, PaperlessKV::Mode_t  m) {
-    auto start = high_resolution_clock::now();
-    KV::SetMode(c, m);
-    auto end = high_resolution_clock::now();
-    return (duration_cast<nanoseconds>(end-start)).count();
-  }
+inline long SetMode(PaperlessKV::Consistency_t c, PaperlessKV::Mode_t  m) {
+  auto start = high_resolution_clock::now();
+  KV::SetMode(c, m);
+  auto end = high_resolution_clock::now();
+  return (duration_cast<nanoseconds>(end-start)).count();
+}
 
-  inline std::pair<long,int> Put(const char* key, size_t key_len,
-                  const char* value, size_t value_len) {
-    auto start = high_resolution_clock::now();
-    KV::Put(key, key_len, value, value_len);
-    auto end = high_resolution_clock::now();
-    return std::make_pair((duration_cast<nanoseconds>(end-start)).count(),
-                          KV::GetOwner(key, key_len));
-  }
+inline std::pair<long,int> Put(const char* key, size_t key_len,
+                               const char* value, size_t value_len) {
+  auto start = high_resolution_clock::now();
+  KV::Put(key, key_len, value, value_len);
+  auto end = high_resolution_clock::now();
+  return std::make_pair((duration_cast<nanoseconds>(end-start)).count(),
+                        KV::GetOwner(key, key_len));
+}
 
-  inline std::pair<long,int> Get(const char* key, size_t key_len,
-                  char* value, size_t value_len) {
-    auto start = high_resolution_clock::now();
-    KV::Get(key, key_len, value, value_len);
-    auto end = high_resolution_clock::now();
-    return std::make_pair((duration_cast<nanoseconds>(end-start)).count(),
-                          KV::GetOwner(key, key_len));
-  }
+inline std::pair<long,int> Get(const char* key, size_t key_len,
+                               char* value, size_t value_len) {
+  auto start = high_resolution_clock::now();
+  KV::Get(key, key_len, value, value_len);
+  auto end = high_resolution_clock::now();
+  return std::make_pair((duration_cast<nanoseconds>(end-start)).count(),
+                        KV::GetOwner(key, key_len));
+}
 
-  inline long Finalize() {
-    auto start = high_resolution_clock::now();
-    KV::Finalize();
-    auto end = high_resolution_clock::now();
-    return (duration_cast<nanoseconds>(end-start)).count();
-  }
+inline long Finalize() {
+  auto start = high_resolution_clock::now();
+  KV::Finalize();
+  auto end = high_resolution_clock::now();
+  return (duration_cast<nanoseconds>(end-start)).count();
+}
 }
 
 #endif  // PAPERLESS_KVWRAPPER_H
