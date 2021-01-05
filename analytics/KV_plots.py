@@ -30,7 +30,7 @@ import os
 
 # Data Path
 #os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/julia/eth/dphpc/paperless/analytics"
-os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/wfloris/github/paperless/analytics"
+#os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/wfloris/github/paperless/analytics"
 
 
 data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data"
@@ -60,7 +60,7 @@ def readOpTimes(file_name, ignore_empty=False):
 
 # + pycharm={"is_executing": false}
 rankPostfix = '' # '/run1'
-rankPrefix = '' # 'ranks'
+rankPrefix = 'ranks'
 
 
 def PlotOperationTimingOverTime(experiment):
@@ -102,7 +102,7 @@ def PlotOperationTimingOverTime(experiment):
 
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 539} id="9vWxik0KpqO8" outputId="4b83a218-c7db-484c-ac74-14a304f019a0" pycharm={"is_executing": false}
-experiments = ['8MB', 'killPutTaskEuler/paperless', 'paperlessMessagePE2/paperless']  # 'killPutTaskEuler/paperless', 'PE3', '8MB'] # 'nodePE2', 'nodePE3', '8MB']
+experiments = ['cache_comp/hash/512ksize512vsize', 'cache_comp/tree/512ksize512vsize']  # 'killPutTaskEuler/paperless', 'PE3', '8MB'] # 'nodePE2', 'nodePE3', '8MB']
 ranks = [8]
 show_first_n = 1
 # experiment = 'localRun'
@@ -180,8 +180,7 @@ def OpTimeForRunPerRank(experiment_name, run_idx, plot_data):
 
 
 
-
-
+# +
 plot_data_1_core_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
 plot_data_1_core_per_rank = OpTimeForRunPerRank('final/artificial_workload', 1, plot_data_1_core_per_rank)
 plot_data_1_core_per_rank = OpTimeForRunPerRank('final/artificial_workload', 2, plot_data_1_core_per_rank)
@@ -197,14 +196,12 @@ plot_data_2_core_per_rank = OpTimeForRunPerRank('final/artificial_workload_2core
 #plot_data_2_core_per_size = OpTimeForRunPerRank('final/artificial_workload_2core', 1, plot_data_2_core_per_size)
 #plot_data_2_core_per_size = OpTimeForRunPerRank('final/artificial_workload_2core', 2, plot_data_2_core_per_size)
 
-
 # +
 
-value_sizes = [8, 32, 64, 256, 512, 1024, 2048, 4096]
-key_size = 16
 
 
-def OpTimeForRunPerSize(experiment_name, rank_size, key_size, plot_data, keysize_eq_value_size=False):
+
+def OpTimeForRunPerSize(experiment_name, rank_size, key_size, value_sizes, plot_data, db='', keysize_eq_value_size=False):
     k_size = key_size
     for value_size in value_sizes:
         if keysize_eq_value_size:
@@ -248,14 +245,21 @@ def OpTimeForRunPerSize(experiment_name, rank_size, key_size, plot_data, keysize
 
     return plot_data
 
-plot_data_1_core_per_size = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
-plot_data_1_core_per_size = OpTimeForRunPerSize('size_compPE1', 16, key_size, plot_data_1_core_per_size)
-
-plot_data_1_core_per_size_k = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
-plot_data_1_core_per_size_k = OpTimeForRunPerSize('size_compPE1', 16, key_size, plot_data_1_core_per_size, True)
 
 
 # +
+
+value_sizes = [8, 32, 64, 256, 512, 1024, 2048, 4096]
+key_size = 16
+plot_data_1_core_per_size = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
+plot_data_1_core_per_size = OpTimeForRunPerSize('size_compPE1', 16, key_size, value_sizes, plot_data_1_core_per_size)
+
+plot_data_1_core_per_size_k = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
+plot_data_1_core_per_size_k = OpTimeForRunPerSize('size_compPE1', 16, key_size, value_sizes, plot_data_1_core_per_size_k, keysize_eq_value_size=True)
+
+
+# -
+
 def PlotSingleOperionTimesPerSize(plot_data, rank_size, lable):
     for op_type in ['localPut', 'localGet', 'remotePut', 'remoteGet']:
         #for ratio in ratios:
@@ -271,10 +275,10 @@ def PlotSingleOperionTimesPerSize(plot_data, rank_size, lable):
         plt.ylim((100,30000))
         plt.show()
 
+
+
 PlotSingleOperionTimesPerSize(plot_data_1_core_per_size, 16, 'Size of value im Bytes')
-
 PlotSingleOperionTimesPerSize(plot_data_1_core_per_size, 16, 'Size of value=key im Bytes')
-
 
 
 # +
@@ -293,10 +297,10 @@ def PlotSingleOperionTimesPerRank(plot_data):
         plt.show()
 
                 
+
+# -
 PlotSingleOperionTimesPerRank(plot_data_1_core_per_rank)
 PlotSingleOperionTimesPerRank(plot_data_2_core_per_rank)
-# -
-
 
 
 # # Throughput plots
@@ -451,6 +455,24 @@ bench.plotThroughputs()
 
 
 
+
+# # Hash vs Tree Cache
+#
+
+# +
+experiment = 'cache_comp'
+caches = ['hash', 'tree']
+sizes = [8,32,512,1024,4096]
+ranks = [1,4,8,16]
+
+for rank in ranks:
+    plot_data = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
+    plot_data = OpTimeForRunPerSize(experiment + '/hash', rank, 0, sizes, plot_data, 'hash', keysize_eq_value_size=True)
+    plot_data = OpTimeForRunPerSize(experiment + '/tree', rank, 0, sizes, plot_data, 'tree', keysize_eq_value_size=True)
+    PlotSingleOperionTimesPerSize(plot_data, rank, 'Size of value im Bytes')
+
+
+# -
 
 # # Vector Compare
 
