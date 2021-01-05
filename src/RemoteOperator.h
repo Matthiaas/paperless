@@ -27,6 +27,10 @@ class RemoteOperator {
   void PutSequential(const ElementView &key, Hash hash,
                      const Tomblement &value);
 
+  // rqs should be an array of at least length 3
+  void IPutSequential(const ElementView &key, Hash hash,
+                     const Tomblement &value, MPI_Request* rqs);
+
   void InitSync();
   void Kill();
 
