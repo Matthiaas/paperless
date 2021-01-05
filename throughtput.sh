@@ -10,7 +10,7 @@
 # Call with argument basic or workload
 KEYLEN=16
 VALLEN=(32) #, 64, 512)
-COUNT=20000
+COUNT=200000
 UPDATE_RATIO=0
 RANKS=(4 8 16) #8 16 20) # 40 80 160 320)
 CORES=(2)
