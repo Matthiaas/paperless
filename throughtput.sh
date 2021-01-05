@@ -14,7 +14,7 @@ COUNT=20000
 UPDATE_RATIO=0
 RANKS=(4 8 16) #8 16 20) # 40 80 160 320)
 CORES=(2)
-N_RUNS=10
+N_RUNS=30
 
 
 export MAX_LOCAL_MEMTABLE_SIZE=10000000
@@ -41,6 +41,16 @@ for k in $(seq $N_RUNS); do
         for j in "${VALLEN[@]}"; do
            echo mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
            mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
+           #rm -r $STORAGE_LOCATION
+        done
+    done
+  done
+
+  for c in "${CORES[@]}"; do
+    for i in "${RANKS[@]}"; do
+        for j in "${VALLEN[@]}"; do
+           echo mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
+           mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
            #rm -r $STORAGE_LOCATION
         done
     done
