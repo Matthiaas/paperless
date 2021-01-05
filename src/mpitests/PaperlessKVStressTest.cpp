@@ -15,6 +15,7 @@ inline PaperlessKV::Options relaxed_options =
 //CHECK(std::string(user_buff,len) == std::string(value,len));
 
 
+
 TEST_CASE("ManyPutsAndIGets user provided buffer", "[4rank]")
 {
   int rank;
@@ -22,7 +23,7 @@ TEST_CASE("ManyPutsAndIGets user provided buffer", "[4rank]")
   std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, 7, relaxed_options);
 
-  int size_per_rank = 1000;
+  int size_per_rank = 10000;
 
   int from = rank * size_per_rank;
   int to = (rank+1) * size_per_rank;
