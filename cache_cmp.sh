@@ -16,9 +16,9 @@ GIGA=$((1024 * MEGA))
 # Call with argument basic or workload
 KEYLEN=16
 VALLEN=(8 32 512 1024 4096)
-COUNT=4000
+COUNT=1000000
 UPDATE_RATIO=0
-RANKS=(4 8 16 32) #8 16 20) # 40 80 160 320)
+RANKS=(1 4 8 16) #8 16 20) # 40 80 160 320)
 CORES=(2)
 
 
@@ -27,7 +27,7 @@ export MAX_REMOTE_MEMTABLE_SIZE=$GIGA
 export MAX_LOCAL_CACHE_SIZE=$GIGA
 export MAX_REMOTE_CACHE_SIZE=$GIGA
 export DISPATCH_IN_CHUNKS=0
-export STORAGE_LOCATION=/cluster/mydb
+export STORAGE_LOCATION=/scratch/mydb
 
 for c in "${CORES[@]}"; do
   for i in "${RANKS[@]}"; do
