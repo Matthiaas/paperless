@@ -26,6 +26,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
+import re
 
 
 # Data Path
@@ -282,18 +283,18 @@ PlotSingleOperionTimesPerSize(plot_data_1_core_per_size, 16, 'Size of value=key 
 
 
 # +
-def PlotSingleOperionTimesPerRank(plot_data):
-    for op_type in ['localPut', 'localGet', 'remotePut', 'remoteGet']:
+def PlotSingleOperionTimesPerRank(plot_data, optypes = ['localPut', 'localGet', 'remotePut', 'remoteGet'], lable='Optime for ', yLable = 'Operation time in nanoseconds'):
+    for op_type in optypes:
         #for ratio in ratios:
         plt.yscale('log')
-        plt.title(f'Optime for {op_type}')
+        plt.title( lable + op_type)
         select = (plot_data['optype'] == op_type) #& (plot_data['op_ratio'] == ratio)
         sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
         #sns.swarmplot(data=plot_data[select], x='rank_size', y='optime', hue='db')
         #sns.violinplot(data=plot_data[select],  x='rank_size', y='optime', hue='db', split=True)
         plt.yscale('log')
         plt.xlabel('Number of ranks')
-        plt.ylabel('Operation time in nanoseconds')
+        plt.ylabel(yLable)
         plt.show()
 
 
@@ -395,6 +396,52 @@ plotThroughputs(single_core_data)
 plotThroughputs(two_core_data)
 
 # -
+# # Throughput plots II
+#
+
+# +
+experiment = '/throughput/out.txt'
+NANO_TO_SEC = 1000000000
+
+
+with open(data_path + experiment, 'r') as f:
+    lines = f.readlines()
+
+pairs = list(zip(lines[0::2], lines[1::2]))
+
+reg = re.compile("mpirun --map-by node:PE=2 -np ([0-9]+) ./build/throughput_([a-zA-z]+) [0-9]+ [0-9]+ ([0-9]+) ([0-9]+) [0-9a-zA-z/]+")
+
+
+plot_data = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'] )
+for a, b in pairs:
+    reg_res = reg.match(a)
+    rank_size = int(reg_res.group(1))
+    db = reg_res.group(2)
+    count = int(reg_res.group(3))
+    ratio = int(reg_res.group(4))
+    
+    nums = b.split(" ")
+    put_through = count / int(nums[0]) * NANO_TO_SEC
+    get_through = count / int(nums[1]) * NANO_TO_SEC 
+    
+    plot_data = plot_data.append({'optime': put_through,
+                                               'optype' : "put",
+                                               'op_ratio': ratio,
+                                               'rank_size':rank_size,
+                                               'db': db}, ignore_index=True)
+    
+    plot_data = plot_data.append({'optime': get_through,
+                                               'optype' : "update/get",
+                                               'op_ratio': ratio,
+                                               'rank_size':rank_size,
+                                               'db': db}, ignore_index=True)
+    
+    
+# -
+
+print(plot_data)
+PlotSingleOperionTimesPerRank(plot_data, ["update/get", "put"],lable = 'Throughput for ', yLable= 'Throughput per Second')
+
 # # Relaxed vs sequential mode
 
 import numpy as np
