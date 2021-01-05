@@ -108,6 +108,7 @@ void RemoteOperator::PutSequential(const ElementView &key, Hash hash,
   MPI_Send(value.GetBuffer(), value.GetBufferLen(), MPI_CHAR, o, tag, comm_);
 }
 
+
 Message RemoteOperator::IPutSequential(const ElementView &key, Hash hash,
                                     const Tomblement &value, MPI_Request *rqs) {
   Message m(Message::PUT_REQUEST);
@@ -118,7 +119,6 @@ Message RemoteOperator::IPutSequential(const ElementView &key, Hash hash,
   m.SetValueLen(value.GetBufferLen());
   m.SetHash(hash);
   m.I_SendMessage(o, PAPERLESS_MSG_TAG, comm_, &rqs[0]);
-
   MPI_Isend(key.Value(), key.Length(), MPI_CHAR, o, tag, comm_, &rqs[1]);
   MPI_Isend(value.GetBuffer(), value.GetBufferLen(), MPI_CHAR, o, tag, comm_, &rqs[2]);
   return m;

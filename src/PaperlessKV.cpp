@@ -173,7 +173,7 @@ void PaperlessKV::Dispatch() {
       const auto& map = *handler.Get();
       MPI_Request* rqs = static_cast<MPI_Request*>(
           PAPERLESS::malloc(sizeof(MPI_Request) * map.Count() * 3));
-      // This is requiered for messages to not destruct before they get send.
+      // This is required for messages to not destruct before they get send.
       std::vector<Message> msgs;
       msgs.reserve(map.Count());
       size_t pos = 0;
