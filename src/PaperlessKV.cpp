@@ -173,13 +173,16 @@ void PaperlessKV::Dispatch() {
       const auto& map = *handler.Get();
       MPI_Request* rqs = static_cast<MPI_Request*>(
           PAPERLESS::malloc(sizeof(MPI_Request) * map.Count() * 3));
+      // This is required for messages to not destruct before they get send.
+      std::vector<Message> msgs;
+      msgs.reserve(map.Count());
       size_t pos = 0;
       for (const auto &[key, value] : *handler.Get()) {
         Hash hash = hash_function_(key.Value(), key.Length());
-        remoteOperator_.IPutSequential(key.GetView(), hash, value, &rqs[pos]);
+        msgs.push_back(remoteOperator_.IPutSequential(key.GetView(), hash, value, &rqs[pos]));
         pos += 3;
       }
-      MPI_Waitall(map.Count(), rqs, MPI_STATUSES_IGNORE);
+      MPI_Waitall(map.Count() * 3, rqs, MPI_STATUSES_IGNORE);
       free(rqs);
     }
 

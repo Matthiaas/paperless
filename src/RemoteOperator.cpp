@@ -67,16 +67,8 @@ FutureQueryInfo RemoteOperator::IGet(const ElementView &key,
 
   Owner o = hash % rank_size_;
   int tag = getTag();
-  Message m(Message::GET_REQUEST);
-  m.SetTag(tag);
-  m.SetKeyLen(key.Length());
-  m.SetHash(hash);
-
-  FutureQueryInfo res;
-  m.I_SendMessage(o, PAPERLESS_MSG_TAG, comm_, &res.requests_[0]);
-  MPI_Isend(key.Value(), key.Length(), MPI_CHAR, o, tag, comm_, &res.requests_[1]);
-  res.msg_.I_ReceiveMessage(o, tag, comm_, &res.requests_[2]);
-  MPI_Irecv(v_buff.Value(), v_buff.Length(), MPI_CHAR, o, tag, comm_, &res.requests_[3]);
+  FutureQueryInfo res(tag, key, hash);
+  res.InitRequest(o, v_buff, comm_);
   return res;
 }
 
@@ -116,7 +108,8 @@ void RemoteOperator::PutSequential(const ElementView &key, Hash hash,
   MPI_Send(value.GetBuffer(), value.GetBufferLen(), MPI_CHAR, o, tag, comm_);
 }
 
-void RemoteOperator::IPutSequential(const ElementView &key, Hash hash,
+
+Message RemoteOperator::IPutSequential(const ElementView &key, Hash hash,
                                     const Tomblement &value, MPI_Request *rqs) {
   Message m(Message::PUT_REQUEST);
   int tag = getTag();
@@ -128,6 +121,7 @@ void RemoteOperator::IPutSequential(const ElementView &key, Hash hash,
   m.I_SendMessage(o, PAPERLESS_MSG_TAG, comm_, &rqs[0]);
   MPI_Isend(key.Value(), key.Length(), MPI_CHAR, o, tag, comm_, &rqs[1]);
   MPI_Isend(value.GetBuffer(), value.GetBufferLen(), MPI_CHAR, o, tag, comm_, &rqs[2]);
+  return m;
 }
 
 

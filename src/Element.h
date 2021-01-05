@@ -73,6 +73,14 @@ class Element {
     other.el_.len_ = 0;
   };
 
+  Element& operator=(Element &&other) noexcept {
+    free(el_.value_);
+    el_ = std::move(other.el_);
+    other.el_.value_ = nullptr;
+    other.el_.len_ = 0;
+    return *this;
+  };
+
   ~Element() {
     free(el_.value_);
   }
