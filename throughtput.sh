@@ -49,7 +49,7 @@ for k in $(seq $N_RUNS); do
   for c in "${CORES[@]}"; do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
-           echo mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
+           echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
            mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
            #rm -r $STORAGE_LOCATION
         done
