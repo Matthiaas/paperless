@@ -25,7 +25,7 @@ void BenchmarkRandomData() {
   char* key;
   char* put_val = new char[vallen];
   char* get_val = new char[vallen];
-  size_t get_vallen = 0UL;
+  size_t get_vallen = vallen;
   size_t cnt_put = 0;
   size_t cnt_get = 0;
 
@@ -53,10 +53,12 @@ void BenchmarkRandomData() {
   put_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
       puts_phase_end-puts_phase_start).count();
 
+
   int batch_size = 1000;
   KV::SetQueryAmount(batch_size);
 
   auto gets_phase_start = std::chrono::high_resolution_clock::now();
+
   for (size_t i = 0; i < count; i++) {
     key = get_key(i);
     if (i % 100 < (size_t)update_ratio) {
@@ -68,12 +70,15 @@ void BenchmarkRandomData() {
     }
 
     if(count % 1000 == 0)  {
-      KV::SetQueryAmount(batch_size);
       KV::WaitForGetComplete();
+      KV::SetQueryAmount(batch_size);
+
     }
   }
 
   KV::WaitForGetComplete();
+
+
 
   auto gets_phase_end = std::chrono::high_resolution_clock::now();
   get_update_time = std::chrono::duration_cast<std::chrono::nanoseconds>(

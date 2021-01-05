@@ -41,6 +41,7 @@ class FutureQueryInfo {
     other.requests_ = nullptr;
   }
   FutureQueryInfo& operator=(FutureQueryInfo&& other) {
+    free(requests_);
     requests_ = other.requests_;
     other.requests_ = nullptr;
     status_ = other.status_;
@@ -49,6 +50,8 @@ class FutureQueryInfo {
     key_ = std::move(other.key_);
     has_value_ = other.has_value_;
     result_ = other.result_;
+
+
     return *this;
   }
 
@@ -73,11 +76,13 @@ class FutureQueryInfo {
   std::pair<QueryStatus, size_t> Get() {
     if(!has_value_) {
       MPI_Waitall(3, requests_, MPI_STATUSES_IGNORE);
-      if(msg_.GetQueryStatus() == QueryStatus::FOUND) {
-        MPI_Wait(requests_+3, MPI_STATUSES_IGNORE);
+
+      if(static_cast<QueryStatus>(msg_.GetQueryStatus())  == QueryStatus::FOUND) {
+        MPI_Wait(&requests_[3], MPI_STATUSES_IGNORE);
       }else {
         MPI_Request_free(requests_+3);
       }
+      has_value_ = true;
       result_ = {static_cast<QueryStatus>(msg_.GetQueryStatus()),
                  msg_.GetValueLen()};
     }

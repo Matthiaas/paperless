@@ -138,8 +138,7 @@ namespace KV {
 
   inline void Get(const char* key, size_t key_len,
                   char* value, size_t value_len) {
-    //futures.push_back();
-    paper->IGet(key, key_len, value, value_len).Get();
+    futures.push_back(paper->IGet(key, key_len, value, value_len));
   }
 
   inline void WaitForGetComplete() {

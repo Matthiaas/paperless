@@ -85,7 +85,7 @@ std::pair<QueryStatus, size_t> RemoteOperator::Get(const ElementView &key,
     MPI_Recv(res.Value(), res.Length(), MPI_CHAR, o, m2.GetTag(), comm_,
              MPI_STATUS_IGNORE);
     return {QueryStatus::BUFFER_TOO_SMALL, m2.GetValueLen()};
-  } else if (m2.GetQueryStatus() == QueryStatus::FOUND) {
+  } else if (static_cast<QueryStatus>(m2.GetQueryStatus()) == QueryStatus::FOUND) {
     MPI_Recv(v_buff.Value(), m2.GetValueLen(), MPI_CHAR, o, m2.GetTag(), comm_,
              MPI_STATUS_IGNORE);
     return {QueryStatus::FOUND, m2.GetValueLen()};
