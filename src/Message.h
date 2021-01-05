@@ -7,7 +7,7 @@
 #include "Types.h"
 
 #define PAPERLESS_MSG_TAG 0
-#define MAX_ELEMENT_LEN (1l << 20)
+#define MAX_ELEMENT_LEN 10000000
 
 /*
 

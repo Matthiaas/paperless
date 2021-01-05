@@ -6,7 +6,7 @@ Responder::Responder(PaperlessKV* kv, MPI_Comm comm,
                      bool dispatch_data_in_chunks)
     : kv_(kv), comm_(comm), dispatch_data_in_chunks_(dispatch_data_in_chunks) {
   MPI_Comm_size(comm_, &rank_size_);
-  big_buffer_ = static_cast<char*>(PAPERLESS::malloc(100000));
+  big_buffer_ = static_cast<char*>(PAPERLESS::malloc(MAX_ELEMENT_LEN));
 }
 
 Responder::~Responder() { free(big_buffer_); }
