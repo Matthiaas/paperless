@@ -142,7 +142,7 @@ namespace KV {
 
   inline void WaitForGetComplete() {
     for(auto& f : futures) {
-      f.Get()
+      f.Get();
     }
   }
 
