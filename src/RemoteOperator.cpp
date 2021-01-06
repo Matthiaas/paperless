@@ -30,6 +30,7 @@ Message RemoteOperator::InitGet(const ElementView &key, Hash hash) {
   return Message::ReceiveMessage(o, tag, comm_, MPI_STATUS_IGNORE);
 }
 
+// this is 10% slower than the other init.
 Message RemoteOperator::InitGetAsync(const ElementView &key, Hash hash) {
   Owner o = hash % rank_size_;
   int tag = getTag();
@@ -50,7 +51,7 @@ Message RemoteOperator::InitGetAsync(const ElementView &key, Hash hash) {
 
 QueryResult RemoteOperator::Get(const ElementView &key, Hash hash) {
   Owner o = hash % rank_size_;
-  Message m2 = InitGetAsync(key, hash);
+  Message m2 = InitGet(key, hash);
   if (m2.GetQueryStatus() == QueryStatus::FOUND) {
     Element res(m2.GetValueLen());
     MPI_Recv(res.Value(), res.Length(), MPI_CHAR, o, m2.GetTag(), comm_,
@@ -77,7 +78,7 @@ std::pair<QueryStatus, size_t> RemoteOperator::Get(const ElementView &key,
                                                    Hash hash) {
 
   Owner o = hash % rank_size_;
-  Message m2 = InitGetAsync(key, hash);
+  Message m2 = InitGet(key, hash);
   if (m2.GetValueLen() > v_buff.Length() &&
       m2.GetQueryStatus() == QueryStatus::FOUND) {
     // TODO: Discard MPI message instead:
