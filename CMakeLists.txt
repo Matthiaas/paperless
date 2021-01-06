@@ -130,6 +130,11 @@ set(MPI_PROBE_MULTIPLE_THREADS_SOURCES
 set(CMP_VECTOR_BENCHMARK_SOURCES
         src/benchmark/cmp_vector_benchmark.cpp)
 
+set(C_INTERFACE_SOURCES
+        src/benchmark/KVWrapper.h
+        src/benchmark/c_interface.h
+        src/benchmark/c_interface.cpp)
+
 add_library(paperless STATIC ${LIB_SOURCES})
 target_link_libraries(paperless PRIVATE ${MPI_CXX_LIBRARIES})
 target_link_libraries(paperless PRIVATE Threads::Threads)
@@ -200,6 +205,20 @@ add_executable(cmp_vector
         ${CMP_VECTOR_BENCHMARK_SOURCES}
         ${LIB_SOURCES})
 
+add_library(
+        c_interface_paperless
+        STATIC
+        ${C_INTERFACE_SOURCES}
+        ${LIB_SOURCES}
+)
+
+add_library(
+        c_interface_papyrus
+        STATIC
+        ${C_INTERFACE_SOURCES}
+        ${LIB_SOURCES}
+)
+
 target_link_libraries(main PUBLIC paperless mtbl)
 
 
@@ -218,6 +237,11 @@ target_link_libraries(throughput_paperless mtbl papyruskv smhasher stdc++fs ${MP
 target_compile_definitions(throughput_paperless PRIVATE PAPERLESS_BENCHMARK)
 target_link_libraries(throughput_papyrus mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(throughput_papyrus PRIVATE PAPYRUS_BENCHMARK)
+
+target_link_libraries(c_interface_paperless mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_compile_definitions(c_interface_paperless PRIVATE PAPERLESS_BENCHMARK)
+target_link_libraries(c_interface_papyrus mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_compile_definitions(c_interface_papyrus PRIVATE PAPYRUS_BENCHMARK)
 
 target_link_libraries(cmp_vector mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(basic mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
