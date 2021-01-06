@@ -277,21 +277,9 @@ void PaperlessKV::Put(const ElementView &key, Tomblement &&value) {
   Hash hash = hash_function_(key.Value(), key.Length());
   Owner o = hash % rank_size_;
   if (o == rank_) {
-    // Local insert.
-    if (value.Tombstone()) {
-      local_cache_.put(key, hash, QueryStatus::DELETED);
-    } else {
-      local_cache_.put(key, hash, Element::copyElementContent(value.GetView()));
-    }
     local_.Put(key, std::move(value), hash, rank_);
   } else {
     if (consistency_ == RELAXED) {
-      if (value.Tombstone()) {
-        remote_cache_.put(key, hash, QueryStatus::DELETED);
-      } else {
-        remote_cache_.put(key, hash,
-                          Element::copyElementContent(value.GetView()));
-      }
       remote_.Put(key, std::move(value), hash, rank_);
     } else if (consistency_ == SEQUENTIAL) {
       remoteOperator_.PutSequential(key, hash, value);
@@ -322,16 +310,18 @@ void PaperlessKV::DeleteKey(const ElementView &key) {
 }
 
 QueryResult PaperlessKV::LocalGet(const ElementView &key, Hash hash) {
-  std::optional<QueryResult> cache_result = local_cache_.get(key, hash);
-  if (cache_result) {
-    return std::move(cache_result.value());
-  } else {
-    QueryResult el = local_.Get(key, hash, rank_);
-    if (el == QueryStatus::NOT_FOUND) {
-      el = storage_manager_.readFromDisk(key);
-    }
-    local_cache_.put(key, hash, el);
+  QueryResult el = local_.Get(key, hash, rank_);
+  if (el != QueryStatus::NOT_FOUND) {
     return el;
+  } else {
+    std::optional<QueryResult> cache_result = local_cache_.get(key, hash);
+    if (!cache_result.has_value()) {
+      el = storage_manager_.readFromDisk(key);
+      local_cache_.put(key, hash, el);
+      return el;
+    } else   {
+      return std::move(cache_result.value());
+    }
   }
 }
 
@@ -346,12 +336,12 @@ std::pair<QueryStatus, size_t> PaperlessKV::LocalGet(const ElementView &key,
         local_.Get(key, buff.Value(), buff.Length(), hash, rank_);
     if (el.first == QueryStatus::NOT_FOUND) {
       el = storage_manager_.readFromDisk(key, buff);
-    }
-    if (el.first == QueryStatus::FOUND) {
-      local_cache_.put(key, hash, Element(buff.Value(), el.second));
-    } else if (el.first == QueryStatus::DELETED ||
-               el.first == QueryStatus::NOT_FOUND) {
-      local_cache_.put(key, hash, el.first);
+      if (el.first == QueryStatus::FOUND) {
+        local_cache_.put(key, hash, Element(buff.Value(), el.second));
+      } else if (el.first == QueryStatus::DELETED ||
+                 el.first == QueryStatus::NOT_FOUND) {
+        local_cache_.put(key, hash, el.first);
+      }
     }
     return el;
   } else {
@@ -360,16 +350,19 @@ std::pair<QueryStatus, size_t> PaperlessKV::LocalGet(const ElementView &key,
 }
 
 QueryResult PaperlessKV::RemoteGetRelaxed(const ElementView &key, Hash hash) {
-  std::optional<QueryResult> cache_result = remote_cache_.get(key, hash);
-  if (cache_result) {
-    return std::move(cache_result.value());
-  } else {
-    QueryResult el = remote_.Get(key, hash, rank_);
-    if (el == QueryStatus::NOT_FOUND) {
-      el = remoteOperator_.Get(key, hash);
-    }
-    remote_cache_.put(key, hash, el);
+
+  QueryResult el = remote_.Get(key, hash, rank_);
+  if (el != NOT_FOUND) {
     return el;
+  } else {
+    std::optional<QueryResult> cache_result = remote_cache_.get(key, hash);
+    if (!cache_result.has_value()) {
+      el = remoteOperator_.Get(key, hash);
+      remote_cache_.put(key, hash, el);
+      return el;
+    }else {
+      return std::move(cache_result.value());
+    }
   }
 }
 
