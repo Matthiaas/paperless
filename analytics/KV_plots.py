@@ -400,47 +400,52 @@ plotThroughputs(two_core_data)
 #
 
 # +
-experiment = '/throughput/out.txt'
+
 NANO_TO_SEC = 1000000000
 
+def GetThroughputData(experiment):
+    with open(data_path + experiment, 'r') as f:
+        lines = f.readlines()
 
-with open(data_path + experiment, 'r') as f:
-    lines = f.readlines()
+    pairs = list(zip(lines[0::2], lines[1::2]))
 
-pairs = list(zip(lines[0::2], lines[1::2]))
-
-reg = re.compile("mpirun --map-by node:PE=2 -np ([0-9]+) ./build/throughput_([a-zA-z]+) [0-9]+ [0-9]+ ([0-9]+) ([0-9]+) [0-9a-zA-z/]+")
+    reg = re.compile("mpirun --map-by node:PE=2 -np ([0-9]+) ./build/throughput_([a-zA-z]+) [0-9]+ [0-9]+ ([0-9]+) ([0-9]+) [0-9a-zA-z/]+")
 
 
-plot_data = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'] )
-for a, b in pairs:
-    reg_res = reg.match(a)
-    rank_size = int(reg_res.group(1))
-    db = reg_res.group(2)
-    count = int(reg_res.group(3))
-    ratio = int(reg_res.group(4))
-    
-    nums = b.split(" ")
-    put_through = count / int(nums[0]) * NANO_TO_SEC
-    get_through = count / int(nums[1]) * NANO_TO_SEC 
-    
-    plot_data = plot_data.append({'optime': put_through,
-                                               'optype' : "put",
-                                               'op_ratio': ratio,
-                                               'rank_size':rank_size,
-                                               'db': db}, ignore_index=True)
-    
-    plot_data = plot_data.append({'optime': get_through,
-                                               'optype' : "update/get",
-                                               'op_ratio': ratio,
-                                               'rank_size':rank_size,
-                                               'db': db}, ignore_index=True)
-    
-    
+    plot_data = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'] )
+    for a, b in pairs:
+        reg_res = reg.match(a)
+        rank_size = int(reg_res.group(1))
+        db = reg_res.group(2)
+        count = int(reg_res.group(3))
+        ratio = int(reg_res.group(4))
+
+        nums = b.split(" ")
+        put_through = count / int(nums[0]) * NANO_TO_SEC
+        get_through = count / int(nums[1]) * NANO_TO_SEC 
+
+        plot_data = plot_data.append({'optime': put_through,
+                                                   'optype' : "put",
+                                                   'op_ratio': ratio,
+                                                   'rank_size':rank_size,
+                                                   'db': db}, ignore_index=True)
+
+        plot_data = plot_data.append({'optime': get_through,
+                                                   'optype' : "update/get",
+                                                   'op_ratio': ratio,
+                                                   'rank_size':rank_size,
+                                                   'db': db}, ignore_index=True)
+    return plot_data
+
+
+
+# +
+
+experiments = ['/throughput/5PercentPutsLessInserts.txt','/throughput/out4.txt','/throughput/5PercentPuts.txt']
+
+for experiment in experiments:
+    PlotSingleOperionTimesPerRank(GetThroughputData(experiment), ["update/get", "put"],lable = experiment + ', Throughput for ', yLable= 'Operations per Second')
 # -
-
-print(plot_data)
-PlotSingleOperionTimesPerRank(plot_data, ["update/get", "put"],lable = 'Throughput for ', yLable= 'Throughput per Second')
 
 # # Relaxed vs sequential mode
 

@@ -1,0 +1,298 @@
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs1/ranks4
+189161846 75301274
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs1/ranks8
+269777272 94013379
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs1/ranks16
+1621833788 139862367
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs1/ranks4
+194939132 130896065
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs1/ranks8
+228401316 173635967
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs1/ranks16
+421668876 225830824
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs1/ranks4
+143586705 66226334
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs1/ranks8
+188816120 89521518
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs1/ranks16
+237288609 128303054
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs2/ranks4
+169986187 77526490
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs2/ranks8
+227869892 99877294
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs2/ranks16
+421598627 133319938
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs2/ranks4
+171397371 95239726
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs2/ranks8
+221831898 131360249
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs2/ranks16
+406448503 252068086
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs2/ranks4
+137158766 62235507
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs2/ranks8
+172130603 97789098
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs2/ranks16
+249428545 109000675
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs3/ranks4
+165865612 77218883
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs3/ranks8
+230547422 101407518
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs3/ranks16
+440653259 127596851
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs3/ranks4
+180691509 106990106
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs3/ranks8
+229727661 173894854
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs3/ranks16
+412615207 256374678
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs3/ranks4
+142242081 66652059
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs3/ranks8
+176474674 92802872
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs3/ranks16
+242665979 125177178
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs4/ranks4
+178089027 76703099
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs4/ranks8
+239923590 100160651
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs4/ranks16
+419901126 138305203
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs4/ranks4
+174486147 110694307
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs4/ranks8
+231273874 147772380
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs4/ranks16
+414016110 231949187
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs4/ranks4
+146480164 72017710
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs4/ranks8
+181585470 95766130
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs4/ranks16
+240419015 121082522
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs5/ranks4
+227474896 78180342
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs5/ranks8
+230847729 111170091
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs5/ranks16
+402034342 117002557
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs5/ranks4
+176623394 126056477
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs5/ranks8
+245281620 156647162
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs5/ranks16
+407346704 216656735
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs5/ranks4
+142964753 66782888
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs5/ranks8
+184337919 91422667
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs5/ranks16
+237765693 116120987
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs6/ranks4
+184873693 74480683
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs6/ranks8
+238750902 97355122
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs6/ranks16
+410160142 120214682
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs6/ranks4
+230750270 105086768
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs6/ranks8
+228790581 181660788
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs6/ranks16
+422962623 234781656
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs6/ranks4
+146388324 72083229
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs6/ranks8
+185881562 94187187
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs6/ranks16
+236352788 116893329
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs7/ranks4
+189646641 73875960
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs7/ranks8
+224707776 102139400
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs7/ranks16
+401972953 138230615
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs7/ranks4
+181881475 112656415
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs7/ranks8
+230325704 185444047
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs7/ranks16
+404011150 211310133
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs7/ranks4
+141623547 71494776
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs7/ranks8
+182310681 92104760
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs7/ranks16
+250286476 109148183
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs8/ranks4
+167264756 66473671
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs8/ranks8
+231353653 94172118
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs8/ranks16
+401704395 126162667
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs8/ranks4
+166698362 100776875
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs8/ranks8
+223294682 159398332
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs8/ranks16
+400162142 190027286
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs8/ranks4
+132978242 68291402
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs8/ranks8
+177611983 88828046
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs8/ranks16
+235341830 122132681
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs9/ranks4
+170773308 68110343
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs9/ranks8
+233305811 114982000
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs9/ranks16
+402462127 119632008
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs9/ranks4
+172564088 86300504
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs9/ranks8
+237977350 188215906
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs9/ranks16
+406195386 243409951
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs9/ranks4
+148823518 70894233
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs9/ranks8
+192421211 93287707
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs9/ranks16
+239342816 123561776
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs10/ranks4
+174592555 74121327
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs10/ranks8
+240652481 97084486
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs10/ranks16
+400765926 138824118
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs10/ranks4
+177987519 102821133
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs10/ranks8
+254936574 180678148
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs10/ranks16
+408690919 262186525
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs10/ranks4
+146835770 69425418
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs10/ranks8
+182154503 95882169
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs10/ranks16
+235737505 116567962
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs11/ranks4
+185661094 71098011
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs11/ranks8
+283554361 104110808
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs11/ranks16
+414468156 123287008
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs11/ranks4
+173200671 108512020
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs11/ranks8
+233475930 171574249
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs11/ranks16
+405709871 204215111
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs11/ranks4
+143133621 80966262
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs11/ranks8
+178944708 95935528
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs11/ranks16
+235146612 122193410
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs12/ranks4
+171226913 76013707
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs12/ranks8
+253235713 100095942
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs12/ranks16
+411582107 175957321
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs12/ranks4
+182509628 103689993
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs12/ranks8
+234390660 182964123
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs12/ranks16
+423589996 230273645
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs12/ranks4
+142498988 72220138
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs12/ranks8
+180181895 89421090
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs12/ranks16
+237837783 122425307
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs13/ranks4
+177524874 90735056
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs13/ranks8
+241289125 143928832
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs13/ranks16
+421141312 124203099
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs13/ranks4
+178423003 103435015
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs13/ranks8
+230059178 172253821
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs13/ranks16
+416440794 262846998
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs13/ranks4
+146346226 69900554
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs13/ranks8
+186871261 95668421
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs13/ranks16
+250069979 114872310
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs14/ranks4
+173605776 82350397
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs14/ranks8
+235033074 103287958
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs14/ranks16
+424302088 131638887
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs14/ranks4
+192641808 108641798
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs14/ranks8
+231427313 160953595
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs14/ranks16
+404649743 264660078
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs14/ranks4
+147197336 70833863
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs14/ranks8
+191108075 84743851
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs14/ranks16
+239465235 116569662
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs15/ranks4
+172137953 79396299
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs15/ranks8
+223366142 105015018
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs15/ranks16
+401622447 132240970
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs15/ranks4
+190610920 93237888
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs15/ranks8
+230255855 128042636
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs15/ranks16
+402509797 203909344
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs15/ranks4
+135947389 71327558
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs15/ranks8
+171979814 93493625
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs15/ranks16
+236787524 115726551
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs16/ranks4
+168711801 66341502
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs16/ranks8
+225241460 112863872
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs16/ranks16
+399615588 132943363
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs16/ranks4
+169690340 95394295
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs16/ranks8
+224355450 167392984
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs16/ranks16
+427574622 264877866
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs16/ranks4
+140058804 71357138
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs16/ranks8
+182834285 88688188
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_papyrus 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs16/ranks16
+230759980 121637267
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs17/ranks4
+177870350 74278486
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs17/ranks8
+235260080 127129426
+mpirun --map-by node:PE=2 -np 16 ./build/throughput_Ipaperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/Ipaperless/runs17/ranks16
+406466703 122698354
+mpirun --map-by node:PE=2 -np 4 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs17/ranks4
+184224190 98112155
+mpirun --map-by node:PE=2 -np 8 ./build/throughput_paperless 16 131072 1000 0 /cluster/scratch/mbungeroth/throughput/paperless/runs17/ranks8
+232338653 154410387
