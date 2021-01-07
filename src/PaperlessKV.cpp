@@ -328,24 +328,21 @@ QueryResult PaperlessKV::LocalGet(const ElementView &key, Hash hash) {
 std::pair<QueryStatus, size_t> PaperlessKV::LocalGet(const ElementView &key,
                                                      const ElementView &buff,
                                                      Hash hash) {
-  // TODO: implement this for cache.
-  std::pair<QueryStatus, size_t> cache_result =
-      local_cache_.get(key, hash, buff);
-  if (cache_result.first == QueryStatus::NOT_IN_CACHE) {
-    std::pair<QueryStatus, size_t> el =
-        local_.Get(key, buff.Value(), buff.Length(), hash, rank_);
-    if (el.first == QueryStatus::NOT_FOUND) {
-      el = storage_manager_.readFromDisk(key, buff);
-      if (el.first == QueryStatus::FOUND) {
-        local_cache_.put(key, hash, Element(buff.Value(), el.second));
-      } else if (el.first == QueryStatus::DELETED ||
-                 el.first == QueryStatus::NOT_FOUND) {
-        local_cache_.put(key, hash, el.first);
-      }
-    }
+
+  std::pair<QueryStatus, size_t> el =
+      local_.Get(key, buff.Value(), buff.Length(), hash, rank_);
+  if(el.first != QueryStatus::NOT_FOUND) {
     return el;
   } else {
-    return cache_result;
+    std::pair<QueryStatus, size_t> cache_result =
+        local_cache_.get(key, hash, buff);
+    if (cache_result.first == QueryStatus::NOT_IN_CACHE) {
+      el = storage_manager_.readFromDisk(key, buff);
+      local_cache_.put(key, hash, Element(buff.Value(), el.second));
+      return el;
+    } else {
+      return cache_result;
+    }
   }
 }
 
