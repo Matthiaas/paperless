@@ -18,6 +18,7 @@
 
 long put_time = 0;
 long get_update_time = 0;
+int batch_size = 1000;
 
 
 
@@ -54,7 +55,7 @@ void BenchmarkRandomData() {
       puts_phase_end-puts_phase_start).count();
 
 
-  int batch_size = 1000;
+
   KV::SetQueryAmount(batch_size);
 
   auto gets_phase_start = std::chrono::high_resolution_clock::now();
@@ -92,7 +93,7 @@ void BenchmarkRandomData() {
 int main(int argc, char** argv)  {
 
   if (argc < 6) {
-    printf("[%s:%d] usage: %s keylen vallen count update_ratio[0:100] storage_path consistency['SEQ', default='REL']\n", __FILE__, __LINE__, argv[0]);
+    printf("[%s:%d] usage: %s keylen vallen count update_ratio[0:100] storage_path consistency['SEQ', default='REL'] batch_size_for_Iget\n", __FILE__, __LINE__, argv[0]);
     return 0;
   }
 
@@ -103,7 +104,10 @@ int main(int argc, char** argv)  {
   count = atol(argv[3]);
   update_ratio = atoi(argv[4]);
   std::string storage_directory = argv[5];
-  std::string consistency = (argc == 7) ? argv[6] : "REL";
+  std::string consistency = (argc >= 7) ? argv[6] : "REL";
+  if(argc >= 8) {
+    batch_size = atol(argv[7]);
+  }
 
   int size;
 

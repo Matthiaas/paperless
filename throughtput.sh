@@ -15,9 +15,11 @@ GIGA=$((1024 * MEGA))
 # Call with argument basic or workload
 KEYLEN=16
 VALLEN=(13000) #, 64, 512)
-COUNT=1000
+COUNT=100000
+batch_sizes=(100 1000 10000) # should be smaller than count
 UPDATE_RATIO=0
 RANKS=(4 8 16) #8 16 20) # 40 80 160 320)
+
 CORES=(2)
 N_RUNS=30
 
@@ -34,9 +36,11 @@ for k in $(seq $N_RUNS); do
   for c in "${CORES[@]}"; do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
-           echo mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/Ipaperless/runs$k/ranks$i
-           mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/Ipaperless/runs$k/ranks$i
-           #rm -r $STORAGE_LOCATION
+          for b in "${batch_sizes[@]}"; do
+             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/Ipaperless/runs$k/ranks$i REL $b
+             #mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/Ipaperless/runs$k/ranks$i REL $b
+             #rm -r $STORAGE_LOCATION
+           done
         done
     done
   done
@@ -44,9 +48,11 @@ for k in $(seq $N_RUNS); do
   for c in "${CORES[@]}"; do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
-           echo mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
-           mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
-           #rm -r $STORAGE_LOCATION
+          for b in "${batch_sizes[@]}"; do
+             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i REL $b
+             #mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i REL $b
+             #rm -r $STORAGE_LOCATION
+           done
         done
     done
   done
@@ -54,9 +60,11 @@ for k in $(seq $N_RUNS); do
   for c in "${CORES[@]}"; do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
-           echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
-           mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i
-           #rm -r $STORAGE_LOCATION
+          for b in "${batch_sizes[@]}"; do
+             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i REL $b
+             #mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /tmp/scratch/$USER/throughput/paperless/runs$k/ranks$i REL $b
+             #rm -r $STORAGE_LOCATION
+          done
         done
     done
   done
