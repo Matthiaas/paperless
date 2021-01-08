@@ -44,16 +44,15 @@ bool Responder::Respond() {
 }
 
 void Responder::HandlePut(const Message& msg, int src) {
-  if (!dispatch_data_in_chunks_) {
-    Element key(msg.GetKeyLen());
-    Tomblement value(msg.GetValueLen() - 1);
-    MPI_Recv(key.Value(), msg.GetKeyLen(), MPI_CHAR, src, msg.GetTag(), comm_,
-             MPI_STATUS_IGNORE);
-    MPI_Recv(value.GetBuffer(), msg.GetValueLen(), MPI_CHAR, src, msg.GetTag(),
-             comm_, MPI_STATUS_IGNORE);
-    Owner o = msg.GetHash() % rank_size_;
-    kv_->local_.Put(std::move(key), std::move(value), msg.GetHash(), o);
-  }
+  Element key(msg.GetKeyLen());
+  Tomblement value(msg.GetValueLen() - 1);
+  MPI_Recv(key.Value(), msg.GetKeyLen(), MPI_CHAR, src, msg.GetTag(), comm_,
+            MPI_STATUS_IGNORE);
+  MPI_Recv(value.GetBuffer(), msg.GetValueLen(), MPI_CHAR, src, msg.GetTag(),
+            comm_, MPI_STATUS_IGNORE);
+  Owner o = msg.GetHash() % rank_size_;
+  kv_->local_.Put(std::move(key), std::move(value), msg.GetHash(), o);
+
 }
 
 void Responder::HandleGet(const Message& msg, int src) {

@@ -45,6 +45,7 @@ class PaperlessKV {
     size_t max_local_cache_size = 1000000;
     size_t max_remote_cache_size = 1000000;
     size_t avg_key_size = 32;
+    size_t batch_size = 1000;
     std::string strorage_location;
 
     Consistency_t consistency = RELAXED;
@@ -96,6 +97,12 @@ class PaperlessKV {
     Options AvgKeySize(size_t s) {
       Options res = *this;
       res.avg_key_size = s;
+      return res;
+    }
+
+    Options BatchSizeForDispatch(size_t s) {
+      Options res = *this;
+      res.batch_size = s;
       return res;
     }
   };
@@ -216,6 +223,7 @@ class PaperlessKV {
 
   // Settings:
   bool dispatch_data_in_chunks_;
+  int batch_size_;
 
   // Helpers:
 

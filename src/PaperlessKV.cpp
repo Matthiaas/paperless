@@ -59,7 +59,8 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
       compactor_(&PaperlessKV::Compact, this),
       dispatcher_(&PaperlessKV::Dispatch, this),
       responder_task(&PaperlessKV::Respond, this),
-      dispatch_data_in_chunks_(options.dispatch_data_in_chunks) {
+      dispatch_data_in_chunks_(options.dispatch_data_in_chunks),
+      batch_size_(options.batch_size) {
   MPI_Comm_rank(comm_, &rank_);
   MPI_Comm_size(comm_, &rank_size_);
   MPI_Barrier(comm);
@@ -158,32 +159,41 @@ void PaperlessKV::Dispatch() {
       */
       // TODO: Wait for all Isend to be completed:
 
+      MPI_Request* rqs = static_cast<MPI_Request*>(
+          PAPERLESS::malloc(sizeof(MPI_Request) * batch_size_ * 3));
+      // This is required for messages to not destruct before they get send.
+      std::vector<Message> msgs;
 
+      auto it = handler.Get()->begin();
+      auto end = handler.Get()->end();
+      
+      while (it != end)
+      {
+        msgs.clear();
+        msgs.reserve(batch_size_);
+        
+        int pos = 0;
+        for(; pos < batch_size_ * 3 && it != end; pos += 3, ++it)  {
+          auto& key = it->first;
+          auto& value = it->second;
+          Hash hash = hash_function_(key.Value(), key.Length());
+          msgs.push_back(remoteOperator_.IPutSequential(key.GetView(), hash, value, &rqs[pos]));
+        }
+        MPI_Waitall(pos, rqs, MPI_STATUSES_IGNORE);
+      }
+      free(rqs);
 
     } else {
       // Send data one by one:
-      /*
+      
       for (const auto &[key, value] : *handler.Get()) {
         Hash hash = hash_function_(key.Value(), key.Length());
         // TODO: Send data with I_Send
         remoteOperator_.PutSequential(key.GetView(), hash, value);
       }
-       */
+      
 
-      const auto& map = *handler.Get();
-      MPI_Request* rqs = static_cast<MPI_Request*>(
-          PAPERLESS::malloc(sizeof(MPI_Request) * map.Count() * 3));
-      // This is required for messages to not destruct before they get send.
-      std::vector<Message> msgs;
-      msgs.reserve(map.Count());
-      size_t pos = 0;
-      for (const auto &[key, value] : *handler.Get()) {
-        Hash hash = hash_function_(key.Value(), key.Length());
-        msgs.push_back(remoteOperator_.IPutSequential(key.GetView(), hash, value, &rqs[pos]));
-        pos += 3;
-      }
-      MPI_Waitall(map.Count() * 3, rqs, MPI_STATUSES_IGNORE);
-      free(rqs);
+      
     }
 
     handler.Clear();
