@@ -1,6 +1,0 @@
-rank_count: 4
-keylen: 8
-vallen: 8
-count: 1000000
-update_ratio: 0
-cache_type: tree
