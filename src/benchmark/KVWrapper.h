@@ -20,15 +20,11 @@ char* key_set;
 
 
 char* get_key(int idx) {
-  return key_set + (idx * (keylen + 1));
+  return key_set + (idx * PAPERLESS::padLength(keylen + 1));
 }
 
 void generate_key_set() {
-#ifdef VECTORIZE
-  key_set = new(std::align_val_t{PAPERLESS::kStride}) char[PAPERLESS::roundToStrideLength(keylen + 1) * count];
-#else
-  key_set = new char[(keylen + 1) * count];
-#endif
+  key_set = (char*) PAPERLESS::malloc(PAPERLESS::padLength(keylen + 1) * count);
   for (size_t i = 0; i < count; i++) {
     rand_str(keylen, get_key(i));
   }

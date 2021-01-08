@@ -32,7 +32,16 @@ static inline __attribute__((always_inline)) uint64_t first_zero(
 
 bool operator<(const ElementView &lhs, const ElementView &rhs) {
 #ifdef VECTORIZE
-  size_t len = PAPERLESS::roundToStrideLength(std::min(lhs.len_, rhs.len_));
+#if not defined(NDEBUG)
+  assert(0 == ((size_t) v % PAPERLESS::kStride)
+               && R"(
+                  ERROR: v needs to be 32byte aligned. Use PAPERLESS::malloc() or alignas(64).
+                  Also make sure the length is a multiple of 64.
+                  Example:
+                  alignas(64) key[PAPERLESS::padLength(8)] = "__key__";
+ )");
+#endif
+  size_t len = PAPERLESS::padLength(std::min(lhs.len_, rhs.len_));
   for (size_t index = 0; index < len; index += PAPERLESS::kStride) {
     const __m256i pa_l1 = _mm256_load_si256(reinterpret_cast<const __m256i *>(lhs.Value() + index));
     const __m256i pa_r1 = _mm256_load_si256(reinterpret_cast<const __m256i *>(rhs.Value() + index));

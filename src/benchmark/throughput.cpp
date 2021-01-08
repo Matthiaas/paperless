@@ -24,8 +24,8 @@ int batch_size = 1000;
 
 void BenchmarkRandomData() {
   char* key;
-  char* put_val = new char[vallen];
-  char* get_val = new char[vallen];
+  char* put_val = (char*) PAPERLESS::malloc(vallen);
+  char* get_val = (char*) PAPERLESS::malloc(vallen);
   size_t get_vallen = vallen;
   size_t cnt_put = 0;
   size_t cnt_get = 0;
@@ -140,9 +140,5 @@ int main(int argc, char** argv)  {
 
     std::cout << put_time << " " << get_update_time << std::endl;
   }
-
-
-
-
 
 }

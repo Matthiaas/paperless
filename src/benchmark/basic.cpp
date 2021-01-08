@@ -1,9 +1,9 @@
 // https://code.ornl.gov/eck/papyrus/-/blob/master/kv/apps/sc17/basic.cpp
 
 #include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "../PaperlessKV.h"
 #include "OptionReader.h"
 #include "timer.h"
@@ -38,11 +38,11 @@ void rand_str(size_t len, char* str) {
 }
 
 char* get_key(int idx) {
-  return key_set + (idx * (keylen + 1));
+  return key_set + (idx * PAPERLESS::padLength(keylen + 1));
 }
 
 void generate_key_set() {
-  key_set = new char[(keylen + 1) * count];
+  key_set = (char*) PAPERLESS::malloc(PAPERLESS::padLength(keylen + 1) * count);
   for (size_t i = 0; i < count; i++) {
     rand_str(keylen, get_key(i));
   }
@@ -237,8 +237,8 @@ int main(int argc, char** argv) {
            time_min[3], time_max[3], time_sum[3] / size);
   }
 
-
   MPI_Finalize();
+  std::free(key_set);
 
   return 0;
 }
