@@ -5,7 +5,9 @@
 #ifndef PAPERLESS_STORAGEMANAGER_H
 #define PAPERLESS_STORAGEMANAGER_H
 
+
 #include <filesystem>
+#include <fcntl.h>
 #include <queue>
 #include <utility>
 
@@ -31,15 +33,12 @@ class StorageManager {
         cache_size_(cache_size) {
     writer_options_ = mtbl_writer_options_init();
     reader_options_ = mtbl_reader_options_init();
-    cur_file_index_ = 0;
 
     std::filesystem::create_directories(filter_dir_path_);
     std::filesystem::create_directories(sstable_dir_path_);
 
-    for (const auto &dirEntry : std::filesystem::recursive_directory_iterator(sstable_dir_path_)) {
-      uint64_t c = std::stoll(dirEntry.path().filename());
-      cur_file_index_ = std::max(cur_file_index_, c);
-    }
+    total_num_filters_ = HighestFileIndexInDir(sstable_dir_path_);
+
   }
 
   ~StorageManager() {
@@ -58,7 +57,7 @@ class StorageManager {
   }
 
  private:
-  uint64_t cur_file_index_;
+  uint64_t total_num_filters_;
   std::filesystem::path sstable_dir_path_;
   std::filesystem::path filter_dir_path_;
   mtbl_writer_options *writer_options_;
@@ -67,11 +66,22 @@ class StorageManager {
   size_t cache_size_;
 
   // file_index, filter, fd
-  std::deque<std::tuple<uint64_t, BloomFilter, int>> filters;
+  std::deque<std::tuple<uint64_t, BloomFilter, int>> filter_cache;
   static constexpr double filter_fp_rate_ = 0.01;
 
   QueryResult ReadSSTable(const std::string &file_path, const ElementView &key);
   QueryResult ReadSSTable(int fd, const ElementView &key);
+
+  static uint64_t HighestFileIndexInDir(const std::filesystem::path &dir_path) {
+    uint64_t file_index = 0;
+    for (const auto &dirEntry : std::filesystem::recursive_directory_iterator(dir_path)) {
+      uint64_t c = std::stoll(dirEntry.path().filename());
+      file_index = std::max(file_index, c);
+    }
+    return file_index;
+  }
+  inline uint64_t GetFirstUncachedFilterIndex() { return total_num_filters_ - filter_cache.size(); }
+  inline bool AllFiltersCached() { return total_num_filters_ <= filter_cache.size(); }
 };
 
 #endif //PAPERLESS_STORAGEMANAGER_H

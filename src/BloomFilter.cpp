@@ -42,7 +42,7 @@ bool BloomFilter::contains(const ElementView &e) const {
   return true;
 }
 
-void BloomFilter::DumpToFile(const std::string& path) {
+void BloomFilter::DumpToFile(const std::string& path) const {
   std::ofstream file {path, std::ios::out | std::ios::binary};
   uint8_t nh = num_hashes_;
   size_t size = bits_.size();

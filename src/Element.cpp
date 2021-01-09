@@ -33,8 +33,15 @@ static inline __attribute__((always_inline)) uint64_t first_zero(
 bool operator<(const ElementView &lhs, const ElementView &rhs) {
 #ifdef VECTORIZE
 #if not defined(NDEBUG)
-  assert(0 == ((size_t) v % PAPERLESS::kStride)
+  assert(0 == ((size_t) lhs.Value() % PAPERLESS::kStride)
                && R"(
+                  ERROR: v needs to be 32byte aligned. Use PAPERLESS::malloc() or alignas(64).
+                  Also make sure the length is a multiple of 64.
+                  Example:
+                  alignas(64) key[PAPERLESS::padLength(8)] = "__key__";
+ )");
+  assert(0 == ((size_t) rhs.Value() % PAPERLESS::kStride)
+             && R"(
                   ERROR: v needs to be 32byte aligned. Use PAPERLESS::malloc() or alignas(64).
                   Also make sure the length is a multiple of 64.
                   Example:
