@@ -459,6 +459,7 @@ void PaperlessKV::DeleteKey(const char *key, size_t key_len) {
 }
 
 void PaperlessKV::Fence() {
+  MPI_Barrier(comm_);
   remote_cache_.clear();
   Sync();
   MPI_Barrier(comm_);
@@ -466,25 +467,25 @@ void PaperlessKV::Fence() {
 
 void PaperlessKV::FenceAndChangeOptions(PaperlessKV::Consistency_t c,
                                         Mode_t mode) {
-
+  Sync();
+  consistency_ = c;
   if (c != RELAXED) {
     remote_cache_.clear();
   }
-  Sync();
-  consistency_ = c;
   mode_ = mode;
   MPI_Barrier(comm_);
 }
 
 void PaperlessKV::FenceAndCheckPoint() {
   remote_cache_.clear();
-  local_.Flush();
   Sync();
-  remote_.Flush();
+  local_.Flush();
   MPI_Barrier(comm_);
 }
 
 void PaperlessKV::Sync() {
   remote_.Flush();
+  MPI_Barrier(comm_);
   remoteOperator_.InitSync();
+  responder_.WaitForSync();
 }
