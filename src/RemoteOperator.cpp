@@ -146,7 +146,7 @@ void RemoteOperator::InitSync() {
   MPI_Barrier(comm_);
   int tag = getTag();
   Message m(Message::SYNC);
-  MPI_Request* request = static_cast<MPI_Request*>(PAPERLESS::malloc((rank_size_-1) * 2));
+  MPI_Request* request = static_cast<MPI_Request*>(PAPERLESS::malloc((rank_size_-1) * 2 * sizeof(MPI_Request)));
   int pos = 0;
   for (int i = 0; i < rank_size_; i++) {
     if (i == rank_) continue;
