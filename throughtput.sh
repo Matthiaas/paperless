@@ -2,7 +2,7 @@
 #BSUB -P paperless
 #BSUB -J workload
 #BSUB -R "rusage[scratch=5120] span[hosts=1]"
-#BSUB -o output.o%J
+#BSUB -o out.througput.o%J
 #BSUB -W 04:00
 #BSUB -n 48
 
