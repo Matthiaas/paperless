@@ -161,11 +161,6 @@ class PaperlessKV {
   void Dispatch();
   void Respond();
 
-  // Must to be called in every rank.
-  // Calls MPI_Barrier and unblocks when current rank is not precessing
-  // local puts from a remote rank.
-  void Sync();
-
   // Performs a LocalGet operation, given that the key is owned by this rank.
   QueryResult LocalGet(const ElementView& key, Hash hash);
   std::pair<QueryStatus, size_t> LocalGet(

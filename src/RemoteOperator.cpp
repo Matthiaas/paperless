@@ -65,7 +65,6 @@ QueryResult RemoteOperator::Get(const ElementView &key, Hash hash) {
 FutureQueryInfo RemoteOperator::IGet(const ElementView &key,
                                                    const ElementView &v_buff,
                                                    Hash hash) {
-
   Owner o = hash % rank_size_;
   int tag = getTag();
   FutureQueryInfo res(tag, key, hash);
@@ -122,9 +121,6 @@ void RemoteOperator::PutSequential(const ElementView &key, Hash hash,
                                    const Tomblement &value) {
   Put(key, hash, value, Message::PUT_REQUEST);
 }
-
-
-
 
 Message RemoteOperator::IPut(const ElementView &key, Hash hash,
                                     const Tomblement &value, MPI_Request *rqs) {
