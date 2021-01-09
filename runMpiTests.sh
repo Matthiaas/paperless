@@ -18,14 +18,14 @@ do
   done
 done
 
-#export DISPATCH_IN_CHUNKS=0
+export DISPATCH_IN_CHUNKS=1
 
-#for i in 1 2 4
-#do
-#  mpiexec -n $i ./build/mpi_tests "[${i}rank]"
-#  for ((j=0; j <$i; j++))
-#  do
-#    rm -r /tmp/PaperlessTest${j}
-#  done
-#done
+for i in 1 2 4
+do
+  mpiexec -n $i ./build/mpi_tests "[${i}rank]"
+  for ((j=0; j <$i; j++))
+  do
+    rm -r /tmp/PaperlessTest${j}
+  done
+done
 
