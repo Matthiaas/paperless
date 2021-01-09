@@ -107,12 +107,14 @@ void RemoteOperator::PutSequential(const ElementView &key, Hash hash,
   m.SendMessage(o, PAPERLESS_MSG_TAG, comm_);
   MPI_Send(key.Value(), key.Length(), MPI_CHAR, o, tag, comm_);
   MPI_Send(value.GetBuffer(), value.GetBufferLen(), MPI_CHAR, o, tag, comm_);
+  MPI_Recv(nullptr, 0, MPI_CHAR, o, tag, comm_, MPI_STATUS_IGNORE);
+
 }
 
 
 Message RemoteOperator::IPutSequential(const ElementView &key, Hash hash,
                                     const Tomblement &value, MPI_Request *rqs) {
-  Message m(Message::PUT_REQUEST);
+  Message m(Message::PUT_REQUEST_NO_RESPOND);
   int tag = getTag();
   Owner o = hash % rank_size_;
   m.SetTag(tag);
@@ -130,8 +132,11 @@ void RemoteOperator::InitSync() {
   MPI_Barrier(comm_);
   for (int i = 0; i < rank_size_; i++) {
     if (i == rank_) continue;
+    int tag = getTag();
     Message m(Message::SYNC);
+    m.SetTag(tag);
     m.SendMessage(i, PAPERLESS_MSG_TAG, comm_);
+    MPI_Recv(nullptr, 0, MPI_CHAR, i, tag, comm_, MPI_STATUS_IGNORE);
   }
 }
 int RemoteOperator::getTag() {

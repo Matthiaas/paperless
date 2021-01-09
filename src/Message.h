@@ -44,7 +44,8 @@ struct Message {
     I_GET_REQUEST = 1,
     SYNC = 3,
     KILL = 4,
-    QUERY_RESULT = 5
+    QUERY_RESULT = 5,
+    PUT_REQUEST_NO_RESPOND = 6
   };
 
   Message(Type t) {
