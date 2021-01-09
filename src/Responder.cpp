@@ -29,16 +29,13 @@ bool Responder::Respond() {
                                       &status);
   switch (m.GetType()) {
     case Message::Type::PUT_REQUEST:
-      HandlePut(m, status.MPI_SOURCE, true);
-      return true;
-    case Message::Type::PUT_REQUEST_NO_RESPOND:
-      HandlePut(m, status.MPI_SOURCE, false);
+      HandlePut(m, status.MPI_SOURCE);
       return true;
     case Message::Type::GET_REQUEST:
       HandleGet(m, status.MPI_SOURCE);
       return true;
     case Message::Type::SYNC:
-      HandleSync(m, status.MPI_SOURCE);
+      HandleSync();
       return true;
     case Message::Type::KILL:
       return false;
@@ -46,7 +43,7 @@ bool Responder::Respond() {
   throw "This is an error";
 }
 
-void Responder::HandlePut(const Message& msg, int src, bool respond) {
+void Responder::HandlePut(const Message& msg, int src) {
   Element key(msg.GetKeyLen());
   Tomblement value(msg.GetValueLen() - 1);
   MPI_Recv(key.Value(), msg.GetKeyLen(), MPI_CHAR, src, msg.GetTag(), comm_,
@@ -55,9 +52,7 @@ void Responder::HandlePut(const Message& msg, int src, bool respond) {
             comm_, MPI_STATUS_IGNORE);
   Owner o = msg.GetHash() % rank_size_;
   kv_->local_.Put(std::move(key), std::move(value), msg.GetHash(), o);
-  if(respond) {
-    MPI_Send(nullptr, 0, MPI_CHAR, src, msg.GetTag(), comm_);
-  }
+
 }
 
 void Responder::HandleGet(const Message& msg, int src) {
@@ -68,7 +63,8 @@ void Responder::HandleGet(const Message& msg, int src) {
   SendQueryResult(res, src, msg.GetTag());
 }
 
-void Responder::HandleSync(const Message& msg, int src) {
-  // Send Ack.
-  MPI_Send(nullptr, 0, MPI_CHAR, src, msg.GetTag(), comm_);
+void Responder::HandleSync() {
+ // There is no need to do anything here.
+ // Sender will recognize that this message was received which implies
+ // that all previous message from this ranks have been received and processed.
 }

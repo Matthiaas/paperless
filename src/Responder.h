@@ -18,8 +18,8 @@ class PaperlessKV;
 class Responder {
  public:
   bool Respond();
-  void HandleSync(const Message& msg, int src);
-  void HandlePut(const Message& msg, int src, bool respond);
+  void HandleSync();
+  void HandlePut(const Message& msg, int src);
   void HandleGet(const Message& msg, int src);
   void SendQueryResult(const std::pair<QueryStatus, size_t>& val, int target,
                        int tag);
