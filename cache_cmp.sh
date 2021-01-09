@@ -27,7 +27,7 @@ export MAX_REMOTE_MEMTABLE_SIZE=$GIGA
 export MAX_LOCAL_CACHE_SIZE=$GIGA
 export MAX_REMOTE_CACHE_SIZE=$GIGA
 export DISPATCH_IN_CHUNKS=0
-export STORAGE_LOCATION=/scratch/mydb
+export STORAGE_LOCATION=/scratch/mydb/
 
 for c in "${CORES[@]}"; do
   for i in "${RANKS[@]}"; do

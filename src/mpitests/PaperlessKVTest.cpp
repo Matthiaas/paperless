@@ -3,6 +3,8 @@
 #include <mpi.h>
 #include <zconf.h>
 #include "../PaperlessKV.h"
+#include <filesystem>
+#include <iostream>
 
 #include "../benchmark/OptionReader.h"
 #include "PaperLessKVFriend.h"
@@ -42,15 +44,27 @@ inline PaperlessKV::Options sequential =
         .Mode(PaperlessKV::READANDWRITE);
 
 
+void CleanUp() 
+{ 
+  std::error_code errorCode; 
+  if (!std::filesystem::remove_all(relaxed_options.strorage_location, errorCode)) { 
+    std::cout << errorCode.message() << std::endl; 
+  } 
+}
+
+
 
 TEST_CASE("LocalGetOnEmptyKV", "[1rank]")
 {
+  std::cout << relaxed_options.strorage_location << std::endl; 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   QueryResult qr = paper.get(key1, klen1);
   CHECK(qr == QueryStatus::NOT_FOUND);
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 
@@ -78,6 +92,8 @@ TEST_CASE("Local Put Checkpoint", "[1rank]")
     CHECK(qr->Length() == vlen2);
     CHECK(std::memcmp(qr->Value(), value2, klen2) == 0);
   }
+  paper.Shutdown(); 
+  CleanUp();
 
 }
 
@@ -95,14 +111,16 @@ TEST_CASE("Local Put Checkpoint++", "[1rank]")
     QueryResult qr = paper.get(key1, klen1);
     CHECK(qr->Length() == vlen1);
     CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
-
   }
   {
-    PaperlessKV new_paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
-    QueryResult qr = new_paper.get(key1, klen1);
+    PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
+    QueryResult qr = paper.get(key1, klen1);
     CHECK(qr->Length() == vlen1);
     CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
+    paper.Shutdown(); 
+  CleanUp();
   }
+  
 }
 
 TEST_CASE("Reading other values", "[1rank]")
@@ -115,6 +133,8 @@ TEST_CASE("Reading other values", "[1rank]")
 
   QueryResult qr = paper.get(key2, klen2);
   CHECK(qr.Status() == QueryStatus::NOT_FOUND);
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 TEST_CASE("Local Put local_cache", "[1rank]")
@@ -181,6 +201,8 @@ TEST_CASE("LocalGet into user provided buffer ", "[1rank]")
   qr = paper.get(key1, klen1, user_buff, 0);
   CHECK(qr.first == QueryStatus::BUFFER_TOO_SMALL);
   CHECK(qr.second == vlen1);
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 TEST_CASE("RemoteGet into user provided buffer ", "[2rank]")
@@ -207,7 +229,8 @@ TEST_CASE("RemoteGet into user provided buffer ", "[2rank]")
   CHECK(qr.first == QueryStatus::BUFFER_TOO_SMALL);
   CHECK(qr.second == vlen1);
   MPI_Barrier(MPI_COMM_WORLD);
-
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 
@@ -230,6 +253,8 @@ TEST_CASE("RemoteIGet into user provided buffer", "[2rank]") {
   CHECK(qr.second == vlen1);
   CHECK(memcmp(user_buff, value1, vlen1) == 0);
   paper.Fence();
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
@@ -269,7 +294,8 @@ TEST_CASE("Remote Get remote_caching in READONLY mode", "[2rank]")
 
   paper.Fence();
 
-
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 TEST_CASE("LocalPut", "[1rank]")
@@ -295,6 +321,8 @@ TEST_CASE("LocalPut", "[1rank]")
     CHECK(qr->Length() == vlen1);
     CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
   }
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 
@@ -323,6 +351,8 @@ TEST_CASE("LocalOverride", "[1rank]")
       CHECK(std::memcmp(qr->Value(), value2, klen2) == 0);
     }
   }
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 
@@ -358,7 +388,8 @@ TEST_CASE("RemoteGet", "[2rank]")
 
   paper.Fence();
 
-
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 TEST_CASE("RemotePutAndGet SEQUENTIAL", "[2rank]")
@@ -385,7 +416,8 @@ TEST_CASE("RemotePutAndGet SEQUENTIAL", "[2rank]")
     CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
   }
   paper.Fence();
-
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 
@@ -397,7 +429,7 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options.StorageLocation(relaxed_options.strorage_location + "/subfolder"));
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   if(rank == 0) {
     paper.put(key1, klen1, value1, vlen1);
   }
@@ -419,7 +451,8 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
   }
   MPI_Barrier(MPI_COMM_WORLD);
   paper.Fence();
-
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
@@ -457,6 +490,8 @@ TEST_CASE("RemotePutAndGet Relaxed Fence", "[2rank]")
   paper.Fence();
 
   MPI_Barrier(MPI_COMM_WORLD);
+  paper.Shutdown(); 
+  CleanUp();
 }
 
 
