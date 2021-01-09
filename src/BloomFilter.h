@@ -37,7 +37,7 @@ class BloomFilter {
     return bits_.size();
   }
 
-  void DumpToFile(const std::string& path);
+  void DumpToFile(const std::string& path) const;
 
   static BloomFilter CreateFromFile(const std::string& path);
 
