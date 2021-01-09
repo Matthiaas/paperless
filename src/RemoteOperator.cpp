@@ -144,18 +144,24 @@ Message RemoteOperator::IPut(const ElementView &key, Hash hash,
 
 void RemoteOperator::InitSync() {
   MPI_Barrier(comm_);
+  int tag = getTag();
+  Message m(Message::SYNC);
+  MPI_Request* request = static_cast<MPI_Request*>(PAPERLESS::malloc((rank_size_-1) * 2));
+  int pos = 0;
   for (int i = 0; i < rank_size_; i++) {
     if (i == rank_) continue;
-    int tag = getTag();
-    Message m(Message::SYNC);
     m.SetTag(tag);
-    m.SendMessage(i, PAPERLESS_MSG_TAG, comm_);
-    MPI_Recv(nullptr, 0, MPI_CHAR, i, tag, comm_, MPI_STATUS_IGNORE);
+    m.I_SendMessage(i, PAPERLESS_MSG_TAG, comm_, &request[pos]);
+    MPI_Irecv(nullptr, 0, MPI_CHAR, i, tag, comm_, &request[pos+1]);
+    pos += 2;
   }
+  MPI_Waitall((rank_size_-1)*2, request, MPI_STATUSES_IGNORE);
 }
+
 int RemoteOperator::getTag() {
   return min_get_key + (cur_get_key++ % (max_get_key - min_get_key));
 }
+
 void RemoteOperator::Kill() {
   Message m(Message::KILL);
   m.SendMessage(rank_, PAPERLESS_MSG_TAG, comm_);
