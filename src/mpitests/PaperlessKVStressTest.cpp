@@ -187,7 +187,8 @@ TEST_CASE("ManyPutsAndGets READONLY Mode", "[4rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, 7, relaxed_options);
+  PaperlessKV paper(id, MPI_COMM_WORLD, 7,
+      relaxed_options.Consistency(PaperlessKV::SEQUENTIAL));
 
   int size_per_rank = 10000;
 
