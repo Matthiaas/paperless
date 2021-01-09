@@ -5,8 +5,18 @@ option(IS_CLUSTER "Indicates whether cmake is run on the cluster or not." OFF)
 option(VECTORIZE "Use SIMD for comparison." OFF)
 
 # Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
-find_package(MPI REQUIRED)
+# Java wrappers have to be compiled with openmpi3.0.1, otherwise they segfault.
+if (JAVA_WRAPPERS)
+  set(MPI_CXX_COMPILER "/cluster/apps/gcc-8.2.0/openmpi-3.0.1-s2niw66n4q2bopate22cvkevcdfief4d/bin/mpicxx")
+  find_package(MPI REQUIRED)
+  find_library(OpenMPI REQUIRED)
+  set(MPI_CXX_LIBRARIES "/cluster/apps/gcc-8.2.0/openmpi-3.0.1-s2niw66n4q2bopate22cvkevcdfief4d/lib/libmpi_cxx.so;/cluster/apps/gcc-8.2.0/openmpi-3.0.1-s2niw66n4q2bopate22cvkevcdfief4d/lib/libmpi.so")
+else()
+  find_package(MPI REQUIRED)
+endif()
+
 MESSAGE (STATUS "MPI_CXX_COMPILER ${MPI_CXX_COMPILER}")
+MESSAGE (STATUS "MPI_CXX_LIBRARIES ${MPI_CXX_LIBRARIES}")
 
 if (NOT "${MPI_CXX_COMPILER}" STREQUAL "MPI_CXX_COMPILER-NOTFOUND")
     set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
@@ -43,7 +53,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer")
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
 
-
+# This is a hotfix for mtbl on the cluster.
 if (IS_CLUSTER)
   # Non-global LD_LIBRARY_PATH equivalent.
   set(CMAKE_INSTALL_RPATH "~/usr/lib")
@@ -132,6 +142,8 @@ set(CMP_VECTOR_BENCHMARK_SOURCES
 
 set(C_INTERFACE_SOURCES
         src/benchmark/KVWrapper.h
+        src/benchmark/OptionReader.cpp
+        src/benchmark/OptionReader.h
         src/benchmark/c_interface.h
         src/benchmark/c_interface.cpp)
 
@@ -223,7 +235,6 @@ target_link_libraries(main PUBLIC paperless mtbl)
 
 
 
-
 target_link_libraries(thegreatbenchmark_paperless mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(thegreatbenchmark_paperless PRIVATE PAPERLESS_BENCHMARK)
 target_link_libraries(thegreatbenchmark_paperless_hash_cache mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
@@ -238,8 +249,15 @@ target_compile_definitions(throughput_paperless PRIVATE PAPERLESS_BENCHMARK)
 target_link_libraries(throughput_papyrus mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(throughput_papyrus PRIVATE PAPYRUS_BENCHMARK)
 
-target_link_libraries(c_interface_paperless mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
+target_link_libraries(c_interface_paperless mtbl paperless smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(c_interface_paperless PRIVATE PAPERLESS_BENCHMARK)
+set_property(TARGET c_interface_paperless PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+target_include_directories(c_interface_paperless
+ INTERFACE
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/benchmark
+)
+
 target_link_libraries(c_interface_papyrus mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(c_interface_papyrus PRIVATE PAPYRUS_BENCHMARK)
 
@@ -250,3 +268,22 @@ target_link_libraries(mtm_comparison mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES}
 target_link_libraries(tests mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(mpi_tests mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(mpi_probe_multiple_threads ${MPI_CXX_LIBRARIES} pthread)
+
+# Bless me, Father, for I have sinned.
+if (JAVA_WRAPPERS)
+    find_package(SWIG REQUIRED COMPONENTS java)
+    SET(CMAKE_SWIG_FLAGS -package site.ycsb.db)
+
+    include(${SWIG_USE_FILE})
+    find_package(JNI REQUIRED)
+    set_source_files_properties(src/benchmark/paperless.i PROPERTIES
+        CPLUSPLUS ON
+        USE_LIBRARY_INCLUDE_DIRECTORIES TRUE
+    )
+    swig_add_library(paperless_swig  LANGUAGE java SOURCES src/benchmark/paperless.i)
+
+    target_link_libraries(paperless_swig PRIVATE c_interface_paperless)
+    set_property(TARGET paperless_swig PROPERTY POSITION_INDEPENDENT_CODE ON)
+    set_property(TARGET paperless_swig PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE)
+    target_include_directories(paperless_swig PRIVATE ${JNI_INCLUDE_DIRS})
+endif()
