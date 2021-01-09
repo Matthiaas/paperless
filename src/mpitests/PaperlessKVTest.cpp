@@ -46,6 +46,7 @@ inline PaperlessKV::Options sequential =
 
 void CleanUp() 
 { 
+  MPI_Barrier(MPI_COMM_WORLD);
   std::error_code errorCode; 
   if (!std::filesystem::remove_all(relaxed_options.strorage_location, errorCode)) { 
     std::cout << errorCode.message() << std::endl; 
@@ -56,7 +57,6 @@ void CleanUp()
 
 TEST_CASE("LocalGetOnEmptyKV", "[1rank]")
 {
-  std::cout << relaxed_options.strorage_location << std::endl; 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
