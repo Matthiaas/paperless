@@ -18,6 +18,8 @@ do
   done
 done
 
+rm -r /tmp/PaperlessTest
+
 export DISPATCH_IN_CHUNKS=1
 
 for i in 1 2 4
@@ -29,3 +31,4 @@ do
   done
 done
 
+rm -r /tmp/PaperlessTest

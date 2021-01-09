@@ -48,7 +48,6 @@ TEST_CASE("LocalGetOnEmptyKV", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  std::cout << "asdfasdf" << relaxed_options.StorageLocation("hallo").strorage_location << std::endl;
   PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
   QueryResult qr = paper.get(key1, klen1);
   CHECK(qr == QueryStatus::NOT_FOUND);
@@ -87,18 +86,23 @@ TEST_CASE("Local Put Checkpoint++", "[1rank]")
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
-  paper.put(key1, klen1, value1, vlen1);
-  paper.FenceAndCheckPoint();
+  {
 
-  QueryResult qr = paper.get(key1, klen1);
-  CHECK(qr->Length() == vlen1);
-  CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
+    PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
+    paper.put(key1, klen1, value1, vlen1);
+    paper.FenceAndCheckPoint();
 
-  PaperlessKV new_paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
-  qr = new_paper.get(key1, klen1);
-  CHECK(qr->Length() == vlen1);
-  CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
+    QueryResult qr = paper.get(key1, klen1);
+    CHECK(qr->Length() == vlen1);
+    CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
+
+  }
+  {
+    PaperlessKV new_paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
+    QueryResult qr = new_paper.get(key1, klen1);
+    CHECK(qr->Length() == vlen1);
+    CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
+  }
 }
 
 TEST_CASE("Local Put local_cache", "[1rank]")
@@ -381,9 +385,8 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::string id = "/tmp/PaperlessTest";
 
-  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options.StorageLocation(relaxed_options.strorage_location + "/subfolder"));
   if(rank == 0) {
-
     paper.put(key1, klen1, value1, vlen1);
   }
 
@@ -397,6 +400,8 @@ TEST_CASE("RemotePutAndGet Relaxed", "[2rank]")
     }
   } else {
     QueryResult qr = paper.get(key1, klen1);
+    //CHECK(qr->Length() == vlen1);
+    //CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
     CHECK(!qr.hasValue());
     CHECK(qr.Status() == QueryStatus::NOT_FOUND);
   }
