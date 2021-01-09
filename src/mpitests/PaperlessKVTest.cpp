@@ -82,6 +82,25 @@ TEST_CASE("Local Put Checkpoint", "[1rank]")
 
 }
 
+TEST_CASE("Local Put Checkpoint++", "[1rank]")
+{
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  std::string id = "/tmp/PaperlessTest";
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
+  paper.put(key1, klen1, value1, vlen1);
+  paper.FenceAndCheckPoint();
+
+  QueryResult qr = paper.get(key1, klen1);
+  CHECK(qr->Length() == vlen1);
+  CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
+
+  PaperlessKV new_paper(id, MPI_COMM_WORLD, hash_fun, relaxed_options);
+  qr = new_paper.get(key1, klen1);
+  CHECK(qr->Length() == vlen1);
+  CHECK(std::memcmp(qr->Value(), value1, klen1) == 0);
+}
+
 TEST_CASE("Local Put local_cache", "[1rank]")
 {
   // Cache order was changed to a different one.

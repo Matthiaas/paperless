@@ -64,3 +64,18 @@ TEST_CASE("Check with on-disk bloomfilter") {
 
   storage_manager.deleteDisk();
 }
+
+TEST_CASE("Reopening StorageManager preserves data") {
+  std::string dir = "/tmp/StorageManagerTest/";
+  StorageManager storage_manager {dir};
+
+  RBTreeMemoryTable mtable1{};
+  mtable1.put(ELEMENTVIEW(key1), TOMBLEMENT(value1));
+  storage_manager.flushToDisk(mtable1);
+  REQUIRE(storage_manager.readFromDisk(ELEMENTVIEW(key1)).Value() == ELEMENTVIEW(value1));
+
+  StorageManager new_storage_manager {dir};
+  REQUIRE(new_storage_manager.readFromDisk(ELEMENTVIEW(key1)).Value() == ELEMENTVIEW(value1));
+
+  storage_manager.deleteDisk();
+}
