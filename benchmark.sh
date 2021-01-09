@@ -20,7 +20,7 @@ export MAX_LOCAL_MEMTABLE_SIZE=10000000
 export MAX_REMOTE_MEMTABLE_SIZE=10000000
 export MAX_LOCAL_CACHE_SIZE=10000000
 export MAX_REMOTE_CACHE_SIZE=10000000
-export DISPATCH_IN_CHUNKS=0
+export DISPATCH_IN_CHUNKS=1
 export STORAGE_LOCATION=/scratch/mydb/
 
 
@@ -32,7 +32,6 @@ for c in "${CORES[@]}"; do
          mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/exp/paperless/ranks$i
          echo mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/exp/papyrus/ranks$i
          mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/exp/papyrus/ranks$i
-         rm -r $STORAGE_LOCATION
       done
   done
 done

@@ -48,10 +48,8 @@ for i in "${RANKS[@]}"; do
       mkdir -p $SEQ_PATH
       echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_$KV $KEYLEN $VALLEN $COUNT $j $REL_PATH REL
       mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_$KV $KEYLEN $VALLEN $COUNT $j $REL_PATH REL
-      rm -rf ${STORAGE_LOCATION}*
       echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_$KV $KEYLEN $VALLEN $COUNT $j $SEQ_PATH SEQ
       mpirun -np $i ${MPIRUN_FLAGS[@]}  ./build/thegreatbenchmark_$KV $KEYLEN $VALLEN $COUNT $j $SEQ_PATH SEQ 
-      rm -rf ${STORAGE_LOCATION}*
     done
   done
 done

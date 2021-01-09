@@ -22,11 +22,12 @@ RANKS=(1 2 8 16 32) #8 16 20) # 40 80 160 320)
 CORES=(1 2)
 
 
+
 export MAX_LOCAL_MEMTABLE_SIZE=$GIGA
 export MAX_REMOTE_MEMTABLE_SIZE=$GIGA
 export MAX_LOCAL_CACHE_SIZE=$GIGA
 export MAX_REMOTE_CACHE_SIZE=$GIGA
-export DISPATCH_IN_CHUNKS=0
+export DISPATCH_IN_CHUNKS=1
 export STORAGE_LOCATION=/cluster/mydb/
 
 for c in "${CORES[@]}"; do
@@ -34,7 +35,6 @@ for c in "${CORES[@]}"; do
       for j in "${VALLEN[@]}"; do
          echo mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${KEYLEN}"ksize"${j}"vsize/ranks$i
          mpirun --map-by node:PE=$c -np $i ./build/thegreatbenchmark_paperless $KEYLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${KEYLEN}"ksize"${j}"vsize/ranks$i
-
       done
   done
 done
