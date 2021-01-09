@@ -64,17 +64,7 @@ void Responder::HandleGet(const Message& msg, int src) {
 }
 
 void Responder::HandleSync() {
-  std::lock_guard<std::mutex> lck(fence_mutex);
-  fence_calls_received++;
-  if (fence_calls_received == rank_size_ - 1) {
-    fence_wait.notify_all();
-  }
-}
-
-void Responder::WaitForSync() {
-  std::unique_lock<std::mutex> lck(fence_mutex);
-  if (fence_calls_received != rank_size_ - 1) {
-    fence_wait.wait(lck);
-  }
-  fence_calls_received = 0;
+ // There is no need to do anything here.
+ // Sender will recognize that this message was received which implies
+ // that all previous message from this ranks have been received and processed.
 }
