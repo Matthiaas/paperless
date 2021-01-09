@@ -90,16 +90,6 @@ public:
     wbuffer_.WaitUntilEmpty();
   }
 
-  void FlushNoWait() {
-    std::lock_guard<std::mutex> lock(mtable_mutex_);
-    wbuffer_.Enqueue(std::move(mtable_));
-    mtable_ = std::make_unique<MemoryTable>();
-  }
-
-  void WaitForFlushToComplete() {
-    wbuffer_.WaitUntilEmpty();
-  }
-
   // Flushes all values and sends poison pills to consumers. Concurrent writes during
   // Shutdown() call lead to undefined behaviour.
   void Shutdown() {
