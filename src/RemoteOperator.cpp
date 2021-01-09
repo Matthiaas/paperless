@@ -156,6 +156,7 @@ void RemoteOperator::InitSync() {
     pos += 2;
   }
   MPI_Waitall((rank_size_-1)*2, request, MPI_STATUSES_IGNORE);
+  free(request);
 }
 
 int RemoteOperator::getTag() {
