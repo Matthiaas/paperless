@@ -105,6 +105,18 @@ TEST_CASE("Local Put Checkpoint++", "[1rank]")
   }
 }
 
+TEST_CASE("Reading other values", "[1rank]")
+{
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  std::string id = "/tmp/PaperlessTest";
+  PaperlessKV paper(id, MPI_COMM_WORLD, hash_fun, sequential);
+  paper.put(key1, klen1, value1, vlen1);
+
+  QueryResult qr = paper.get(key2, klen2);
+  CHECK(qr.Status() == QueryStatus::NOT_FOUND);
+}
+
 TEST_CASE("Local Put local_cache", "[1rank]")
 {
   // Cache order was changed to a different one.
