@@ -81,6 +81,10 @@ inline void Get(const char* key, size_t key_len,
 inline void Finalize() {
   //std::cout << "found: " << found << std::endl;
   paper->Shutdown();
+  std::error_code errorCode; 
+  if (!std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
+    std::cout << errorCode.message() << std::endl; 
+  }
   MPI_Finalize();
 }
 
@@ -145,6 +149,10 @@ namespace KV {
 
   inline void Finalize() {
     paper->Shutdown();
+    std::error_code errorCode; 
+    if (!std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
+      std::cout << errorCode.message() << std::endl; 
+    }
     MPI_Finalize();
   }
 
