@@ -24,11 +24,15 @@ class RemoteOperator {
 
 
   QueryResult Get(const ElementView &key, Hash hash);
+  void Put(const ElementView &key, Hash hash,
+                     const Tomblement &value, Message::Type t);
+  void PutRelaxed(const ElementView &key, Hash hash,
+                     const Tomblement &value);
   void PutSequential(const ElementView &key, Hash hash,
                      const Tomblement &value);
 
   // rqs should be an array of at least length 3
-  Message IPutSequential(const ElementView &key, Hash hash,
+  Message IPut(const ElementView &key, Hash hash,
                      const Tomblement &value, MPI_Request* rqs);
 
   void InitSync();

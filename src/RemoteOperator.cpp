@@ -95,9 +95,10 @@ std::pair<QueryStatus, size_t> RemoteOperator::Get(const ElementView &key,
   }
 }
 
-void RemoteOperator::PutSequential(const ElementView &key, Hash hash,
-                                   const Tomblement &value) {
-  Message m(Message::PUT_REQUEST);
+
+void RemoteOperator::Put(const ElementView &key, Hash hash,
+                         const Tomblement &value, Message::Type t) {
+  Message m(t);
   int tag = getTag();
   Owner o = hash % rank_size_;
   m.SetTag(tag);
@@ -107,12 +108,25 @@ void RemoteOperator::PutSequential(const ElementView &key, Hash hash,
   m.SendMessage(o, PAPERLESS_MSG_TAG, comm_);
   MPI_Send(key.Value(), key.Length(), MPI_CHAR, o, tag, comm_);
   MPI_Send(value.GetBuffer(), value.GetBufferLen(), MPI_CHAR, o, tag, comm_);
-  MPI_Recv(nullptr, 0, MPI_CHAR, o, tag, comm_, MPI_STATUS_IGNORE);
-
+  if( t == Message::PUT_REQUEST) {
+    MPI_Recv(nullptr, 0, MPI_CHAR, o, tag, comm_, MPI_STATUS_IGNORE);
+  }
+}
+void RemoteOperator::PutRelaxed(const ElementView &key, Hash hash,
+                                const Tomblement &value) {
+  Put(key, hash, value, Message::PUT_REQUEST_NO_RESPOND);
 }
 
 
-Message RemoteOperator::IPutSequential(const ElementView &key, Hash hash,
+void RemoteOperator::PutSequential(const ElementView &key, Hash hash,
+                                   const Tomblement &value) {
+  Put(key, hash, value, Message::PUT_REQUEST);
+}
+
+
+
+
+Message RemoteOperator::IPut(const ElementView &key, Hash hash,
                                     const Tomblement &value, MPI_Request *rqs) {
   Message m(Message::PUT_REQUEST_NO_RESPOND);
   int tag = getTag();
@@ -146,3 +160,4 @@ void RemoteOperator::Kill() {
   Message m(Message::KILL);
   m.SendMessage(rank_, PAPERLESS_MSG_TAG, comm_);
 }
+
