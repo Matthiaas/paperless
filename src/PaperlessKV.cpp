@@ -177,8 +177,7 @@ void PaperlessKV::Dispatch() {
           auto& key = it->first;
           auto& value = it->second;
           Hash hash = hash_function_(key.Value(), key.Length());
-          msgs.push_back(
-              remoteOperator_.IPut(key.GetView(), hash, value, &rqs[pos]));
+          msgs.push_back(remoteOperator_.IPutSequential(key.GetView(), hash, value, &rqs[pos]));
         }
         MPI_Waitall(pos, rqs, MPI_STATUSES_IGNORE);
       }
@@ -190,7 +189,7 @@ void PaperlessKV::Dispatch() {
       for (const auto &[key, value] : *handler.Get()) {
         Hash hash = hash_function_(key.Value(), key.Length());
         // TODO: Send data with I_Send
-        remoteOperator_.PutRelaxed(key.GetView(), hash, value);
+        remoteOperator_.PutSequential(key.GetView(), hash, value);
       }
       
 
