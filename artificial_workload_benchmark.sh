@@ -37,9 +37,9 @@ mpirun --version
 MPIRUN_FLAGS=("--report-bindings" "--map-by" "node:pe=2")
 
 rm -rf ${STORAGE_LOCATION}*
-for i in "${RANKS[@]}"; do
-  for j in "${UPDATE_RATIO[@]}"; do
-    for k in $(seq $N_RUNS); do
+for k in $(seq $N_RUNS); do
+  for i in "${RANKS[@]}"; do
+    for j in "${UPDATE_RATIO[@]}"; do
       echo "ratio$j/ranks$i/run$k"
       PAPERLESS_PATH=$DATA_LOCATION/paperless/ratio$j/ranks$i/run$k
       PAPYRUS_PATH=$DATA_LOCATION/papyrus/ratio$j/ranks$i/run$k
