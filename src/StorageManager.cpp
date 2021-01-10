@@ -92,7 +92,7 @@ std::pair<QueryStatus, size_t> StorageManager::readFromDisk(
     if (qr->Length() > buff.Length()) {
       return {QueryStatus::BUFFER_TOO_SMALL, qr->Length()};
     } else {
-      std::memcpy(qr->Value(), buff.Value(), qr->Length());
+      std::memcpy(buff.Value(), qr->Value(), qr->Length());
       return {QueryStatus::FOUND, qr->Length()};
     }
   }
