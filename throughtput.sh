@@ -35,6 +35,8 @@ EXPERIMENT=throughput_one_host
 export STORAGE_LOCATION=/scratch/$EXPERIMENT/
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 
+rm -r DATA_LOCATION
+
 for k in $(seq $N_RUNS); do
   for c in "${CORES[@]}"; do
     for i in "${RANKS[@]}"; do
