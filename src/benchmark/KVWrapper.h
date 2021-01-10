@@ -85,7 +85,7 @@ inline void Finalize() {
   if (!std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
     std::cout << errorCode.message() << std::endl; 
   }
-  MPI_Finalize();
+
 }
 
 inline int GetOwner(const char* key, size_t key_len) {
@@ -153,7 +153,6 @@ namespace KV {
     if (!std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
       std::cout << errorCode.message() << std::endl; 
     }
-    MPI_Finalize();
   }
 
   inline int GetOwner(const char* key, size_t key_len) {
@@ -249,7 +248,6 @@ namespace KV {
     int ret = papyruskv_close(db);
     if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
     papyruskv_finalize();
-    MPI_Finalize();
   }
 
   inline int GetOwner(const char* key, size_t key_len) {

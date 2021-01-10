@@ -137,4 +137,6 @@ int main(int argc, char** argv)  {
   put_file << ",put_time:" << put_time;
   put_file << ",get_update_time:" << get_update_time << std::endl;
   put_file.close();
+
+  MPI_Finalize();
 }

@@ -31,4 +31,5 @@ void kv_get(const char* key, size_t key_len, char* value, size_t value_len) {
 
 void kv_finalize() {
   KV::Finalize();
+  MPI_Finalize();
 }
