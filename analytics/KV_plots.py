@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.7.1
+#       jupytext_version: 1.9.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -34,7 +34,7 @@ import re
 #os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/wfloris/github/paperless/analytics"
 
 
-data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data"
+data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/paperless-data"
 
 
 # + [markdown] pycharm={}
@@ -121,7 +121,7 @@ for experiment in experiments:
 # +
 experiment = 'final/artificial_workload'
 ratios = [0, 50, 5]
-rank_sizes = [1, 2, 4, 8, 12, 16]
+rank_sizes = [1, 2, 4]
 dbs = ['paperless', 'papyrus']
 
 
@@ -182,20 +182,21 @@ def OpTimeForRunPerRank(experiment_name, run_idx, plot_data):
 
 
 # +
-plot_data_1_core_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
-plot_data_1_core_per_rank = OpTimeForRunPerRank('final/artificial_workload', 1, plot_data_1_core_per_rank)
-plot_data_1_core_per_rank = OpTimeForRunPerRank('final/artificial_workload', 2, plot_data_1_core_per_rank)
+#plot_data_1_core_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
+#plot_data_1_core_per_rank = OpTimeForRunPerRank('artificial_workload_1core_final', 1, plot_data_1_core_per_rank)
+#plot_data_1_core_per_rank = OpTimeForRunPerRank('artificial_workload_1core_final', 2, plot_data_1_core_per_rank)
 
 plot_data_2_core_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
-plot_data_2_core_per_rank = OpTimeForRunPerRank('final/artificial_workload_2core', 1, plot_data_2_core_per_rank)
-plot_data_2_core_per_rank = OpTimeForRunPerRank('final/artificial_workload_2core', 2, plot_data_2_core_per_rank)
+plot_data_2_core_per_rank = OpTimeForRunPerRank('artificial_workload_2core_final', 1, plot_data_2_core_per_rank)
+plot_data_2_core_per_rank = OpTimeForRunPerRank('artificial_workload_2core_final', 2, plot_data_2_core_per_rank)
 
 
+# +
 
+plot_data_2_core_n_host_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('artificial_workload_2core_final_nhosts', 1, plot_data_2_core_n_host_per_rank)
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('artificial_workload_2core_final_nhosts', 2, plot_data_2_core_n_host_per_rank)
 
-#plot_data_2_core_per_size = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
-#plot_data_2_core_per_size = OpTimeForRunPerRank('final/artificial_workload_2core', 1, plot_data_2_core_per_size)
-#plot_data_2_core_per_size = OpTimeForRunPerRank('final/artificial_workload_2core', 2, plot_data_2_core_per_size)
 
 # +
 
@@ -300,7 +301,23 @@ def PlotSingleOperionTimesPerRank(plot_data, optypes = ['localPut', 'localGet', 
 
 
 # -
-PlotSingleOperionTimesPerRank(plot_data_1_core_per_rank)
+def PlotSingleOperionTimesDist(plot_data, optypes = ['localPut', 'localGet', 'remotePut', 'remoteGet'], lable='Optime for ', yLable = 'Operation time in nanoseconds'):
+    for op_type in optypes:
+        #for ratio in ratios:
+        print(lable + op_type)
+        select = (plot_data['optype'] == op_type) & (plot_data['rank_size'] == 4)
+        sns.histplot(data=plot_data[select], x='optime', hue='db', log_scale=(True,True) )
+        #sns.swarmplot(data=plot_data[select], x='rank_size', y='optime', hue='db')
+        #sns.violinplot(data=plot_data[select],  x='rank_size', y='optime', hue='db', split=True)
+        #plt.show()
+        break
+
+
+
+PlotSingleOperionTimesDist(plot_data_2_core_n_host_per_rank)
+#PlotSingleOperionTimesDist(plot_data_2_core_per_rank)
+
+PlotSingleOperionTimesPerRank(plot_data_2_core_n_host_per_rank)
 PlotSingleOperionTimesPerRank(plot_data_2_core_per_rank)
 
 
@@ -403,11 +420,32 @@ plotThroughputs(two_core_data)
 
 NANO_TO_SEC = 1000000000
 
+def CleanLinesFromErrors(lines):
+    
+    i = 0
+    while i < len(lines):
+        first = lines[i]
+        if not first.startswith("mpirun"):
+            continue
+        i = i+1
+        err = False
+        while i < len(lines) and lines[i].startswith("["):
+            err = True
+            i = i + 1
+        if not err:
+            second = lines[i]
+            i = i + 1
+            yield first, second
+        
+    
+
 def GetThroughputData(experiment):
     with open(data_path + experiment, 'r') as f:
         lines = f.readlines()
-
-    pairs = list(zip(lines[0::2], lines[1::2]))
+        
+    pairs = CleanLinesFromErrors(lines)
+    
+    #pairs = list(zip(lines[0::2], lines[1::2]))
 
     reg = re.compile("mpirun --map-by node:PE=2 -np ([0-9]+) ./build/throughput_([a-zA-z]+) [0-9]+ [0-9]+ ([0-9]+) ([0-9]+) [0-9a-zA-z/]+")
 
@@ -441,7 +479,7 @@ def GetThroughputData(experiment):
 
 # +
 
-experiments = ['/throughput/5PercentPutsLessInserts.txt','/throughput/out4.txt','/throughput/5PercentPuts.txt']
+experiments = ['/througput/n_hosts_througput.txt','/througput/one_host_througput.txt']
 
 for experiment in experiments:
     PlotSingleOperionTimesPerRank(GetThroughputData(experiment), ["update/get", "put"],lable = experiment + ', Throughput for ', yLable= 'Operations per Second')
