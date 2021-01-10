@@ -82,7 +82,7 @@ inline void Finalize() {
   //std::cout << "found: " << found << std::endl;
   paper->Shutdown();
   std::error_code errorCode; 
-  if (!std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
+  if (std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
     std::cout << errorCode.message() << std::endl; 
   }
 
@@ -150,7 +150,7 @@ namespace KV {
   inline void Finalize() {
     paper->Shutdown();
     std::error_code errorCode; 
-    if (!std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
+    if (std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
       std::cout << errorCode.message() << std::endl; 
     }
   }
@@ -165,7 +165,9 @@ namespace KV {
 
 #include <mpi.h>
 #include <string>
+#include <iostream>
 #include "../PaperlessKV.h"
+#include "OptionReader.h"
 #include <smhasher/MurmurHash3.h>
 #include "../../papyrus/include/papyrus/kv.h"
 #include "../../papyrus/include/papyrus/mpi.h"
@@ -189,7 +191,7 @@ namespace KV {
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    std::string storage_directory = argv[5];
+    std::string storage_directory = "$STORAGE_LOCATION";
     papyruskv_init(&argc, &argv, storage_directory.c_str());
 
     papyruskv_option_t opt;
@@ -248,6 +250,10 @@ namespace KV {
     int ret = papyruskv_close(db);
     if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
     papyruskv_finalize();
+    std::error_code errorCode; 
+    if (std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
+      std::cout << errorCode.message() << std::endl; 
+    }
   }
 
   inline int GetOwner(const char* key, size_t key_len) {
