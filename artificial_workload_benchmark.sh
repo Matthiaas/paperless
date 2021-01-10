@@ -22,16 +22,33 @@ N_RUNS=30
 #RANKS=(1 2)
 #N_RUNS=3
 
+# Paperless parameters.
+
 export MAX_LOCAL_MEMTABLE_SIZE=$GIGA
-export MAX_REMOTE_MEMTABLE_SIZE=$GIGA
+# MAX_REMOTE_MEMTABLE_SIZE has to be set to MAX_LOCAL_MEMTABLE_SIZE because papyrus uses
+# one param to set both sizes.
+export MAX_REMOTE_MEMTABLE_SIZE=$MAX_LOCAL_MEMTABLE_SIZE
 export MAX_LOCAL_CACHE_SIZE=$GIGA
-export MAX_REMOTE_CACHE_SIZE=$GIGA
+# Same as for memtable size.
+export MAX_REMOTE_CACHE_SIZE=$MAX_LOCAL_CACHE_SIZE
 export DISPATCH_IN_CHUNKS=1
 EXPERIMENT=artificial_workload_2core
 export STORAGE_LOCATION=/scratch/$EXPERIMENT/
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
-#export STORAGE_LOCATION=/home/julia/eth/dphpc/paperless/analytics/data/$EXPERIMENT/checkpoints
-#DATA_LOCATION=/home/julia/eth/dphpc/paperless/analytics/data/$EXPERIMENT
+
+# Papyrus parameters.
+# Enable usage of caches.
+export PAPYRUSKV_CACHE_LOCAL=1
+export PAPYRUSKV_CACHE_REMOTE=1
+export PAPYRUSKV_MEMTABLE_SIZE=$MAX_LOCAL_MEMTABLE_SIZE
+# Remote buffer size is kept default (128KB), as Paperless doesn't have such a thing.
+# We are benchmarking with 128KB values, so the KV pairs are quite big already and with
+# the default settings the remote buffer gets disabled anyway.
+# export PAPYRUSKV_REMOTE_BUFFER_SIZE=...
+# PAPYRUSKV_REMOTE_BUFFER_ENTRY_MAX -- max size of value in remote buffer, if value size is specified. Default 4KB
+export PAPYRUSKV_CACHE_SIZE=$MAX_LOCAL_CACHE_SIZE
+export PAPYRUSKV_DESTROY_REPOSITORY=1 # Gets rid of the data afterwards.
+
 
 mpirun --version
 MPIRUN_FLAGS=("--report-bindings" "--map-by" "node:pe=2")
