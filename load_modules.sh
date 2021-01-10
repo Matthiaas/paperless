@@ -9,8 +9,11 @@
 # this script, so I used contents of "which env2lmod"  
 . /cluster/apps/local/env2lmod.sh
 
+# meraculous dependencies
+module load rdma-core/20
+
 # Paperless dependencies
-module load gcc/8.2.0 cmake/3.16.5 openmpi/4.0.2
+module load gcc/8.2.0 cmake/3.16.5 openmpi/3.0.1
 
 # mtbl dependencies
 module load libtool/2.4.6 lz4/1.8.1.2 snappy/1.1.7 zstd/1.3.0

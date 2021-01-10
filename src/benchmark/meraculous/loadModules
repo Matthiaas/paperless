@@ -1,0 +1,23 @@
+to_lower () {
+	tr '[A-Z]' '[a-z]' <<< $1
+}
+
+pe=intel
+bupc=bupc-narrow
+#bupc=bupc-narrow-4Kpages
+
+if [[ "$(to_lower $PE_ENV)" != "$pe" ]]; then
+    module swap PrgEnv-$(to_lower $PE_ENV) PrgEnv-$pe
+fi
+
+if [[ "$LOADEDMODULES" == *bupc* ]]; then
+    loaded=$(sed 's/:/\n/g' <<< $LOADEDMODULES | grep bupc)
+    echo "unloading $loaded"
+    module unload $loaded
+fi
+
+module load $bupc
+
+echo "using $BUPC_AUTOVER"
+
+module unload darshan

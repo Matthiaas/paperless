@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -N test.human-chr14
+#PBS -l mppwidth=48
+#PBS -l walltime=10:00
+
+cd $PBS_O_WORKDIR
+
+SHARED_HEAP=192M
+
+KMER_LENGTH=51
+
+ufx=./human-chr14.txt.ufx.bin
+
+tag=human-chr14_$PBS_JOBID
+
+upcrun -q -n 48 -shared-heap=$SHARED_HEAP \
+	./meraculous-$KMER_LENGTH-testing \
+		-m 51 \
+		-i $ufx \
+		-o $tag \
+		-c 100 \
+		-l 1 \
+		-d 4 > stats.$tag

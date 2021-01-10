@@ -1,0 +1,6 @@
+[22;33m[I] [    0:zenit] [Platform.cpp:103:Init] PapyrusKV nranks[8] repository[./pkv] storage_group[1] consistency[2] memtable[1073741824] [1024]MB remotebuf[131072] [128]KB total_remotebuf[1048576] [1]MB remotebuf_entry_max[4096] cache[134217728] [128]MB cache_local[0] cache_remote[0] sstable[2] bloom[1] force_redistribute[0] destroy_repository[1][m
+Struct size is 16, with 24 padding, 8 shared[] ptr
+
+
+*************** RUNNING VERSION WITH SYNCHRONIZATION PROTOCOL ENABLED ***************
+

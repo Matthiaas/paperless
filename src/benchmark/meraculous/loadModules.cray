@@ -1,0 +1,21 @@
+to_lower () {
+	tr '[A-Z]' '[a-z]' <<< $1
+}
+
+pe=cray
+
+if [[ "$(to_lower $PE_ENV)" != "$pe" ]]; then
+    module swap PrgEnv-$(to_lower $PE_ENV) PrgEnv-$pe
+fi
+
+if [[ "$LOADEDMODULES" == *craype-hugepages* ]]; then
+    loaded=$(sed 's/:/\n/g' <<< $LOADEDMODULES | grep craype-hugepages)
+    echo "unloading $loaded"
+    module unload $loaded
+fi
+
+module load gcc/4.8.1
+
+#module load craype-hugepages2M
+
+module unload darshan

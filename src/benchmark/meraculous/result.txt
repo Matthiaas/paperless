@@ -1,0 +1,139 @@
+UPC
+*********** OVERALL TIME BREAKDOWN ***************
+
+
+Time for constructing UFX hash table is : 5.054578 seconds
+
+Time for UU-graph traversal is : 18.023276 seconds
+
+Total time is :  23.077853 seconds
+
+Total contigs stored: 860360
+
+Maximum IO time : 3.065421 seconds
+
+UPC+PKV
+*********** OVERALL TIME BREAKDOWN ***************
+
+
+Time for constructing UFX hash table is : 56.391304 seconds
+
+Time for UU-graph traversal is : 159.395576 seconds
+
+Total time is :  215.786880 seconds
+
+Total contigs stored: 860360
+
+Maximum IO time : 2.968253 seconds
+
+UPC+PKV+RemoteBuffer
+*********** OVERALL TIME BREAKDOWN ***************
+
+
+Time for constructing UFX hash table is : 14.586035 seconds
+
+Time for UU-graph traversal is : 157.758143 seconds
+
+Total time is :  172.344178 seconds
+
+Total contigs stored: 860360
+
+Maximum IO time : 9.103708 seconds
+
+UPC+PKV+RemoteBuffer+Hash
+*********** OVERALL TIME BREAKDOWN ***************
+
+
+Time for constructing UFX hash table is : 17.941761 seconds
+
+Time for UU-graph traversal is : 106.504549 seconds
+
+Total time is :  124.446310 seconds
+
+Total contigs stored: 860360
+
+Maximum IO time : 9.542276 seconds
+
+UPC+PKV+RemoteBuffer+Hash+NewListT
+*********** OVERALL TIME BREAKDOWN ***************
+
+
+Time for constructing UFX hash table is : 16.855094 seconds
+
+Time for UU-graph traversal is : 100.747324 seconds
+
+Total time is :  117.602418 seconds
+
+Total contigs stored: 860360
+
+Maximum IO time : 7.824537 seconds
+
+UPC+PKV+RemoteBuffer+Hash+NewListT+DirectMPI
+*********** OVERALL TIME BREAKDOWN ***************
+
+
+Time for constructing UFX hash table is : 12.423022 seconds
+
+Time for UU-graph traversal is : 95.666096 seconds
+
+Total time is :  108.089118 seconds
+
+Total contigs stored: 860360
+
+Maximum IO time : 3.786469 seconds
+
+UPC+PKV+RemoteBuffer+Hash+NewListT+DirectMPI+RemoveUPCFence
+*********** OVERALL TIME BREAKDOWN ***************
+
+
+Time for constructing UFX hash table is : 11.535095 seconds
+
+Time for UU-graph traversal is : 91.962093 seconds
+
+Total time is :  103.497189 seconds
+
+Total contigs stored: 860360
+
+Maximum IO time : 2.995455 seconds
+
+UPC+PKV+RemoteBuffer+Hash+NewListT+DirectMPI+RemoveUPCFence+PutNoWait
+*********** OVERALL TIME BREAKDOWN ***************
+
+
+Time for constructing UFX hash table is : 12.466221 seconds
+
+Time for UU-graph traversal is : 72.987517 seconds
+
+Total time is :  85.453738 seconds
+
+Total contigs stored: 860360
+
+Maximum IO time : 3.821252 seconds
+
+UPC+PKV+RemoteBuffer+Hash+NewListT+DirectMPI+RemoveUPCFence+MergeUpdate
+*********** OVERALL TIME BREAKDOWN ***************
+
+
+Time for constructing UFX hash table is : 11.754510 seconds
+
+Time for UU-graph traversal is : 60.654331 seconds
+
+Total time is :  72.408842 seconds
+
+Total contigs stored: 860360
+
+Maximum IO time : 2.971452 seconds
+
+UPC+PKV+RemoteBuffer+Hash+NewListT+DirectMPI+RemoveUPCFence+MergeUpdate+POS
+*********** OVERALL TIME BREAKDOWN ***************
+
+
+Time for constructing UFX hash table is : 8.381970 seconds
+
+Time for UU-graph traversal is : 49.466226 seconds
+
+Total time is :  57.848195 seconds
+
+Total contigs stored: 860360
+
+Maximum IO time : 3.236556 seconds

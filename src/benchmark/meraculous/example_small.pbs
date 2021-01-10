@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -N human-25pct
+#PBS -l mppwidth=72
+#PBS -l walltime=10:00
+
+#cd $PBS_O_WORKDIR
+
+SHARED_HEAP=861M
+
+KMER_LENGTH=51
+
+ufx=./bwa-25pct.list.ufx.bin
+
+tag=human-25pct_test # $PBS_JOBID
+
+required_flags="-m 51 -c 100 -l 1 -d 2"
+
+upcrun -q -n 8 -shared-heap=$SHARED_HEAP \
+	./meraculous-$KMER_LENGTH \
+		$required_flags \
+		-i $ufx \
+		-o $tag \
+		> stats.$tag

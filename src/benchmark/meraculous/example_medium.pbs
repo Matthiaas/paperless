@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -N human
+#PBS -l mppwidth=240
+#PBS -l walltime=10:00
+
+cd $PBS_O_WORKDIR
+
+SHARED_HEAP=980M
+
+KMER_LENGTH=51
+
+ufx=./human.fastqs.ufx.bin.trim.min3
+
+tag=human_$PBS_JOBID
+
+required_flags="-m 51 -c 100 -l 1 -d 4"
+
+upcrun -q -n 240 -shared-heap=$SHARED_HEAP \
+	./meraculous-$KMER_LENGTH \
+		$required_flags \
+		-i $ufx \
+		-o $tag \
+		> stats.$tag
