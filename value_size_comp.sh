@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #BSUB -P paperless
-#BSUB -J workload
+#BSUB -J size_comp
 #BSUB -o output.o%J
 #BSUB -W 04:00
 #BSUB -n 48

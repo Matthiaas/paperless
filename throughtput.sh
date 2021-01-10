@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #BSUB -P paperless
-#BSUB -J workload
+#BSUB -J througput
 #BSUB -R "rusage[scratch=5120] span[hosts=1]"
 #BSUB -o out.througput.o%J
 #BSUB -W 04:00
