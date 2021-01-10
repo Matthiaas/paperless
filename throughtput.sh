@@ -42,8 +42,8 @@ for k in $(seq $N_RUNS); do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
           for b in "${batch_sizes[@]}"; do
-             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless/ REL $b
-             mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless/ REL $b
+             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless REL $b
+             mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless REL $b
            done
         done
     done
@@ -53,8 +53,8 @@ for k in $(seq $N_RUNS); do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
           for b in "${batch_sizes[@]}"; do
-             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless/ REL $b
-             mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless/ REL $b
+             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL $b
+             mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL $b
            done
         done
     done
@@ -64,8 +64,8 @@ for k in $(seq $N_RUNS); do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
           for b in "${batch_sizes[@]}"; do
-             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless/ REL $b
-             mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless/ REL $b
+             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL $b
+             mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL $b
           done
         done
     done
