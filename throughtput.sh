@@ -64,8 +64,8 @@ for k in $(seq $N_RUNS); do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
           for b in "${batch_sizes[@]}"; do
-             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL $b
-             mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL $b
+             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus REL $b
+             mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus REL $b
           done
         done
     done
