@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.9.1
+#       jupytext_version: 1.7.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -306,11 +306,27 @@ def PlotSingleOperionTimesDist(plot_data, optypes = ['localPut', 'localGet', 're
         #for ratio in ratios:
         print(lable + op_type)
         select = (plot_data['optype'] == op_type) & (plot_data['rank_size'] == 4)
-        sns.histplot(data=plot_data[select], x='optime', hue='db', log_scale=(True,True) )
+       
+        fig, ax = plt.subplots()
         #sns.swarmplot(data=plot_data[select], x='rank_size', y='optime', hue='db')
         #sns.violinplot(data=plot_data[select],  x='rank_size', y='optime', hue='db', split=True)
-        #plt.show()
-        break
+        
+        # remove the next two lines to remove the cdf
+        ax2 = ax.twinx()
+        sns.ecdfplot(data=plot_data[select], 
+                     x='optime', 
+                     hue='db', 
+                     log_scale=(False,False),
+                    ax = ax2)
+        sns.histplot(data=plot_data[select],
+                     x='optime',
+                     hue='db',
+                     log_scale=(True,True),
+                     binwidth=0.05,
+                     ax=ax)
+        ax.set(xlabel='optime in ns')
+        plt.show()
+#         break
 
 
 
