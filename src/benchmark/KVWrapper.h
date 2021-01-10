@@ -195,6 +195,8 @@ namespace KV {
 
     papyruskv_option_t opt;
     opt.hash = papyruskv_hash_fn;
+    opt.keylen = 0;
+    opt.vallen = 0;
 
     int ret = papyruskv_open(name.c_str(), PAPYRUSKV_CREATE | PAPYRUSKV_RELAXED | PAPYRUSKV_RDWR, &opt, &db);
     if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
