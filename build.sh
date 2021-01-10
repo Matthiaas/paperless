@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Usage: $ ./build.sh <target> <Debug|Release> <cmake flags>
 #   e.g. $ ./build.sh tests
+#        $ ./build.sh paperless_swig Release -DJAVA_WRAPPERS=ON
 
 # Check if we're on a cluster.
 [ -d "/cluster" ]
