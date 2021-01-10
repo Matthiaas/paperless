@@ -35,6 +35,18 @@ EXPERIMENT=throughput_one_host
 export STORAGE_LOCATION=/scratch/$EXPERIMENT/
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 
+
+# Papyrus parameters.
+# Enable usage of caches.
+export PAPYRUSKV_CACHE_LOCAL=1
+export PAPYRUSKV_CACHE_REMOTE=1
+export PAPYRUSKV_MEMTABLE_SIZE=$MAX_LOCAL_MEMTABLE_SIZE
+export PAPYRUSKV_CACHE_SIZE=$MAX_LOCAL_CACHE_SIZE
+export PAPYRUSKV_DESTROY_REPOSITORY=1 # Gets rid of the data afterwards.
+
+
+
+
 rm -r DATA_LOCATION
 
 for k in $(seq $N_RUNS); do
