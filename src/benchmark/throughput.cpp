@@ -126,19 +126,17 @@ int main(int argc, char** argv)  {
   // Write data to file:
 
 
-  if (rank == 0) {
-    std::filesystem::create_directories(storage_directory);
-    std::ofstream put_file(storage_directory + "/runconfig.txt");
-    put_file << "rank_count: " << size << std::endl;
-    put_file << "keylen: " << keylen << std::endl;
-    put_file << "vallen: " << vallen << std::endl;
-    put_file << "count: " << count << std::endl;
-    put_file << "update_ratio: " << update_ratio << std::endl;
-    put_file << "put_time: " << put_time << std::endl;
-    put_file << "get_update_time: " << get_update_time << std::endl;
-    put_file.close();
+  std::filesystem::create_directories(storage_directory);
+  std::ofstream put_file(storage_directory + "/out" + std::to_string(rank) +".txt", std::ios_base::app);
+  put_file << "rank_count:" << size;
+  put_file << ",keylen:" << keylen;
+  put_file << ",vallen:" << vallen;
+  put_file << ",count:" << count;
+  put_file << ",update_ratio:" << update_ratio;
+  put_file << ",batch_size:" << batch_size;
+  put_file << ",put_time:" << put_time;
+  put_file << ",get_update_time:" << get_update_time << std::endl;
+  put_file.close();
 
-    std::cout << put_time << " " << get_update_time << std::endl;
-  }
-
+  MPI_Finalize();
 }

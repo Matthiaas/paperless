@@ -145,5 +145,5 @@ int main(int argc, char** argv)  {
   put_total_file << put_phase_time_ns << std::endl;
   put_total_file.close();
 
-
+  MPI_Finalize();
 }

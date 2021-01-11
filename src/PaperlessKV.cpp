@@ -481,11 +481,9 @@ void PaperlessKV::FenceAndChangeOptions(PaperlessKV::Consistency_t c,
 
 void PaperlessKV::FenceAndCheckPoint() {
   remote_cache_.clear();
-  local_.FlushNoWait();
-  remote_.FlushNoWait();
-  local_.WaitForFlushToComplete();
-  remote_.WaitForFlushToComplete();
+  remote_.Flush();
   remoteOperator_.InitSync();
+  local_.Flush();
   MPI_Barrier(comm_);
 }
 
