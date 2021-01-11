@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #BSUB -P paperless
 #BSUB -J throughput
-#BSUB -R "rusage[scratch=5120] span[hosts=1] select[model==EPYC_7742] rusage[mem=5120]"
+#BSUB -R "rusage[scratch=5120,mem=5120] span[hosts=1] select[model==EPYC_7742]"
 #BSUB -o out.throughput.o%J
 #BSUB -W 04:00
 #BSUB -n 48
