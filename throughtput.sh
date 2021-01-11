@@ -31,7 +31,7 @@ export DISPATCH_IN_CHUNKS=1
 
 
 EXPERIMENT=throughput_report_one_host
-export STORAGE_LOCATION=/scratch/$EXPERIMENT/
+export STORAGE_LOCATION=/scratch/$EXPERIMENT
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 
 

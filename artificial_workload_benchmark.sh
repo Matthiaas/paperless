@@ -33,7 +33,7 @@ export MAX_LOCAL_CACHE_SIZE=$GIGA
 export MAX_REMOTE_CACHE_SIZE=$MAX_LOCAL_CACHE_SIZE
 export DISPATCH_IN_CHUNKS=1
 EXPERIMENT=artificial_workload_2core_report_one_host
-export STORAGE_LOCATION=/scratch/$EXPERIMENT/
+export STORAGE_LOCATION=/scratch/$EXPERIMENT
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 
 # Papyrus parameters.
@@ -63,9 +63,9 @@ for k in $(seq $N_RUNS); do
       mkdir -p $PAPYRUS_PATH
       mkdir -p $PAPERLESS_PATH
       echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH SEQ
-      mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH SEQ
+      #mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH SEQ
       echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH SEQ
-      mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH SEQ
+      #mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH SEQ
     done
   done
 done
