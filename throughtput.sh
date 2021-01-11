@@ -30,7 +30,7 @@ export MAX_REMOTE_CACHE_SIZE=10000000000
 export DISPATCH_IN_CHUNKS=1
 
 
-EXPERIMENT=throughput_one_host
+EXPERIMENT=throughput_report_one_host
 export STORAGE_LOCATION=/scratch/$EXPERIMENT/
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 

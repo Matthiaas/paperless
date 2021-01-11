@@ -30,7 +30,7 @@ export MAX_REMOTE_MEMTABLE_SIZE=$GIGA
 export MAX_LOCAL_CACHE_SIZE=$GIGA
 export MAX_REMOTE_CACHE_SIZE=$GIGA
 export DISPATCH_IN_CHUNKS=1
-EXPERIMENT=seq_vs_rel_2core
+EXPERIMENT=seq_vs_rel_2core_report_one_host
 export STORAGE_LOCATION=/scratch/$EXPERIMENT/
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 

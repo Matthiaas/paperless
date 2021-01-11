@@ -14,10 +14,10 @@ GIGA=$((1024 * MEGA))
 
 KEYLEN=16
 VALLEN=$((128 * KILO))
-COUNT=1000
+COUNT=10000
 UPDATE_RATIO=(0 50 5)
 RANKS=(1 2 4 8 12 16 24)
-N_RUNS=30
+N_RUNS=10
 #UPDATE_RATIO=(5)
 #RANKS=(1 2)
 #N_RUNS=3
@@ -32,7 +32,7 @@ export MAX_LOCAL_CACHE_SIZE=$GIGA
 # Same as for memtable size.
 export MAX_REMOTE_CACHE_SIZE=$MAX_LOCAL_CACHE_SIZE
 export DISPATCH_IN_CHUNKS=1
-EXPERIMENT=artificial_workload_2core
+EXPERIMENT=artificial_workload_2core_report_one_host
 export STORAGE_LOCATION=/scratch/$EXPERIMENT/
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 
@@ -62,10 +62,10 @@ for k in $(seq $N_RUNS); do
       PAPYRUS_PATH=$DATA_LOCATION/papyrus/ratio$j/ranks$i/run$k
       mkdir -p $PAPYRUS_PATH
       mkdir -p $PAPERLESS_PATH
-      echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH
-      mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH
-      echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH
-      mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH
+      echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH SEQ
+      mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH SEQ
+      echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH SEQ
+      mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH SEQ
     done
   done
 done
