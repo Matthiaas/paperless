@@ -20,7 +20,7 @@ class StorageManager {
 
  public:
   explicit StorageManager(const std::filesystem::path &dir,
-                          size_t cache_size = 512)
+                          size_t cache_size = 500)
       : StorageManager(dir / "sstables",
                        dir / "filters",
                        cache_size) {}
@@ -38,6 +38,14 @@ class StorageManager {
     std::filesystem::create_directories(sstable_dir_path_);
 
     total_num_filters_ = HighestFileIndexInDir(sstable_dir_path_);
+
+    // Restore Cache.
+    uint64_t first = (total_num_filters_ > cache_size_) ? (total_num_filters_ - cache_size_) : 1;
+    for (uint64_t fi = first; fi <= total_num_filters_; fi++) {
+      auto filter = BloomFilter::CreateFromFile(filter_dir_path_ / std::to_string(fi));
+      int fd = open((sstable_dir_path_ / std::to_string(fi)).c_str(), O_RDONLY);
+      filter_cache.emplace_front(fi, filter, fd);
+    }
 
   }
 
@@ -57,6 +65,7 @@ class StorageManager {
   }
 
  private:
+  // File indices start at 1.
   uint64_t total_num_filters_;
   std::filesystem::path sstable_dir_path_;
   std::filesystem::path filter_dir_path_;

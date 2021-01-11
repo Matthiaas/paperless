@@ -88,10 +88,15 @@ inline void Get(const char* key, size_t key_len,
 
 inline void Finalize() {
   paper->Shutdown();
-  std::error_code errorCode; 
-  if (std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
-    std::cout << errorCode.message() << std::endl; 
-  }
+  MPI_Barrier(MPI_COMM_WORLD);
+  int rank = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if(rank == 0) {
+      std::error_code errorCode; 
+      if (!std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
+        std::cout << errorCode.message() << std::endl; 
+      }
+    }
 
 }
 
@@ -157,9 +162,14 @@ namespace KV {
 
   inline void Finalize() {
     paper->Shutdown();
-    std::error_code errorCode; 
-    if (std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
-      std::cout << errorCode.message() << std::endl; 
+    MPI_Barrier(MPI_COMM_WORLD);
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if(rank == 0) {
+      std::error_code errorCode; 
+      if (!std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
+        std::cout << errorCode.message() << std::endl; 
+      }
     }
   }
 
@@ -264,10 +274,7 @@ namespace KV {
     int ret = papyruskv_close(db);
     if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
     papyruskv_finalize();
-    std::error_code errorCode; 
-    if (std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
-      std::cout << errorCode.message() << std::endl; 
-    }
+    // Papyrus should delete the stuff on its own
   }
 
   inline int GetOwner(const char* key, size_t key_len) {
