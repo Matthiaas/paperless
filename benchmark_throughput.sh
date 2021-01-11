@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #BSUB -P paperless
 #BSUB -J throughput
-#BSUB -R "rusage[scratch=5120] span[hosts=1] select[model==EPYC_7742]"
+#BSUB -R "rusage[scratch=5120] span[hosts=1] select[model==EPYC_7742] rusage[mem=5120]"
 #BSUB -o out.throughput.o%J
 #BSUB -W 04:00
 #BSUB -n 48
@@ -23,10 +23,10 @@ CORES=(2)
 N_RUNS=30
 
 
-export MAX_LOCAL_MEMTABLE_SIZE=10000000000
-export MAX_REMOTE_MEMTABLE_SIZE=10000000000
-export MAX_LOCAL_CACHE_SIZE=10000000000
-export MAX_REMOTE_CACHE_SIZE=10000000000
+export MAX_LOCAL_MEMTABLE_SIZE=$GIGA
+export MAX_REMOTE_MEMTABLE_SIZE=$GIGA
+export MAX_LOCAL_CACHE_SIZE=$GIGA
+export MAX_REMOTE_CACHE_SIZE=$GIGA
 export DISPATCH_IN_CHUNKS=1
 
 
