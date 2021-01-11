@@ -3,6 +3,7 @@
 #include "KVWrapper.h"
 #include "../PaperlessKV.h"
 #include <iostream>
+#include <vector>
 
 // This is a minimalistic interface used for creating Java bindings
 // for YCSB benchmark.
@@ -22,11 +23,11 @@ void kv_put(const char* key, size_t key_len, const char* value, size_t value_len
 }
 
 void kv_get(const char* key, size_t key_len, char* value, size_t value_len) {
-//  value[0]=value[1]=value[2] = 0;
-//  for (int i = 0; i < key_len; ++i) std::cout << key[i];
-//  std::cout << std::endl;
   KV::Get(key, key_len, value, value_len);
-//  std::cout << value[0] << value[1] << value[2] << std::endl;
+}
+
+void kv_checkpoint() {
+  KV::Checkpoint();
 }
 
 void kv_finalize() {

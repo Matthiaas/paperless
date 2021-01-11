@@ -17,7 +17,8 @@ size_t keylen;
 size_t vallen;
 size_t count;
 char* key_set;
-
+const char *CHECKPOINT_PATH=nullptr;
+bool SHOULD_RESTART=false;
 
 char* get_key(int idx) {
   return key_set + (idx * PAPERLESS::padLength(keylen + 1));
@@ -30,7 +31,13 @@ void generate_key_set() {
   }
 }
 
-
+void init_benchmark_env_vars() {
+  const char *should_restart_str = std::getenv("SHOULD_RESTART");
+  CHECKPOINT_PATH = std::getenv("CHECKPOINT_PATH");
+  if (should_restart_str != nullptr && std::string(should_restart_str) != "0") {
+    SHOULD_RESTART = true;
+  } 
+}
 
 #ifdef PAPERLESS_BENCHMARK
 
@@ -47,6 +54,7 @@ inline void WaitForGetComplete() {}
 inline void SetQueryAmount(size_t l) {}
 
 inline void Init(int argc, char** argv, std::string name) {
+  init_benchmark_env_vars();
   int provided;
   MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 
@@ -79,7 +87,6 @@ inline void Get(const char* key, size_t key_len,
 }
 
 inline void Finalize() {
-  //std::cout << "found: " << found << std::endl;
   paper->Shutdown();
   std::error_code errorCode; 
   if (std::filesystem::remove_all(ReadOptionsFromEnvVariables().strorage_location , errorCode)) { 
@@ -104,6 +111,7 @@ namespace KV {
   std::vector<FutureQueryInfo> futures;
 
   inline void Init(int argc, char** argv, std::string name) {
+    init_benchmark_env_vars();
     int provided;
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 
@@ -188,6 +196,7 @@ namespace KV {
   int rank, size;
 
   inline void Init(int argc, char** argv, std::string name) {
+    init_benchmark_env_vars();
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -199,7 +208,12 @@ namespace KV {
     opt.keylen = 0;
     opt.vallen = 0;
 
-    int ret = papyruskv_open(name.c_str(), PAPYRUSKV_CREATE | PAPYRUSKV_RELAXED | PAPYRUSKV_RDWR, &opt, &db);
+    int ret = PAPYRUSKV_OK;
+    if (SHOULD_RESTART) {
+      ret = papyruskv_restart(CHECKPOINT_PATH, name.c_str(), PAPYRUSKV_RELAXED | PAPYRUSKV_RDWR, &opt, &db, nullptr);
+    } else {
+      ret = papyruskv_open(name.c_str(), PAPYRUSKV_CREATE | PAPYRUSKV_RELAXED | PAPYRUSKV_RDWR, &opt, &db);
+    }
     if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
   }
 
@@ -209,7 +223,7 @@ namespace KV {
   }
 
   inline void Checkpoint() {
-    int ret = papyruskv_barrier(db, PAPYRUSKV_SSTABLE);
+    int ret = papyruskv_checkpoint(db, CHECKPOINT_PATH, nullptr);
     if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
   }
 

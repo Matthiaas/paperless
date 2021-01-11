@@ -11,6 +11,7 @@
 void kv_init();
 void kv_put(const char* key, size_t key_len, const char* value, size_t value_len);
 void kv_get(const char* key, size_t key_len, char* value, size_t value_len);
+void kv_checkpoint();
 void kv_finalize();
 
 #endif // C_INTERFACE_H

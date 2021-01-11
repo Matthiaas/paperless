@@ -7,9 +7,8 @@ option(VECTORIZE "Use SIMD for comparison." OFF)
 # Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
 # Java wrappers have to be compiled with openmpi3.0.1, otherwise they segfault.
 if (JAVA_WRAPPERS)
-  set(MPI_CXX_COMPILER "/cluster/apps/gcc-8.2.0/openmpi-3.0.1-s2niw66n4q2bopate22cvkevcdfief4d/bin/mpicxx")
   find_package(MPI REQUIRED)
-  find_library(OpenMPI REQUIRED)
+  set(MPI_CXX_COMPILER "/cluster/apps/gcc-8.2.0/openmpi-3.0.1-s2niw66n4q2bopate22cvkevcdfief4d/bin/mpicxx")
   set(MPI_CXX_LIBRARIES "/cluster/apps/gcc-8.2.0/openmpi-3.0.1-s2niw66n4q2bopate22cvkevcdfief4d/lib/libmpi_cxx.so;/cluster/apps/gcc-8.2.0/openmpi-3.0.1-s2niw66n4q2bopate22cvkevcdfief4d/lib/libmpi.so")
 else()
   find_package(MPI REQUIRED)
@@ -154,7 +153,6 @@ target_link_libraries(paperless PRIVATE smhasher)
 target_link_libraries(paperless PRIVATE stdc++fs)
 target_link_libraries(paperless PRIVATE mtbl)
 
-add_executable(main main.cpp)
 add_executable(tests
         ${TEST_SOURCES}
         ${LIB_SOURCES}
@@ -231,10 +229,6 @@ add_library(
         ${LIB_SOURCES}
 )
 
-target_link_libraries(main PUBLIC paperless mtbl)
-
-
-
 target_link_libraries(thegreatbenchmark_paperless mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(thegreatbenchmark_paperless PRIVATE PAPERLESS_BENCHMARK)
 target_link_libraries(thegreatbenchmark_paperless_hash_cache mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
@@ -252,7 +246,6 @@ target_compile_definitions(throughput_papyrus PRIVATE PAPYRUS_BENCHMARK)
 target_link_libraries(c_interface_paperless mtbl paperless smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(c_interface_paperless PRIVATE PAPERLESS_BENCHMARK)
 set_property(TARGET c_interface_paperless PROPERTY POSITION_INDEPENDENT_CODE ON)
-
 target_include_directories(c_interface_paperless
  INTERFACE
      ${CMAKE_CURRENT_SOURCE_DIR}/src/benchmark
@@ -260,6 +253,11 @@ target_include_directories(c_interface_paperless
 
 target_link_libraries(c_interface_papyrus mtbl papyruskv smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_compile_definitions(c_interface_papyrus PRIVATE PAPYRUS_BENCHMARK)
+set_property(TARGET c_interface_papyrus PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_include_directories(c_interface_papyrus
+ INTERFACE
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/benchmark
+)
 
 target_link_libraries(cmp_vector mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
 target_link_libraries(basic mtbl smhasher stdc++fs ${MPI_CXX_LIBRARIES} Threads::Threads)
@@ -273,17 +271,28 @@ target_link_libraries(mpi_probe_multiple_threads ${MPI_CXX_LIBRARIES} pthread)
 if (JAVA_WRAPPERS)
     find_package(SWIG REQUIRED COMPONENTS java)
     SET(CMAKE_SWIG_FLAGS -package site.ycsb.db)
-
     include(${SWIG_USE_FILE})
     find_package(JNI REQUIRED)
+
+    # Paperless
     set_source_files_properties(src/benchmark/paperless.i PROPERTIES
         CPLUSPLUS ON
         USE_LIBRARY_INCLUDE_DIRECTORIES TRUE
     )
     swig_add_library(paperless_swig  LANGUAGE java SOURCES src/benchmark/paperless.i)
-
     target_link_libraries(paperless_swig PRIVATE c_interface_paperless)
     set_property(TARGET paperless_swig PROPERTY POSITION_INDEPENDENT_CODE ON)
     set_property(TARGET paperless_swig PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE)
     target_include_directories(paperless_swig PRIVATE ${JNI_INCLUDE_DIRS})
+
+    # Papyrus
+    set_source_files_properties(src/benchmark/papyrus.i PROPERTIES
+        CPLUSPLUS ON
+        USE_LIBRARY_INCLUDE_DIRECTORIES TRUE
+    )
+    swig_add_library(papyrus_swig  LANGUAGE java SOURCES src/benchmark/papyrus.i)
+    target_link_libraries(papyrus_swig PRIVATE c_interface_papyrus)
+    set_property(TARGET papyrus_swig PROPERTY POSITION_INDEPENDENT_CODE ON)
+    set_property(TARGET papyrus_swig PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE)
+    target_include_directories(papyrus_swig PRIVATE ${JNI_INCLUDE_DIRS})
 endif()

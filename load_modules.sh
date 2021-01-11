@@ -15,3 +15,5 @@ module load gcc/8.2.0 cmake/3.16.5 openmpi/4.0.2
 # mtbl dependencies
 module load libtool/2.4.6 lz4/1.8.1.2 snappy/1.1.7 zstd/1.3.0
 
+# Java wrappers
+module load openjdk/14.0.2
