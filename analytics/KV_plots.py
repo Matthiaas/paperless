@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.9.1
+#       jupytext_version: 1.7.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -27,7 +27,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import re
-
+import inspect
 
 # Data Path
 #os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/julia/eth/dphpc/paperless/analytics"
@@ -35,6 +35,18 @@ import re
 
 
 data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/paperless-data"
+plot_dir_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/plots/"
+
+
+save_plots = True
+
+
+# This method will create a directory for you (dependent on the function name)
+# Just enter the file_name.
+def plotToSVG(file_name):
+    dir_path = plot_dir_path + inspect.stack()[1][3]
+    os.makedirs(dir_path, exist_ok=True)
+    plt.savefig(dir_path + "/" + file_name + ".svg")
 
 
 # + [markdown] pycharm={}
@@ -275,7 +287,6 @@ def PlotSingleOperionTimesPerSize(plot_data, rank_size, lable):
         plt.xlabel(lable)
         plt.ylabel('Operation time in nanoseconds')
         plt.ylim((100,30000))
-        plt.show()
 
 
 
@@ -296,7 +307,10 @@ def PlotSingleOperionTimesPerRank(plot_data, optypes = ['localPut', 'localGet', 
         plt.yscale('log')
         plt.xlabel('Number of ranks')
         plt.ylabel(yLable)
-        plt.show()
+        if save_plots:
+            plotToSVG(op_type)
+        else:
+            plt.show()
 
 
 
@@ -311,7 +325,7 @@ def PlotSingleOperionTimesDist(plot_data, optypes = ['localPut', 'localGet', 're
         #sns.swarmplot(data=plot_data[select], x='rank_size', y='optime', hue='db')
         #sns.violinplot(data=plot_data[select],  x='rank_size', y='optime', hue='db', split=True)
         
-        # remove the next two lines to remove the cdf
+        # remove the next two lines to remove te cdf
         ax2 = ax.twinx()
         sns.ecdfplot(data=plot_data[select], 
                      x='optime', 
@@ -325,8 +339,10 @@ def PlotSingleOperionTimesDist(plot_data, optypes = ['localPut', 'localGet', 're
                      binwidth=0.05,
                      ax=ax)
         ax.set(xlabel='optime in ns')
-        plt.show()
-#         break
+        if save_plots:
+            plotToSVG(op_type)
+        else:
+            plt.show()
 
 
 
@@ -504,7 +520,6 @@ for experiment in experiments:
 0
 
 
-# +
 def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless'], max_rank = 24):
     plot_data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'db'] )
 
@@ -549,8 +564,6 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
 
     return plot_data
 
-
-# -
 
 def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [64, 512, 13000]):
     for vallen in vallens:

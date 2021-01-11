@@ -19,7 +19,7 @@
 long put_time = 0;
 long get_update_time = 0;
 int batch_size = 1000;
-
+bool check_point_data = false;
 
 
 void BenchmarkRandomData() {
@@ -43,11 +43,16 @@ void BenchmarkRandomData() {
     KV::Put(key, keylen, put_val, vallen);
   }
 
-  if (update_ratio == 0) {
-    KV::SetMode(PaperlessKV::RELAXED, PaperlessKV::READONLY);
+  if(check_point_data) {
+    KV::Checkpoint();
   } else {
-    KV::Fence();
+    if (update_ratio == 0) {
+      KV::SetMode(PaperlessKV::RELAXED, PaperlessKV::READONLY);
+    } else {
+      KV::Fence();
+    }
   }
+
 
 
   auto puts_phase_end = std::chrono::high_resolution_clock::now();
@@ -93,7 +98,7 @@ void BenchmarkRandomData() {
 int main(int argc, char** argv)  {
 
   if (argc < 6) {
-    printf("[%s:%d] usage: %s keylen vallen count update_ratio[0:100] storage_path consistency['SEQ', default='REL'] batch_size_for_Iget\n", __FILE__, __LINE__, argv[0]);
+    printf("[%s:%d] usage: %s keylen vallen count update_ratio[0:100] storage_path consistency['SEQ', default='REL'] [batch_size_for_Iget] [CHECKPOINT]\n", __FILE__, __LINE__, argv[0]);
     return 0;
   }
 
@@ -105,8 +110,13 @@ int main(int argc, char** argv)  {
   update_ratio = atoi(argv[4]);
   std::string storage_directory = argv[5];
   std::string consistency = (argc >= 7) ? argv[6] : "REL";
+
   if(argc >= 8) {
     batch_size = atol(argv[7]);
+  }
+
+  if (argc >= 9) {
+    check_point_data = std::string(argv[8]) == "CHECKPOINT";
   }
 
   int size;
@@ -119,8 +129,8 @@ int main(int argc, char** argv)  {
   }
 
   // Benchmark code here:
-
-  BenchmarkRandomData();
+  std::cout << check_point_data << std::endl;
+  //BenchmarkRandomData();
 
   KV::Finalize();
   // Write data to file:
