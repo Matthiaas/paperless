@@ -205,8 +205,8 @@ namespace KV {
 
     papyruskv_option_t opt;
     opt.hash = papyruskv_hash_fn;
-    opt.keylen = 0;
-    opt.vallen = 0;
+    opt.keylen = keylen;
+    opt.vallen = vallen;
 
     int ret = PAPYRUSKV_OK;
     if (SHOULD_RESTART) {

@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.7.1
+#       jupytext_version: 1.9.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -432,8 +432,7 @@ plotThroughputs(two_core_data)
 # # Throughput plots II
 #
 
-# +
-
+"""
 NANO_TO_SEC = 1000000000
 
 def CleanLinesFromErrors(lines):
@@ -490,16 +489,99 @@ def GetThroughputData(experiment):
                                                    'rank_size':rank_size,
                                                    'db': db}, ignore_index=True)
     return plot_data
+"""
+0
 
 
-
-# +
-
+"""
 experiments = ['/througput/n_hosts_througput.txt','/througput/one_host_througput.txt']
 
 for experiment in experiments:
     PlotSingleOperionTimesPerRank(GetThroughputData(experiment), ["update/get", "put"],lable = experiment + ', Throughput for ', yLable= 'Operations per Second')
+    
+
+"""
+0
+
+
+# +
+def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless'], max_rank = 24):
+    plot_data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'db'] )
+
+    for db in dbs:
+        for i in range(max_rank):
+            print(i)
+            with open(data_path + experiment + db + '/out' + str(i) + '.txt', 'r') as f:
+                lines = f.readlines()
+
+            reg = re.compile("rank_count:([0-9]+),keylen:([0-9]+),vallen:([0-9]+),count:([0-9]+),update_ratio:([0-9]+),batch_size:([0-9]+),put_time:([0-9]+),get_update_time:([0-9]+)")
+
+            for line in lines:
+                reg_res = reg.match(line)
+                if reg_res == None or reg_res.group(1) == None:
+                    break
+                
+                rank_size = int(reg_res.group(1))
+                vallen = int(reg_res.group(3))
+                count = int(reg_res.group(4))
+                ratio = int(reg_res.group(5))
+                batch_size = int(reg_res.group(6))
+                put_through = int(reg_res.group(7))
+                get_through = int(reg_res.group(8))
+
+                put_through = count / put_through * NANO_TO_SEC * rank_size
+                get_through = count / get_through* NANO_TO_SEC * rank_size
+
+                plot_data = plot_data.append({'optime': put_through,
+                                              'rank_size':rank_size,
+                                              'vallen':vallen,
+                                              'op_ratio': ratio,
+                                              'batch_size': batch_size,
+                                              'optype' : "put",
+                                              'db': db}, ignore_index=True)
+                plot_data = plot_data.append({'optime': get_through,
+                                              'rank_size':rank_size,
+                                              'vallen':vallen,
+                                              'op_ratio': ratio,
+                                              'batch_size': batch_size,
+                                              'optype' : "update/get",
+                                              'db': db}, ignore_index=True)
+
+    return plot_data
+
+
 # -
+
+def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [64, 512, 13000]):
+    for vallen in vallens:
+        for op_type in optypes:
+            #for ratio in ratios:
+            plt.yscale('log')
+            plt.title( 'Throughput for ' + op_type+ ', with value length ' + str(vallen) + 'B')
+            select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) 
+            if op_type == "put":
+                select = select & (plot_data['db'] != 'Ipaperless')
+            sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
+            plt.yscale('log')
+            plt.xlabel('Number of ranks')
+            plt.ylabel('Operation time in nanoseconds')
+            plt.show()
+
+
+PlotThroughput2(data)
+
+# +
+experiments = ['/throughput_final_fair_one_host/']
+
+for experiment in experiments:
+    #GetThroughputDataNew(experiment)
+    data = GetThroughputDataNew(experiment, max_rank = 1)
+    PlotThroughput2(data)
+# -
+
+
+
+
 
 # # Relaxed vs sequential mode
 
