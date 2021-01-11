@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #BSUB -P paperless
-#BSUB -J througput
-#BSUB -R "rusage[scratch=5120] span[hosts=1]"
-#BSUB -o out.througput.o%J
+#BSUB -J throughput
+#BSUB -R "rusage[scratch=5120] span[hosts=1] select[model==EPYC_7742]"
+#BSUB -o out.throughput.o%J
 #BSUB -W 04:00
 #BSUB -n 48
 
@@ -57,6 +57,7 @@ for k in $(seq $N_RUNS); do
              mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless REL 1000
            done
         done
+        echo ""
     done
   done
 
@@ -68,6 +69,7 @@ for k in $(seq $N_RUNS); do
              mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL 1000
            done
         done
+        echo ""
     done
   done
 
@@ -79,6 +81,7 @@ for k in $(seq $N_RUNS); do
              mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus REL 1000
           done
         done
+        echo ""
     done
   done
 done

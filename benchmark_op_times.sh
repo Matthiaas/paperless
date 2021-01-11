@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #BSUB -P paperless
-#BSUB -J artificial_workload
-#BSUB -R "rusage[scratch=5120] span[hosts=1]"
-#BSUB -o out.artificial_workload.o%J
+#BSUB -J op_time
+#BSUB -R "rusage[scratch=5120] span[hosts=1] select[model==EPYC_7742]"
+#BSUB -o out.op_time.o%J
 #BSUB -W 04:00
 #BSUB -n 48
 
-# On cluster run: bsub < artificial_workload_benchmark.sh
+# On cluster run: bsub < benchmark_op_times.sh
 
 KILO=1024
 MEGA=$((1024 * KILO))
@@ -14,7 +14,7 @@ GIGA=$((1024 * MEGA))
 
 KEYLEN=16
 VALLEN=$((128 * KILO))
-COUNT=10000
+COUNT=1000
 UPDATE_RATIO=(0 50 5)
 RANKS=(1 2 4 8 12 16 24)
 N_RUNS=10
@@ -63,9 +63,10 @@ for k in $(seq $N_RUNS); do
       mkdir -p $PAPYRUS_PATH
       mkdir -p $PAPERLESS_PATH
       echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH SEQ
-      #mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH SEQ
+      mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_paperless $KEYLEN $VALLEN $COUNT $j $PAPERLESS_PATH SEQ
       echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH SEQ
-      #mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH SEQ
+      mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_papyrus $KEYLEN $VALLEN $COUNT $j $PAPYRUS_PATH SEQ
+      echo ""
     done
   done
 done
