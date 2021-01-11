@@ -50,7 +50,7 @@ PaperlessKV::PaperlessKV(std::string id, MPI_Comm comm, HashFunction hf,
       local_cache_(options.max_local_cache_size),
       remote_cache_(options.max_remote_cache_size),
 #endif
-      storage_manager_(options.strorage_location +
+      storage_manager_(options.strorage_location + std::string("/") +
                        std::to_string(GetRank(comm))),
       shutdown_(false),
       comm_(comm),

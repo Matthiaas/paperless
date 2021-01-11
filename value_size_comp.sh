@@ -28,7 +28,7 @@ export MAX_REMOTE_MEMTABLE_SIZE=$GIGA
 export MAX_LOCAL_CACHE_SIZE=$GIGA
 export MAX_REMOTE_CACHE_SIZE=$GIGA
 export DISPATCH_IN_CHUNKS=1
-export STORAGE_LOCATION=/cluster/mydb/
+export STORAGE_LOCATION=/cluster/mydb_val_size_cmp
 
 for c in "${CORES[@]}"; do
   for i in "${RANKS[@]}"; do
