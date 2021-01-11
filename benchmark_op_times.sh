@@ -32,7 +32,7 @@ export MAX_LOCAL_CACHE_SIZE=$GIGA
 # Same as for memtable size.
 export MAX_REMOTE_CACHE_SIZE=$MAX_LOCAL_CACHE_SIZE
 export DISPATCH_IN_CHUNKS=1
-EXPERIMENT=artificial_workload_2core_report_one_host
+EXPERIMENT=opt_time_report_one_host
 export STORAGE_LOCATION=/scratch/$EXPERIMENT
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 
