@@ -376,7 +376,31 @@ QueryResult PaperlessKV::RemoteGetRelaxed(const ElementView &key, Hash hash) {
 
 std::pair<QueryStatus, size_t> PaperlessKV::RemoteGetRelaxed(
     const ElementView &key, const ElementView &v_buff, Hash hash) {
-  // TODO: implement this for cache.
+
+
+  std::pair<QueryStatus, size_t> el =
+      remote_.Get(key, v_buff.Value(), v_buff.Length(), hash, rank_);
+  if(el.first != NOT_FOUND){
+    return el;
+  } else {
+    std::pair<QueryStatus, size_t> cache_result =
+        local_cache_.get(key, hash, v_buff);
+    if (cache_result.first != QueryStatus::NOT_IN_CACHE) {
+      return cache_result;
+
+    } else {
+      el = remoteOperator_.Get(key, v_buff, hash);
+      if (el.first == QueryStatus::FOUND) {
+        remote_cache_.put(key, hash, Element(v_buff.Value(), el.second));
+      } else if (el.first == QueryStatus::DELETED ||
+                 el.first == QueryStatus::NOT_FOUND) {
+        remote_cache_.put(key, hash, el.first);
+      }
+      return el;
+    }
+  }
+/*
+ // Old Cache Order
   std::pair<QueryStatus, size_t> cache_result =
       local_cache_.get(key, hash, v_buff);
   if (cache_result.first == QueryStatus::NOT_IN_CACHE) {
@@ -391,11 +415,11 @@ std::pair<QueryStatus, size_t> PaperlessKV::RemoteGetRelaxed(
                el.first == QueryStatus::NOT_FOUND) {
       remote_cache_.put(key, hash, el.first);
     }
-
-    return el;
-  } else {
+      } else {
     return cache_result;
   }
+*/
+
 }
 
 void PaperlessKV::put(const char *key, size_t key_len, const char *value,
