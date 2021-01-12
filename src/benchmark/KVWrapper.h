@@ -89,6 +89,8 @@ inline void Get(const char* key, size_t key_len,
 inline void Finalize() {
   paper->Shutdown();
   MPI_Barrier(MPI_COMM_WORLD);
+  // This is a "hack". If CHECKPOINT_PATH is set, then keep the DB.
+  if (CHECKPOINT_PATH != nullptr) return;
   int rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if(rank == 0) {
@@ -163,6 +165,8 @@ namespace KV {
   inline void Finalize() {
     paper->Shutdown();
     MPI_Barrier(MPI_COMM_WORLD);
+    // This is a "hack". If CHECKPOINT_PATH is set, then keep the DB.
+    if (CHECKPOINT_PATH != nullptr) return;
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if(rank == 0) {

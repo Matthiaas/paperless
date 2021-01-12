@@ -6,16 +6,18 @@ option(VECTORIZE "Use SIMD for comparison." OFF)
 
 # Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
 # Java wrappers have to be compiled with openmpi3.0.1, otherwise they segfault.
+find_package(MPI REQUIRED)
 if (JAVA_WRAPPERS)
-  find_package(MPI REQUIRED)
   set(MPI_CXX_COMPILER "/cluster/apps/gcc-8.2.0/openmpi-3.0.1-s2niw66n4q2bopate22cvkevcdfief4d/bin/mpicxx")
   set(MPI_CXX_LIBRARIES "/cluster/apps/gcc-8.2.0/openmpi-3.0.1-s2niw66n4q2bopate22cvkevcdfief4d/lib/libmpi_cxx.so;/cluster/apps/gcc-8.2.0/openmpi-3.0.1-s2niw66n4q2bopate22cvkevcdfief4d/lib/libmpi.so")
+  set(PAPYRUS_DIR papyrus_openmpi3.0.1)
 else()
-  find_package(MPI REQUIRED)
+  set(PAPYRUS_DIR papyrus)
 endif()
 
 MESSAGE (STATUS "MPI_CXX_COMPILER ${MPI_CXX_COMPILER}")
 MESSAGE (STATUS "MPI_CXX_LIBRARIES ${MPI_CXX_LIBRARIES}")
+MESSAGE (STATUS "PAPYRUS ${PAPYRUS_DIR}")
 
 if (NOT "${MPI_CXX_COMPILER}" STREQUAL "MPI_CXX_COMPILER-NOTFOUND")
     set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
@@ -61,7 +63,7 @@ if (IS_CLUSTER)
   include_directories(~/usr/include)
 endif()
 
-link_directories(papyrus/install/lib)
+link_directories("${PAPYRUS_DIR}/install/lib")
 include_directories(third_party)
 
 set(LIB_SOURCES
