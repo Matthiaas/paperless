@@ -35,7 +35,7 @@ EXPERIMENT=throughput_storage_report_n_host
 export STORAGE_LOCATION=/scratch/$EXPERIMENT
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 
-export CHECKPOINT_PATH=DATA_LOCATION/checkpoint
+export CHECKPOINT_PATH=$DATA_LOCATION/checkpoint
 
 
 # Papyrus parameters.
