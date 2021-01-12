@@ -214,7 +214,7 @@ namespace KV {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     std::string storage_directory = "$STORAGE_LOCATION";
     papyruskv_init(&argc, &argv, storage_directory.c_str());
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
 
     papyruskv_option_t opt;
     opt.hash = papyruskv_hash_fn;
@@ -228,6 +228,7 @@ namespace KV {
       ret = papyruskv_open(name.c_str(), PAPYRUSKV_CREATE | PAPYRUSKV_RELAXED | PAPYRUSKV_RDWR, &opt, &db);
     }
     if (ret != PAPYRUSKV_OK) printf("[%s:%d] ret[%d]\n", __FILE__, __LINE__, ret);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
   inline void Fence() {
