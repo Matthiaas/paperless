@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #BSUB -P paperless
 #BSUB -J throughput
-#BSUB -R "rusage[scratch=5120] span[hosts=1] select[model==EPYC_7742]"
+#BSUB -R "rusage[scratch=5120,mem=5120] span[hosts=1] select[model==EPYC_7742]"
 #BSUB -o out.throughput.o%J
 #BSUB -W 04:00
 #BSUB -n 48
@@ -23,10 +23,10 @@ CORES=(2)
 N_RUNS=30
 
 
-export MAX_LOCAL_MEMTABLE_SIZE=10000000000
-export MAX_REMOTE_MEMTABLE_SIZE=10000000000
-export MAX_LOCAL_CACHE_SIZE=10000000000
-export MAX_REMOTE_CACHE_SIZE=10000000000
+export MAX_LOCAL_MEMTABLE_SIZE=$GIGA
+export MAX_REMOTE_MEMTABLE_SIZE=$GIGA
+export MAX_LOCAL_CACHE_SIZE=$GIGA
+export MAX_REMOTE_CACHE_SIZE=$GIGA
 export DISPATCH_IN_CHUNKS=1
 
 
@@ -53,8 +53,8 @@ for k in $(seq $N_RUNS); do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
           for UPDATE_RATIO in "${UPDATE_RATIOS[@]}"; do
-             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless REL 1000
-             mpirun --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless REL 1000
+             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless REL 1000
+             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless REL 1000
            done
         done
         echo ""
@@ -65,8 +65,8 @@ for k in $(seq $N_RUNS); do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
           for UPDATE_RATIO in "${UPDATE_RATIOS[@]}"; do
-             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL 1000
-             mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL 1000
+             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL 1000
+             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL 1000
            done
         done
         echo ""
@@ -77,8 +77,8 @@ for k in $(seq $N_RUNS); do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
           for UPDATE_RATIO in "${UPDATE_RATIOS[@]}"; do
-             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus REL 1000
-             mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus REL 1000
+             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus REL 1000
+             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus REL 1000
           done
         done
         echo ""

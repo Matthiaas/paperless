@@ -4,7 +4,7 @@
 #BSUB -R "rusage[scratch=5120] span[ptile=2] select[model==EPYC_7742]"
 #BSUB -o out.storage.o%J
 #BSUB -W 04:00
-#BSUB -n 48
+#BSUB -n 32
 
 KILO=1024
 MEGA=$((1024 * KILO))
@@ -25,9 +25,9 @@ CORES=(2)
 N_RUNS=30
 
 
-export MAX_REMOTE_MEMTABLE_SIZE=10000000000
-export MAX_LOCAL_CACHE_SIZE=10000000000
-export MAX_REMOTE_CACHE_SIZE=10000000000
+export MAX_REMOTE_MEMTABLE_SIZE=$GIGA
+export MAX_LOCAL_CACHE_SIZE=$GIGA
+export MAX_REMOTE_CACHE_SIZE=$GIGA
 export DISPATCH_IN_CHUNKS=1
 
 
@@ -59,12 +59,12 @@ for k in $(seq $N_RUNS); do
             export PAPYRUSKV_MEMTABLE_SIZE=$MAX_LOCAL_MEMTABLE_SIZE
 
 
-             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless_$MEM_TBL_SIZE REL 0 CHECKPOINT
-             mpirun --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless_$MEM_TBL_SIZE REL 0 CHECKPOINT
+             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT 0 $DATA_LOCATION/paperless_$MEM_TBL_SIZE REL 0 CHECKPOINT
+             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT 0 $DATA_LOCATION/paperless_$MEM_TBL_SIZE REL 0 CHECKPOINT
 
 
-             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus_$MEM_TBL_SIZE REL 0 CHECKPOINT
-             mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus_$MEM_TBL_SIZE REL 0 CHECKPOINT
+             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT 0 $DATA_LOCATION/papyrus_$MEM_TBL_SIZE REL 0 CHECKPOINT
+             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT 0 $DATA_LOCATION/papyrus_$MEM_TBL_SIZE REL 0 CHECKPOINT
 
              echo ""
            done

@@ -115,8 +115,13 @@ int main(int argc, char** argv)  {
     batch_size = atol(argv[7]);
   }
 
+  std::cout << argc << std::endl;
   if (argc >= 9) {
+
     check_point_data = std::string(argv[8]) == "CHECKPOINT";
+    if(check_point_data) {
+      std::cout << "Checkpointing data..." << std::endl;
+    }
   }
 
   int size;
@@ -129,7 +134,7 @@ int main(int argc, char** argv)  {
   }
 
   // Benchmark code here:
-  std::cout << check_point_data << std::endl;
+
   //BenchmarkRandomData();
 
   KV::Finalize();
