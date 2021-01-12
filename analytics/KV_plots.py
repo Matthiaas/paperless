@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.9.1
+#       jupytext_version: 1.7.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -711,3 +711,61 @@ def plotCompare(cycles):
 plotCompare(cycles)
 
 
+
+# # YCSB
+
+# +
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import os
+import re
+
+DATA_PATH = "data/paperless-data"
+
+class YCSB:
+    def __init__(self, experiment_name, dbs, rank_sizes, n_runs):
+        self.experiment_name = experiment_name
+        self.dbs = dbs
+        self.rank_sizes = rank_sizes
+        self.n_runs = n_runs
+
+    def dataPath(self, db, rank_size, run_idx):
+        return f"{DATA_PATH}/{self.experiment_name}/{db}/{rank_size}/{run_idx}"
+
+    def runtimesForRun(self, db, rank_size, run_idx):
+        rtimes = []
+        with open(f'{self.dataPath(db, rank_size, run_idx)}/run.txt') as f:
+            # [OVERALL], RunTime(ms), 
+            rtimes_str = re.findall('\[OVERALL\], RunTime\(ms\), (\d+)', f.read())
+            rtimes = list(map(lambda x : int(x)/1000, rtimes_str))
+        return rtimes
+
+    # The throughput value is (# of ops)/(sum of per-op timings).
+    def readRuntimeData(self):
+        rtimes = pd.DataFrame({'runtime': pd.Series([], dtype='int'),
+                   'rank_size': pd.Series([], dtype='int'),
+                   'db': pd.Series([], dtype='str')})
+        for db in self.dbs:
+            for rank_size in self.rank_sizes:
+                for i in range(1, self.n_runs + 1):
+                    for val in self.runtimesForRun(rank_size=rank_size, run_idx=i, db=db):
+                        rtimes = rtimes.append({'runtime':val, 'rank_size':rank_size, 'db':db}, ignore_index=True)
+        return rtimes
+
+
+    def plotRuntimes(self):
+        rtimes = self.readRuntimeData()
+        print(rtimes.dtypes)
+        # Only number the actual datapoints
+        plt.title(f'MDHIM, PapyrusKV and Paperless weak scaling tests with YCSB')
+        sns.lineplot(data=rtimes, x='rank_size', y='runtime', hue='db')
+        # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
+        plt.xlabel('Number of ranks')
+        plt.ylabel('Time in seconds (single rank)')
+        plt.show()
+# -
+
+bench = YCSB('ycsb_Jan_12_01_58', rank_sizes=[4, 8, 16, 24], n_runs=3, dbs=["paperless", "papyrus"])
+bench.plotRuntimes()
