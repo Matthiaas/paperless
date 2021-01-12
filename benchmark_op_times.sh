@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #BSUB -P paperless
 #BSUB -J op_time
-#BSUB -R "rusage[scratch=5120] span[hosts=1] select[model==EPYC_7742]"
+#BSUB -R "rusage[scratch=5120,mem=5120] span[hosts=1] select[model==EPYC_7742]"
 #BSUB -o out.op_time.o%J
 #BSUB -W 04:00
 #BSUB -n 48
