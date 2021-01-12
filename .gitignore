@@ -1,6 +1,7 @@
 # Build
 build/
 papyrus/
+papyrus_openmpi3.0.1/
 
 # Data
 analytics/data/
