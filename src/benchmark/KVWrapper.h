@@ -189,6 +189,8 @@ namespace KV {
 #include <smhasher/MurmurHash3.h>
 #include "../../papyrus/include/papyrus/kv.h"
 #include "../../papyrus/include/papyrus/mpi.h"
+#include <chrono>
+#include <thread>
 
 namespace KV {
   inline void WaitForGetComplete() {}
@@ -212,6 +214,7 @@ namespace KV {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     std::string storage_directory = "$STORAGE_LOCATION";
     papyruskv_init(&argc, &argv, storage_directory.c_str());
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     papyruskv_option_t opt;
     opt.hash = papyruskv_hash_fn;
