@@ -52,8 +52,8 @@ for k in $(seq $N_RUNS); do
       for MEM_TBL_SIZE in "${MEM_TABLE_SIZES[@]}"; do
 
         export MAX_REMOTE_MEMTABLE_SIZE=$MEM_TBL_SIZE
-        echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_$KV_$MEM_TBL_SIZE $KEYLEN $VALLEN $COUNT $j $REL_PATH REL
-        mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_$KV_$MEM_TBL_SIZE $KEYLEN $VALLEN $COUNT $j $REL_PATH REL
+        echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_$KV $KEYLEN $VALLEN $COUNT $j $REL_PATH REL
+        mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_$KV $KEYLEN $VALLEN $COUNT $j $REL_PATH REL
       done
 
       echo mpirun -np $i ${MPIRUN_FLAGS[@]} ./build/thegreatbenchmark_$KV $KEYLEN $VALLEN $COUNT $j $SEQ_PATH SEQ
