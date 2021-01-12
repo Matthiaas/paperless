@@ -46,7 +46,7 @@ export PAPYRUSKV_DESTROY_REPOSITORY=1 # Gets rid of the data afterwards.
 
 
 
-rm -r DATA_LOCATION
+rm -r $DATA_LOCATION
 
 for k in $(seq $N_RUNS); do
   for c in "${CORES[@]}"; do

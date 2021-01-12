@@ -35,6 +35,8 @@ EXPERIMENT=throughput_storage_report_n_host
 export STORAGE_LOCATION=/scratch/$EXPERIMENT
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 
+CHECKPOINT_PATH=DATA_LOCATION/checkpoint
+
 
 # Papyrus parameters.
 # Enable usage of caches.
@@ -46,7 +48,7 @@ export PAPYRUSKV_DESTROY_REPOSITORY=1 # Gets rid of the data afterwards.
 
 
 
-rm -r DATA_LOCATION
+rm -r $DATA_LOCATION
 
 for k in $(seq $N_RUNS); do
 
@@ -58,6 +60,8 @@ for k in $(seq $N_RUNS); do
             export MAX_LOCAL_MEMTABLE_SIZE=$MEM_TBL_SIZE
             export PAPYRUSKV_MEMTABLE_SIZE=$MAX_LOCAL_MEMTABLE_SIZE
 
+
+            rm -r CHECKPOINT_PATH
 
              echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT 0 $DATA_LOCATION/paperless_$MEM_TBL_SIZE REL 0 CHECKPOINT
              mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT 0 $DATA_LOCATION/paperless_$MEM_TBL_SIZE REL 0 CHECKPOINT
