@@ -107,6 +107,7 @@ QueryResult StorageManager::ReadSSTable(const std::string &file_path,
 }
 
 QueryResult StorageManager::ReadSSTable(int fd, const ElementView &key) {
+  assert(fd >= 0 && "ReadSSTable called with fd < 0!!!!");
   auto reader = mtbl_reader_init_fd(fd, reader_options_);
   auto source = mtbl_reader_source(reader);
   auto iter = mtbl_source_get(
