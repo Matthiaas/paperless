@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.7.1
+#       jupytext_version: 1.9.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -520,8 +520,8 @@ for experiment in experiments:
 0
 
 
-def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless'], max_rank = 24):
-    plot_data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'db'] )
+def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless'], max_rank = 24,  plot_data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'db'] )):
+   
 
     for db in dbs:
         for i in range(max_rank):
@@ -581,7 +581,20 @@ def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [64, 
             plt.show()
 
 
-PlotThroughput2(data)
+# +
+storage_experiment = '/throughput_storage_report_n_host'
+dbs = ['/paperless_', '/papyrus_']
+mem_table_sizes = [6555200, 173880000, 665520000]
+
+for mem_tbl_size in mem_table_sizes:
+    data = None
+    exps = []
+    for db in dbs:
+        exps.append(db + str(mem_tbl_size))
+    data = GetThroughputDataNew(storage_experiment, dbs=exps, max_rank = 1)
+    PlotThroughput2(data)
+        
+
 
 # +
 experiments = ['/throughput_final_fair_one_host/']
