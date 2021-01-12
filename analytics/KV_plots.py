@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.7.1
+#       jupytext_version: 1.9.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -38,7 +38,7 @@ data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/paperless-data"
 plot_dir_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/plots/"
 
 
-save_plots = True
+save_plots = False
 
 
 # This method will create a directory for you (dependent on the function name)
@@ -133,7 +133,7 @@ for experiment in experiments:
 # +
 experiment = 'final/artificial_workload'
 ratios = [0, 50, 5]
-rank_sizes = [1, 2, 4]
+rank_sizes = [1, 2, 4, 8, 16, 24]
 dbs = ['paperless', 'papyrus']
 
 
@@ -206,8 +206,8 @@ plot_data_2_core_per_rank = OpTimeForRunPerRank('artificial_workload_2core_final
 # +
 
 plot_data_2_core_n_host_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
-plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('artificial_workload_2core_final_nhosts', 1, plot_data_2_core_n_host_per_rank)
-plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('artificial_workload_2core_final_nhosts', 2, plot_data_2_core_n_host_per_rank)
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 1, plot_data_2_core_n_host_per_rank)
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 2, plot_data_2_core_n_host_per_rank)
 
 
 # +
@@ -297,60 +297,76 @@ PlotSingleOperionTimesPerSize(plot_data_1_core_per_size, 16, 'Size of value=key 
 # +
 def PlotSingleOperionTimesPerRank(plot_data, optypes = ['localPut', 'localGet', 'remotePut', 'remoteGet'], lable='Optime for ', yLable = 'Operation time in nanoseconds'):
     for op_type in optypes:
-        #for ratio in ratios:
-        plt.yscale('log')
-        plt.title( lable + op_type)
-        select = (plot_data['optype'] == op_type) #& (plot_data['op_ratio'] == ratio)
-        sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
-        #sns.swarmplot(data=plot_data[select], x='rank_size', y='optime', hue='db')
-        #sns.violinplot(data=plot_data[select],  x='rank_size', y='optime', hue='db', split=True)
-        plt.yscale('log')
-        plt.xlabel('Number of ranks')
-        plt.ylabel(yLable)
-        if save_plots:
-            plotToSVG(op_type)
-        else:
-            plt.show()
+        for ratio in ratios:
+            plt.yscale('log')
+            plt.title( lable + op_type +  ", ratio: " + str(ratio))
+            select = (plot_data['optype'] == op_type) & (plot_data['op_ratio'] == ratio)
+            sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
+            #sns.swarmplot(data=plot_data[select], x='rank_size', y='optime', hue='db')
+            #sns.violinplot(data=plot_data[select],  x='rank_size', y='optime', hue='db', split=True)
+            plt.yscale('log')
+            plt.xlabel('Number of ranks')
+            plt.ylabel(yLable)
+            if save_plots:
+                plotToSVG(op_type)
+            else:
+                plt.show()
 
+
+
+# +
+def PlotDist(data, name,lable='Optime for ', yLable = 'Operation time in nanoseconds'):         
+    fig, ax = plt.subplots()
+    #sns.swarmplot(data=plot_data[select], x='rank_size', y='optime', hue='db')
+    #sns.violinplot(data=plot_data[select],  x='rank_size', y='optime', hue='db', split=True)
+    print(lable + name)
+    # remove the next two lines to remove te cdf
+    ax2 = ax.twinx()
+    sns.ecdfplot(data=data, 
+                 x='optime', 
+                 hue='db', 
+                 log_scale=(False,False),
+                ax = ax2)
+    sns.histplot(data=data,
+                 x='optime',
+                 hue='db',
+                 log_scale=(True,True),
+                 binwidth=0.05,
+                 ax=ax, 
+                 element="step")
+    ax.set(xlabel='optime in ns')
+    if save_plots:
+        plotToSVG(name)
+    else:
+        plt.show()
+
+def PlotSingleOperionTimesDist(plot_data, optypes = ['localPut', 'localGet', 'remotePut', 'remoteGet']):
+    for op_type in optypes:
+        #for ratio in ratios:
+        
+        select = (plot_data['optype'] == op_type) & (plot_data['rank_size'] == 16)
+        PlotDist(plot_data[select], op_type)
+
+            
+def PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data, lable='Optime for ', yLable = 'Operation time in nanoseconds'):
+    
+    get_select =  (((plot_data['optype'] == 'localPut') | (plot_data['optype'] == 'remotePut')  ) 
+                            & (plot_data['rank_size'] == 16))
+    put_select = (((plot_data['optype'] == 'localGet') | (plot_data['optype'] == 'remoteGet')  ) 
+                            & (plot_data['rank_size'] == 16))
+    PlotDist(plot_data[get_select], "get")
+    PlotDist(plot_data[put_select], "put")
+    
 
 
 # -
-def PlotSingleOperionTimesDist(plot_data, optypes = ['localPut', 'localGet', 'remotePut', 'remoteGet'], lable='Optime for ', yLable = 'Operation time in nanoseconds'):
-    for op_type in optypes:
-        #for ratio in ratios:
-        print(lable + op_type)
-        select = (plot_data['optype'] == op_type) & (plot_data['rank_size'] == 4)
-       
-        fig, ax = plt.subplots()
-        #sns.swarmplot(data=plot_data[select], x='rank_size', y='optime', hue='db')
-        #sns.violinplot(data=plot_data[select],  x='rank_size', y='optime', hue='db', split=True)
-        
-        # remove the next two lines to remove te cdf
-        ax2 = ax.twinx()
-        sns.ecdfplot(data=plot_data[select], 
-                     x='optime', 
-                     hue='db', 
-                     log_scale=(False,False),
-                    ax = ax2)
-        sns.histplot(data=plot_data[select],
-                     x='optime',
-                     hue='db',
-                     log_scale=(True,True),
-                     binwidth=0.05,
-                     ax=ax)
-        ax.set(xlabel='optime in ns')
-        if save_plots:
-            plotToSVG(op_type)
-        else:
-            plt.show()
 
-
-
-PlotSingleOperionTimesDist(plot_data_2_core_n_host_per_rank)
-#PlotSingleOperionTimesDist(plot_data_2_core_per_rank)
+PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_n_host_per_rank)
 
 PlotSingleOperionTimesPerRank(plot_data_2_core_n_host_per_rank)
-PlotSingleOperionTimesPerRank(plot_data_2_core_per_rank)
+#PlotSingleOperionTimesDist(plot_data_2_core_per_rank)
+
+
 
 
 # # Throughput plots
