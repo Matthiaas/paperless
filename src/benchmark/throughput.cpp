@@ -135,7 +135,7 @@ int main(int argc, char** argv)  {
 
   // Benchmark code here:
 
-  //BenchmarkRandomData();
+  BenchmarkRandomData();
 
   KV::Finalize();
   // Write data to file:
