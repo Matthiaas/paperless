@@ -108,3 +108,17 @@ void LRUHashCache::clear() {
   container_.clear();
   cur_byte_size_ = 0;
 }
+
+void LRUHashCache::invalidateAll(const RBTreeMemoryTable& mtable, const ::HashFunction& hash_function) {
+  std::lock_guard<std::mutex> lck(m_);
+  for (auto &[key, _] : mtable) {
+    Hash h = hash_function(key.Value(), key.Length());
+    Key kv{key.GetView(), h};
+    auto it = container_.find(kv);
+    if(it == container_.end()) {
+      return;
+    }
+    queue.erase(it->second.it);
+    container_.erase(it);
+  }
+}

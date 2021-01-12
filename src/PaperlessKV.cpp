@@ -97,7 +97,9 @@ void PaperlessKV::Compact() {
       handler.Clear();
       return;
     }
-    storage_manager_.flushToDisk(*handler.Get());
+    auto *mtable = handler.Get();
+    storage_manager_.flushToDisk(*mtable);
+    local_cache_.invalidateAll(*mtable, hash_function_);
     handler.Clear();
   }
 }
@@ -184,17 +186,17 @@ void PaperlessKV::Dispatch() {
       }
       free(rqs);
 
+      remote_cache_.invalidateAll(*handler.Get(), hash_function_);
+
     } else {
       // Send data one by one:
-      
+
       for (const auto &[key, value] : *handler.Get()) {
         Hash hash = hash_function_(key.Value(), key.Length());
         // TODO: Send data with I_Send
         remoteOperator_.PutRelaxed(key.GetView(), hash, value);
       }
-      
 
-      
     }
 
     handler.Clear();

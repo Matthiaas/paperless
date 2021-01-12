@@ -5,14 +5,15 @@
 #ifndef PAPERLESS_LRUHASHCACHE_H
 #define PAPERLESS_LRUHASHCACHE_H
 
-#include "Element.h"
-#include "Status.h"
-#include "Types.h"
-
 #include <list>
 #include <mutex>
 #include <optional>
 #include <unordered_map>
+
+#include "Element.h"
+#include "RBTreeMemoryTable.h"
+#include "Status.h"
+#include "Types.h"
 
 class LRUHashCache {
  public:
@@ -32,7 +33,12 @@ class LRUHashCache {
   std::pair<QueryStatus, size_t> get(const ElementView& key, Hash h,
                                      const ElementView& value_buff);
 
+  void invalidateAll(
+      const RBTreeMemoryTable& mtable,
+      const std::function<Hash(const char*, const size_t)>& hash_function);
+
   void clear();
+
  private:
   struct Comparator {
     using is_transparent = std::true_type;
@@ -50,7 +56,7 @@ class LRUHashCache {
   struct Key {
     ElementView el;
     Hash hash;
-    bool operator==(const Key &other) const {
+    bool operator==(const Key& other) const {
       return (hash == other.hash && el == other.el);
     }
   };
@@ -62,20 +68,16 @@ class LRUHashCache {
     std::list<Key>::iterator it;
 
     [[nodiscard]] size_t Length() const {
-      if(value.hasValue())
+      if (value.hasValue())
         return value->Length();
       else
         return 0;
     }
   };
 
-
-
   struct HashFunction {
     using is_transparent = void;
-    std::size_t operator()(const Key& k) const{
-      return k.hash;
-    }
+    std::size_t operator()(const Key& k) const { return k.hash; }
   };
 
   void CleanUp();
