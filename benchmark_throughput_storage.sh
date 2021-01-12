@@ -4,7 +4,7 @@
 #BSUB -R "rusage[scratch=5120] span[ptile=2] select[model==EPYC_7742]"
 #BSUB -o out.storage.o%J
 #BSUB -W 04:00
-#BSUB -n 48
+#BSUB -n 32
 
 KILO=1024
 MEGA=$((1024 * KILO))
