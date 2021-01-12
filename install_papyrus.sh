@@ -4,14 +4,19 @@
 if [ -d "/cluster" ]
   then
     . ./load_modules.sh
+    echo "On Euler by default Papyrus is built with gcc-8.2 and OpenMPI 4."
+    MPIEXEC="/cluster/apps/gcc-8.2.0/openmpi-4.0.2-vvr7fdofwljfy4qgkkhao36r5qx44hni/bin/mpicc"
+else
+  MPIEXEC=$(command -v mpicc)
 fi
 
 rm -rf papyrus
 git clone https://code.ornl.gov/eck/papyrus.git
 cd papyrus
 
-# Disable Fortran bindings, otherwise it gives some weird errors.
-sed -i "s/DPAPYRUS_USE_FORTRAN=ON/DPAPYRUS_USE_FORTRAN=OFF/" build.sh
-sed -i "32iset_property(TARGET papyruskv PROPERTY POSITION_INDEPENDENT_CODE ON)" kv/src/CMakeLists.txt
+rm -rf build install
+mkdir -p build
+cd build
 
-./build.sh
+cmake .. -DCMAKE_INSTALL_PREFIX=../install -DCMAKE_BUILD_TYPE=Release -DMPIEXEC="$MPIEXEC" -DMPIEXEC_NUMPROC_FLAG="-n" -DPAPYRUS_USE_FORTRAN=OFF #Euler
+make -j install

@@ -29,5 +29,5 @@ BUILD_TYPE="${2:-$DEFAULT_BUILD_TYPE}"
 
 echo ${BUILD_TYPE}
 #rm -r build
-#mkdir build
+mkdir -p build
 cd build && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DIS_CLUSTER=${IS_CLUSTER} ${@:3} .. && make -j16 $1
