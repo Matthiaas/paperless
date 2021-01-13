@@ -40,12 +40,12 @@ class StorageManager {
     total_num_filters_ = HighestFileIndexInDir(sstable_dir_path_);
 
     // Restore Cache.
-    uint64_t first = (total_num_filters_ > cache_size_) ? (total_num_filters_ - cache_size_) : 1;
-    for (uint64_t fi = first; fi <= total_num_filters_; fi++) {
-      auto filter = BloomFilter::CreateFromFile(filter_dir_path_ / std::to_string(fi));
-      int fd = open((sstable_dir_path_ / std::to_string(fi)).c_str(), O_RDONLY);
-      filter_cache.emplace_front(fi, filter, fd);
-    }
+//    uint64_t first = (total_num_filters_ > cache_size_) ? (total_num_filters_ - cache_size_) : 1;
+//    for (uint64_t fi = first; fi <= total_num_filters_; fi++) {
+//      auto filter = BloomFilter::CreateFromFile(filter_dir_path_ / std::to_string(fi));
+//      int fd = open((sstable_dir_path_ / std::to_string(fi)).c_str(), O_RDONLY);
+//      filter_cache.emplace_front(fi, filter, fd);
+//    }
 
   }
 
