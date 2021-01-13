@@ -35,15 +35,15 @@ export DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
 for k in $(seq $N_RUNS); do
   for j in "${VALLEN[@]}"; do
     echo "val$j/run$k"
-    echo mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $CONSTLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/$EXPERIMENT/"${CONSTLEN}"ksize"${j}"vsize/ranks$RANKS SEQ
-    mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $CONSTLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/$EXPERIMENT/"${CONSTLEN}"ksize"${j}"vsize/ranks$RANKS SEQ
+    echo mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $CONSTLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/$EXPERIMENT/"${CONSTLEN}"ksize"${j}"vsize/ranks$RANKS/run$k SEQ
+    mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $CONSTLEN $j $COUNT $UPDATE_RATIO /cluster/scratch/$USER/$EXPERIMENT/"${CONSTLEN}"ksize"${j}"vsize/ranks$RANKS/run$k SEQ
   done
 done
 
 for k in $(seq $N_RUNS); do
   for j in "${VALLEN[@]}"; do
     echo "val$j/run$k"
-    echo mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $j $CONSTLEN $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${j}"ksize"${CONSTLEN}"vsize/ranks$RANKS SEQ
-    mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $j $CONSTLEN $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${j}"ksize"${CONSTLEN}"vsize/ranks$RANKS SEQ
+    echo mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $j $CONSTLEN $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${j}"ksize"${CONSTLEN}"vsize/ranks$RANKS/run$k SEQ
+    mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $j $CONSTLEN $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${j}"ksize"${CONSTLEN}"vsize/ranks$RANKS/run$k SEQ
   done
 done
