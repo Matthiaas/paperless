@@ -535,6 +535,8 @@ for experiment in experiments:
 """
 0
 
+# +
+from __future__ import with_statement
 
 def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless'], max_rank = 24,  plot_data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'mem_table_size','db']), mem_table_size=(None,0), ):
    
@@ -545,16 +547,19 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                 path = data_path + experiment + '/' + db + '/out' + str(i) + '.txt'
             else:
                 path = data_path + experiment + '/' + db + '_' + str(mem_table_size[0])+ '/out' + str(i) + '.txt'
-            with open(path, 'r') as f:
-                lines = f.readlines()
-
+            
+            try:
+                lines = open(path, 'r').readlines()
+            except FileNotFoundError:
+                print('oops file does not exists: ' + path)
+                continue
             reg = re.compile("rank_count:([0-9]+),keylen:([0-9]+),vallen:([0-9]+),count:([0-9]+),update_ratio:([0-9]+),batch_size:([0-9]+),put_time:([0-9]+),get_update_time:([0-9]+)")
 
             for line in lines:
                 reg_res = reg.match(line)
                 if reg_res == None or reg_res.group(1) == None:
                     break
-                
+
                 rank_size = int(reg_res.group(1))
                 vallen = int(reg_res.group(3))
                 count = int(reg_res.group(4))
@@ -582,7 +587,7 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                                               'optype' : "update/get",
                                               'mem_table_size': mem_table_size[1],
                                               'db': db}, ignore_index=True)
-
+                
     return plot_data
 
 
@@ -595,7 +600,7 @@ def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [1310
             print('Throughput for ' + op_type+ ', with value length ' + str(vallen) + 'B')
             select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) 
             if op_type == "put":
-                select = select & (plot_data['db'] != 'Ipaperless')
+                select = select & (plot_data['db'] != 'paperless')
             sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
             plt.yscale('log')
             plt.xlabel('Number of ranks')
@@ -638,7 +643,7 @@ PlotThroughputStorage(data, vallens=[65536])
 
 # +
 NANO_TO_SEC = 1000000000
-experiments = ['/throughput_report_one_host']
+experiments = ['/throughput_report_n_host', '/throughput_report_one_host']
 
 for experiment in experiments:
     #GetThroughputDataNew(experiment)
@@ -756,8 +761,8 @@ for rank in ranks:
 # # Vector Compare
 
 # +
-m_path = data_path + "/compare_vec/result_cmp_memcmp.txt"
-v_path = data_path + "/compare_vec/result_cmp_vectorized.txt"
+m_path = data_path + "/compare_vec/large_strides/result_cmp_memcmp.txt"
+v_path = data_path + "/compare_vec/large_strides/result_cmp_vectorized.txt"
 
 print(m_path)
 
@@ -778,6 +783,9 @@ def plotCompare(cycles):
 plotCompare(cycles)
 
 
+
+
+# -
 
 # # YCSB
 
