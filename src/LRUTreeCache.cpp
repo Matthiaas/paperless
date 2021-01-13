@@ -103,3 +103,20 @@ void LRUTreeCache::clear() {
   container_.clear();
   cur_byte_size_ = 0;
 }
+
+void LRUTreeCache::invalidateAll(const RBTreeMemoryTable& mtable, const ::HashFunction&) {
+  std::lock_guard<std::mutex> lck(m_);
+  auto it_cache = container_.begin();
+  auto it_mtable = mtable.begin();
+  while (it_cache != container_.end() && it_mtable != mtable.end()) {
+    if (it_cache->first < it_mtable->first)
+      ++it_cache;
+    else if (it_mtable->first < it_cache->first)
+      ++it_mtable;
+    else {
+      queue.erase(it_cache->second.it);
+      container_.erase(it_cache++);
+      ++it_mtable;
+    }
+  }
+}

@@ -32,6 +32,8 @@ public:
   std::pair<QueryStatus, size_t> get(const ElementView& key, Hash,
                                      const ElementView& value_buff);
 
+  void invalidateAll(const RBTreeMemoryTable& mtable, const ::HashFunction& );
+
   void clear();
 private:
   struct Comparator {
