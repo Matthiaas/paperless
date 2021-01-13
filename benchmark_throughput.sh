@@ -15,7 +15,7 @@ GIGA=$((1024 * MEGA))
 # Call with argument basic or workload
 KEYLEN=16
 VALLEN=(131072)
-COUNT=1000
+COUNT=10000
 UPDATE_RATIOS=(0 5 50)
 RANKS=(1 4 8 16 20 24) # 40 80 160 320)
 
@@ -49,6 +49,7 @@ export PAPYRUSKV_DESTROY_REPOSITORY=1 # Gets rid of the data afterwards.
 rm -r $DATA_LOCATION
 
 for k in $(seq $N_RUNS); do
+  echo Run$i
   for c in "${CORES[@]}"; do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
