@@ -49,7 +49,7 @@ void BenchmarkRandomData() {
     if (update_ratio == 0) {
       KV::SetMode(PaperlessKV::RELAXED, PaperlessKV::READONLY);
     } else {
-      KV::Fence();
+      KV::SetMode(PaperlessKV::SEQUENTIAL, PaperlessKV::READANDWRITE);
     }
   }
 

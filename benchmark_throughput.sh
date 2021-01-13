@@ -14,8 +14,8 @@ GIGA=$((1024 * MEGA))
 
 # Call with argument basic or workload
 KEYLEN=16
-VALLEN=(64 2048 131072)
-COUNT=5000
+VALLEN=(131072)
+COUNT=1000
 UPDATE_RATIOS=(0 5 50)
 RANKS=(1 4 8 16 20 24) # 40 80 160 320)
 
@@ -53,8 +53,8 @@ for k in $(seq $N_RUNS); do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
           for UPDATE_RATIO in "${UPDATE_RATIOS[@]}"; do
-             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless REL 1000
-             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless REL 1000
+             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless SEQ 1000
+             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_Ipaperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/Ipaperless SEQ 1000
            done
         done
         echo ""
@@ -65,8 +65,8 @@ for k in $(seq $N_RUNS); do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
           for UPDATE_RATIO in "${UPDATE_RATIOS[@]}"; do
-             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL 1000
-             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless REL 1000
+             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless SEQ 1000
+             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/paperless SEQ 1000
            done
         done
         echo ""
@@ -77,8 +77,8 @@ for k in $(seq $N_RUNS); do
     for i in "${RANKS[@]}"; do
         for j in "${VALLEN[@]}"; do
           for UPDATE_RATIO in "${UPDATE_RATIOS[@]}"; do
-             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus REL 1000
-             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus REL 1000
+             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus SEQ 1000
+             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT $UPDATE_RATIO $DATA_LOCATION/papyrus SEQ 1000
           done
         done
         echo ""
