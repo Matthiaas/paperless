@@ -29,10 +29,12 @@ export MAX_LOCAL_CACHE_SIZE=$GIGA
 export MAX_REMOTE_CACHE_SIZE=$GIGA
 export DISPATCH_IN_CHUNKS=1
 
+st=0
 
-EXPERIMENT=throughput_report_one_host
+EXPERIMENT=throughput_report_one_host$st
 export STORAGE_LOCATION=/scratch/$EXPERIMENT
 DATA_LOCATION=/cluster/scratch/$USER/$EXPERIMENT
+
 
 
 # Papyrus parameters.
