@@ -294,7 +294,6 @@ PlotSingleOperionTimesPerSize(plot_data_1_core_per_size, 16, 'Size of value im B
 PlotSingleOperionTimesPerSize(plot_data_1_core_per_size, 16, 'Size of value=key im Bytes')
 
 
-# +
 def PlotSingleOperionTimesPerRank(plot_data, optypes = ['localPut', 'localGet', 'remotePut', 'remoteGet'], lable='Optime for ', yLable = 'Operation time in nanoseconds'):
     for op_type in optypes:
         for ratio in ratios:
@@ -311,6 +310,7 @@ def PlotSingleOperionTimesPerRank(plot_data, optypes = ['localPut', 'localGet', 
                 plotToSVG(op_type)
             else:
                 plt.show()
+
 
 
 
@@ -340,22 +340,22 @@ def PlotDist(data, name,lable='Optime for ', yLable = 'Operation time in nanosec
     else:
         plt.show()
 
-def PlotSingleOperionTimesDist(plot_data, optypes = ['localPut', 'localGet', 'remotePut', 'remoteGet']):
+def PlotSingleOperionTimesDist(plot_data, rank=16, optypes = ['localPut', 'localGet', 'remotePut', 'remoteGet'], lable='Optime for ', yLable = 'Operation time in nanoseconds'):
     for op_type in optypes:
         #for ratio in ratios:
         
-        select = (plot_data['optype'] == op_type) & (plot_data['rank_size'] == 16)
-        PlotDist(plot_data[select], op_type)
+        select = (plot_data['optype'] == op_type) & (plot_data['rank_size'] == rank)
+        PlotDist(plot_data[select], op_type, lable=lable, yLable=yLable)
 
             
-def PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data, lable='Optime for ', yLable = 'Operation time in nanoseconds'):
+def PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data, rank=16, lable='Optime for ', yLable = 'Operation time in nanoseconds'):
     
     get_select =  (((plot_data['optype'] == 'localPut') | (plot_data['optype'] == 'remotePut')  ) 
-                            & (plot_data['rank_size'] == 16))
+                            & (plot_data['rank_size'] == rank))
     put_select = (((plot_data['optype'] == 'localGet') | (plot_data['optype'] == 'remoteGet')  ) 
-                            & (plot_data['rank_size'] == 16))
-    PlotDist(plot_data[get_select], "get")
-    PlotDist(plot_data[put_select], "put")
+                            & (plot_data['rank_size'] == rank))
+    PlotDist(plot_data[get_select], "get", lable=lable, yLable=yLable)
+    PlotDist(plot_data[put_select], "put", lable=lable, yLable=yLable)
     
 
 
@@ -536,13 +536,16 @@ for experiment in experiments:
 0
 
 
-def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless'], max_rank = 24,  plot_data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'db'] )):
+def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless'], max_rank = 24,  plot_data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'mem_table_size','db']), mem_table_size=(None,0), ):
    
 
     for db in dbs:
         for i in range(max_rank):
-            print(i)
-            with open(data_path + experiment + db + '/out' + str(i) + '.txt', 'r') as f:
+            if mem_table_size[0] == None:
+                path = data_path + experiment + '/' + db + '/out' + str(i) + '.txt'
+            else:
+                path = data_path + experiment + '/' + db + '_' + str(mem_table_size[0])+ '/out' + str(i) + '.txt'
+            with open(path, 'r') as f:
                 lines = f.readlines()
 
             reg = re.compile("rank_count:([0-9]+),keylen:([0-9]+),vallen:([0-9]+),count:([0-9]+),update_ratio:([0-9]+),batch_size:([0-9]+),put_time:([0-9]+),get_update_time:([0-9]+)")
@@ -569,6 +572,7 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                                               'op_ratio': ratio,
                                               'batch_size': batch_size,
                                               'optype' : "put",
+                                              'mem_table_size' : mem_table_size[1],
                                               'db': db}, ignore_index=True)
                 plot_data = plot_data.append({'optime': get_through,
                                               'rank_size':rank_size,
@@ -576,50 +580,74 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                                               'op_ratio': ratio,
                                               'batch_size': batch_size,
                                               'optype' : "update/get",
+                                              'mem_table_size': mem_table_size[1],
                                               'db': db}, ignore_index=True)
 
     return plot_data
 
 
-def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [64, 512, 13000]):
+# +
+def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [131072]):
     for vallen in vallens:
         for op_type in optypes:
             #for ratio in ratios:
             plt.yscale('log')
-            plt.title( 'Throughput for ' + op_type+ ', with value length ' + str(vallen) + 'B')
+            print('Throughput for ' + op_type+ ', with value length ' + str(vallen) + 'B')
             select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) 
             if op_type == "put":
                 select = select & (plot_data['db'] != 'Ipaperless')
             sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
             plt.yscale('log')
             plt.xlabel('Number of ranks')
-            plt.ylabel('Operation time in nanoseconds')
+            plt.ylabel('KPRS (kilo requests per second')
+            plt.show()
+            
+def PlotThroughputStorage(plot_data, optypes = ["update/get", "put"], vallens =  [131072]):
+    for vallen in vallens:
+        for op_type in optypes:
+            #for ratio in ratios:
+            plt.yscale('log')
+            print('Storage throughput for ' + op_type+ ', with value length ' + str(vallen) + 'B')
+            select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) 
+            
+            if(op_type == "put"):
+                sns.boxplot(data=plot_data[select], x='mem_table_size', y='optime', hue='db', showfliers = False)
+            else:            
+                sns.boxplot(data=plot_data[select], x='mem_table_size', y='optime', hue='db', showfliers = False)
+            
+            plt.yscale('log')
+            plt.xlabel('Memory Table size in percent of all data inserted')
+            plt.ylabel('KPRS (kilo requests per second')
             plt.show()
 
 
 # +
+NANO_TO_SEC = 1000000000
 storage_experiment = '/throughput_storage_report_n_host'
-dbs = ['/paperless_', '/papyrus_']
-mem_table_sizes = [6555200, 173880000, 665520000]
+dbs = ['paperless', 'papyrus']
+mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100) ]
+
+data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'db'] )
 
 for mem_tbl_size in mem_table_sizes:
-    data = None
-    exps = []
-    for db in dbs:
-        exps.append(db + str(mem_tbl_size))
-    data = GetThroughputDataNew(storage_experiment, dbs=exps, max_rank = 1)
-    PlotThroughput2(data)
+    data = GetThroughputDataNew(storage_experiment, dbs=dbs, max_rank = 1, plot_data=data, mem_table_size=mem_tbl_size)
+
+PlotThroughputStorage(data, vallens=[65536])
         
 
 
 # +
-experiments = ['/throughput_final_fair_one_host/']
+NANO_TO_SEC = 1000000000
+experiments = ['/throughput_report_one_host']
 
 for experiment in experiments:
     #GetThroughputDataNew(experiment)
-    data = GetThroughputDataNew(experiment, max_rank = 1)
+    data = GetThroughputDataNew(experiment, max_rank = 24)
     PlotThroughput2(data)
 # -
+
+
+
 
 
 
@@ -633,24 +661,31 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 
-data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data"
+data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/paperless-data"
 NANO_TO_SEC = 1000000000
 # % of ops are updates
 
 
 # I put it into class to not collide with Julia's code.
 class RelSeqBench:
-    def __init__(self, experiment_name, rank_sizes, n_runs, count):
+    def __init__(self, experiment_name, rank_sizes, n_runs, count, mem_table_sizes):
         self.experiment_name = experiment_name
         self.rank_sizes = rank_sizes
         self.n_runs = n_runs
         self.count = count
+        self.mem_table_sizes = mem_table_sizes
 
-    def dataPath(self, rank_size, run_idx, mode):
+    def dataPathRel(self, rank_size, run_idx, mode, mem_table_size):
+        return f"{data_path}/{self.experiment_name}/{mode}/ratio0/ranks{rank_size}/run{run_idx}/mt{mem_table_size}"
+       
+    def dataPathSeq(self, rank_size, run_idx, mode):
         return f"{data_path}/{self.experiment_name}/{mode}/ratio0/ranks{rank_size}/run{run_idx}"
 
-    def throughputForRun(self, rank_size, run_idx, mode):
-        p = self.dataPath(rank_size, run_idx, mode)
+    def throughputForRun(self, rank_size, run_idx, mode, mem_table_size = None):
+        if mem_table_size:
+            p = self.dataPathRel(rank_size, run_idx, mode, mem_table_size)
+        else:
+            p = self.dataPathSeq(rank_size, run_idx, mode)
         total_put_t = 0
         for i in range(rank_size):
             with open(f'{p}/put_total{i}.txt') as f:
@@ -660,11 +695,20 @@ class RelSeqBench:
     # The throughput value is (# of ops)/(sum of per-op timings).
     def readThroughputData(self):
         throughputs = pd.DataFrame(columns=['throughput', 'rank_size', 'mode'])
-        for mode in ("rel", "seq"):
+            
+        for _, rank_size in enumerate(self.rank_sizes):
+            for i in range(1, self.n_runs + 1):
+                val = self.throughputForRun(rank_size=rank_size, run_idx=i, mode='seq')
+                throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'mode':'SEQ'}, ignore_index=True)
+        print(mem_table_sizes)
+        for (mem_table_size, percent) in self.mem_table_sizes:
             for _, rank_size in enumerate(self.rank_sizes):
                 for i in range(1, self.n_runs + 1):
-                    val = self.throughputForRun(rank_size=rank_size, run_idx=i, mode=mode)
-                    throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'mode':mode}, ignore_index=True)
+                    val = self.throughputForRun(rank_size=rank_size, run_idx=i, mode='rel',mem_table_size=mem_table_size)
+                    throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'mode':'REL: ' + str(percent) + '%' }, ignore_index=True)
+        
+        
+        
         return throughputs
 
 
@@ -679,10 +723,11 @@ class RelSeqBench:
         plt.show()
 
 
-bench = RelSeqBench('seq_vs_rel_2core/paperless', rank_sizes=[1,2, 4, 8, 12, 16, 24], n_runs=30, count=1000)
+bench = RelSeqBench('seq_vs_rel_2core_report_one_host/paperless', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)])
 bench.plotThroughputs()
 
-
+bench = RelSeqBench('seq_vs_rel_2core_report_one_host/papyrus', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)])
+bench.plotThroughputs()
 
 
 
@@ -693,22 +738,28 @@ bench.plotThroughputs()
 experiment = 'cache_comp'
 caches = ['hash', 'tree']
 sizes = [8,32,512,1024,4096]
-ranks = [4,1]
+# 4096 is stupid since we do HardDisk access then
+sizes = [1024]
+ranks = [1]
 
 for rank in ranks:
     plot_data = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
     plot_data = OpTimeForRunPerSize(experiment + '/hash', rank, 0, sizes, plot_data, 'hash', keysize_eq_value_size=True)
     plot_data = OpTimeForRunPerSize(experiment + '/tree', rank, 0, sizes, plot_data, 'tree', keysize_eq_value_size=True)
-    PlotSingleOperionTimesPerSize(plot_data, rank, 'Size of value im Bytes')
+    PlotSingleOperionTimesDist(plot_data[plot_data['value_size'] == 1024], rank, ["localGet"], 'HashVSTreeCache')
 
 
 # -
+
+
 
 # # Vector Compare
 
 # +
 m_path = data_path + "/compare_vec/result_cmp_memcmp.txt"
 v_path = data_path + "/compare_vec/result_cmp_vectorized.txt"
+
+print(m_path)
 
 memcmp_cycles = pd.read_csv(m_path)
 vector_cycles = pd.read_csv(v_path)
