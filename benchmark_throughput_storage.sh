@@ -63,12 +63,12 @@ for k in $(seq $N_RUNS); do
 
             rm -r $CHECKPOINT_PATH
 
-             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT 0 $DATA_LOCATION/paperless_$MEM_TBL_SIZE REL 0 CHECKPOINT
-             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT 0 $DATA_LOCATION/paperless_$MEM_TBL_SIZE REL 0 CHECKPOINT
+             echo mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT 0 $DATA_LOCATION/paperless_$MEM_TBL_SIZE SEQ 0 CHECKPOINT
+             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_paperless $KEYLEN $j $COUNT 0 $DATA_LOCATION/paperless_$MEM_TBL_SIZE SEQ 0 CHECKPOINT
 
 
-             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT 0 $DATA_LOCATION/papyrus_$MEM_TBL_SIZE REL 0 CHECKPOINT
-             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT 0 $DATA_LOCATION/papyrus_$MEM_TBL_SIZE REL 0 CHECKPOINT
+             echo mpirun --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT 0 $DATA_LOCATION/papyrus_$MEM_TBL_SIZE SEQ 0 CHECKPOINT
+             mpirun --report-bindings --map-by node:PE=$c -np $i ./build/throughput_papyrus $KEYLEN $j $COUNT 0 $DATA_LOCATION/papyrus_$MEM_TBL_SIZE SEQ 0 CHECKPOINT
 
              echo ""
            done

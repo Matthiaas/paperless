@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(paperless)
 
 option(IS_CLUSTER "Indicates whether cmake is run on the cluster or not." OFF)
-option(VECTORIZE "Use SIMD for comparison." OFF)
+option(VECTORIZE "Use SIMD for comparison." ON)
 
 # Copypaste from: https://stackoverflow.com/questions/23163075/how-to-compile-an-mpi-included-c-program-using-cmake
 # Java wrappers have to be compiled with openmpi3.0.1, otherwise they segfault.
