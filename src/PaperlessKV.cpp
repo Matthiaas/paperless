@@ -186,7 +186,6 @@ void PaperlessKV::Dispatch() {
       }
       free(rqs);
 
-      remote_cache_.invalidateAll(*handler.Get(), hash_function_);
 
     } else {
       // Send data one by one:
@@ -198,7 +197,7 @@ void PaperlessKV::Dispatch() {
       }
 
     }
-
+    remote_cache_.clear();
     handler.Clear();
   }
 }
