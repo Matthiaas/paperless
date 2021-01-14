@@ -25,6 +25,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
+
 import os
 import re
 import inspect
@@ -48,6 +50,16 @@ def plotToSVG(file_name):
     dir_path = plot_dir_path + inspect.stack()[1][3]
     os.makedirs(dir_path, exist_ok=True)
     plt.savefig(dir_path + "/" + file_name + ".svg")
+    
+def addGrid(ax):
+    ax.xaxis.set_minor_locator(MultipleLocator(0.5))
+    ax.xaxis.grid(True, which='minor', color='black', lw=2)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles=handles[0:], labels=labels[0:])
+    
+def RemoveHuedTitle(ax):
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles=handles[0:], labels=labels[0:])
 
 
 # + [markdown] pycharm={}
@@ -120,7 +132,7 @@ def PlotOperationTimingOverTime(experiment):
 # + colab={"base_uri": "https://localhost:8080/", "height": 539} id="9vWxik0KpqO8" outputId="4b83a218-c7db-484c-ac74-14a304f019a0" pycharm={"is_executing": false}
 experiments = ['opt_time_report_n_host']  # 'killPutTaskEuler/paperless', 'PE3', '8MB'] # 'nodePE2', 'nodePE3', '8MB']
 ranks = [16]
-show_first_n = 4
+show_first_n = 1
 # experiment = 'localRun'
 # ranks = [8]
 # experiment = 'local-julia'
@@ -134,9 +146,9 @@ for experiment in experiments:
 # ### Single Opearion Time Distribution
 
 # +
-ratios = [0, 50, 5]
-rank_sizes = [1, 2, 4, 8, 16, 24]
-dbs = ['paperless', 'papyrus']
+
+
+
 
 
 
@@ -147,7 +159,7 @@ def GetRemoteDataPoints(times, lables, local_rank):
 
 
 
-def OpTimeForRunPerRank(experiment_name, run_idx, plot_data):
+def OpTimeForRunPerRank(experiment_name, run_idx, plot_data, dbs = ['paperless', 'papyrus'], rank_sizes = [1, 2, 4, 8, 16, 24], ratios = [0, 50, 5]):
 
     def dataPath(experiment_name, ratio, rank_size, run_idx, db):
         return f"{data_path}/{experiment_name}/{db}/ratio{ratio}/ranks{rank_size}/run{run_idx}"
@@ -200,19 +212,9 @@ def OpTimeForRunPerRank(experiment_name, run_idx, plot_data):
 #plot_data_1_core_per_rank = OpTimeForRunPerRank('artificial_workload_1core_final', 1, plot_data_1_core_per_rank)
 #plot_data_1_core_per_rank = OpTimeForRunPerRank('artificial_workload_1core_final', 2, plot_data_1_core_per_rank)
 
-plot_data_2_core_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
-plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 1, plot_data_2_core_per_rank)
-plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 2, plot_data_2_core_per_rank)
 
+# -
 
-# +
-
-plot_data_2_core_n_host_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
-plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 1, plot_data_2_core_n_host_per_rank)
-plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 2, plot_data_2_core_n_host_per_rank)
-
-
-# +
 
 
 
@@ -337,6 +339,7 @@ def PlotDist(data, name,lable='Optime for ', yLable = 'Operation time in nanosec
                  ax=ax, 
                  element="step")
     ax.set(xlabel='optime in ns')
+
     if save_plots:
         plotToSVG(name)
     else:
@@ -352,9 +355,9 @@ def PlotSingleOperionTimesDist(plot_data, rank=16, optypes = ['localPut', 'local
             
 def PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data, rank=16, lable='Optime for ', yLable = 'Operation time in nanoseconds'):
     
-    get_select =  (((plot_data['optype'] == 'localPut') | (plot_data['optype'] == 'remotePut')  ) 
+    put_select =  (((plot_data['optype'] == 'localPut') | (plot_data['optype'] == 'remotePut')  ) 
                             & (plot_data['rank_size'] == rank))
-    put_select = (((plot_data['optype'] == 'localGet') | (plot_data['optype'] == 'remoteGet')  ) 
+    get_select = (((plot_data['optype'] == 'localGet') | (plot_data['optype'] == 'remoteGet')  ) 
                             & (plot_data['rank_size'] == rank))
     PlotDist(plot_data[get_select], "get", lable=lable, yLable=yLable)
     PlotDist(plot_data[put_select], "put", lable=lable, yLable=yLable)
@@ -363,18 +366,27 @@ def PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data, rank=16, lable='Optime 
 
 # -
 
+plot_data_2_core_n_host_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 1, plot_data_2_core_n_host_per_rank)
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 2, plot_data_2_core_n_host_per_rank)
+
 PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_n_host_per_rank)
 
 
+plot_data_2_core_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 1, plot_data_2_core_per_rank)
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 2, plot_data_2_core_per_rank)
+
 PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_per_rank)
 
-# +
-#PlotSingleOperionTimesPerRank(plot_data_2_core_n_host_per_rank)
+# # 1 vs 2 Core
 #
-# -
+
+one_vs2 = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
+one_vs2 = OpTimeForRunPerRank('1vs2Core', 0, one_vs2, dbs = ['twocore', 'onecore'], rank_sizes = [8, 16], ratios = [0])
 
 
-
+PlotSingleOperionTimesDistOnlyLocaLRemote(one_vs2, rank=8)
 
 # # Throughput plots
 
@@ -629,10 +641,11 @@ def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [1310
                 select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) & (plot_data['op_ratio'] == op_ratio) 
                 if op_type == "put":
                     select = select & (plot_data['db'] != 'paperless')
-                sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
+                ax = sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
                 plt.yscale('log')
                 plt.xlabel('Number of ranks')
                 plt.ylabel('KPRS (kilo requests per second')
+                RemoveHuedTitle(ax)
                 plt.show()
             
 def PlotThroughputStorage(plot_data, optypes = ["update/get", "put"], vallens =  [131072]):
@@ -644,13 +657,14 @@ def PlotThroughputStorage(plot_data, optypes = ["update/get", "put"], vallens = 
             select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) 
             
             if(op_type == "put"):
-                sns.boxplot(data=plot_data[select], x='mem_table_size', y='optime', hue='db', showfliers = False)
+                ax = sns.boxplot(data=plot_data[select], x='mem_table_size', y='optime', hue='db', showfliers = False)
             else:            
-                sns.boxplot(data=plot_data[select], x='mem_table_size', y='optime', hue='db', showfliers = False)
+                ax = sns.boxplot(data=plot_data[select], x='mem_table_size', y='optime', hue='db', showfliers = False)
             
             plt.yscale('log')
             plt.xlabel('Memory Table size in percent of all data inserted')
             plt.ylabel('KPRS (kilo requests per second')
+            RemoveHuedTitle(ax)
             plt.show()
 
 
@@ -669,6 +683,9 @@ for mem_tbl_size in mem_table_sizes:
 #    print(data[data['optype'] == 'put'])
 PlotThroughputStorage(data, vallens=[65536])
         
+# -
+
+
 
 
 # +
@@ -680,6 +697,7 @@ for experiment in experiments:
     print(experiment)
     PlotThroughput2(data)
 # -
+
 
 
 
@@ -701,15 +719,30 @@ NANO_TO_SEC = 1000000000
 # % of ops are updates
 
 
+# +
+def plotThroughputsForRelSeq(throughput):
+    plt.title(f'Throughput in single rank per consistency')
+    ax = sns.boxplot(data=throughput, x='rank_size', y='throughput', hue='mode',
+                meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "black"})
+    # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
+    plt.yscale('log')
+    plt.xlabel('Number of ranks')
+    plt.ylabel('KPRS (kilo requests per second')
+    addGrid(ax)
+    plt.show()
+
+
 # I put it into class to not collide with Julia's code.
 class RelSeqBench:
-    def __init__(self, experiment_name, rank_sizes, n_runs, count, mem_table_sizes, merge_mem_tables=False):
-        self.experiment_name = experiment_name
+    def __init__(self, experiment_name, db, rank_sizes, n_runs, count, mem_table_sizes, merge_mem_tables=False):
+        self.experiment_name = experiment_name + db
         self.rank_sizes = rank_sizes
         self.n_runs = n_runs
         self.count = count
         self.mem_table_sizes = mem_table_sizes
         self.merge_mem_tables = merge_mem_tables
+        self.db = db
+        self.throughput = self.readThroughputData()
 
     def dataPathRel(self, rank_size, run_idx, mode, mem_table_size):
         return f"{data_path}/{self.experiment_name}/{mode}/ratio0/ranks{rank_size}/run{run_idx}/mt{mem_table_size}"
@@ -735,17 +768,21 @@ class RelSeqBench:
         for _, rank_size in enumerate(self.rank_sizes):
             for i in range(1, self.n_runs + 1):
                 val = self.throughputForRun(rank_size=rank_size, run_idx=i, mode='seq')
-                throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'mode':'SEQ'}, ignore_index=True)
+                throughputs = throughputs.append({'throughput':val, 
+                                                  'rank_size':rank_size, 
+                                                  'mode': self.db +' seq'}, ignore_index=True)
         
         for (mem_table_size, percent) in self.mem_table_sizes:
             for _, rank_size in enumerate(self.rank_sizes):
                 for i in range(1, self.n_runs + 1):
                     val = self.throughputForRun(rank_size=rank_size, run_idx=i, mode='rel',mem_table_size=mem_table_size)
                     if self.merge_mem_tables:
-                        mode_string = 'REL'
+                        mode_string = ' rel'
                     else:
-                        mode_string = 'REL: ' + str(percent) + '%' 
-                    throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'mode': mode_string}, ignore_index=True)
+                        mode_string = ' rel: ' + str(percent) + '%' 
+                    throughputs = throughputs.append({'throughput':val, 
+                                                      'rank_size':rank_size, 
+                                                      'mode': self.db + mode_string}, ignore_index=True)
         
             
         
@@ -753,21 +790,17 @@ class RelSeqBench:
 
 
     def plotThroughputs(self):
-        throughput = self.readThroughputData()
-        plt.title(f'Throughput in single rank per consistency')
-        sns.boxplot(data=throughput, x='rank_size', y='throughput', hue='mode')
-        # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
-        plt.yscale('log')
-        plt.xlabel('Number of ranks')
-        plt.ylabel('KPRS (kilo requests per second')
-        plt.show()
+        plotThroughputsForRelSeq(self.throughput)
 
 
-bench = RelSeqBench('seq_vs_rel_2core_report_one_host/paperless', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
-bench.plotThroughputs()
+# +
+benchless = RelSeqBench('seq_vs_rel_2core_report_n_host/', 'paperless', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
+benchyrus = RelSeqBench('seq_vs_rel_2core_report_n_host/', 'papyrus', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
 
-bench = RelSeqBench('seq_vs_rel_2core_report_one_host/papyrus', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
-bench.plotThroughputs()
+plotThroughputsForRelSeq(pd.concat([benchless.throughput, benchyrus.throughput ]))
+# -
+
+
 
 
 
@@ -798,7 +831,7 @@ for rank in ranks:
 # +
 m_path = data_path + "/compare_vec/large_strides/result_cmp_memcmp.txt"
 v_path = data_path + "/compare_vec/large_strides/result_cmp_vectorized.txt"
-
+# TODO SWAP COLORS
 print(m_path)
 
 memcmp_cycles = pd.read_csv(m_path)
@@ -879,3 +912,5 @@ class YCSB:
 
 bench = YCSB('ycsb_Jan_12_01_58', rank_sizes=[4, 8, 16, 24], n_runs=3, dbs=["paperless", "papyrus"])
 bench.plotRuntimes()
+
+
