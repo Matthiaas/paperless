@@ -602,8 +602,8 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                 put_through = int(reg_res.group(7))
                 get_through = int(reg_res.group(8))
 
-                put_through = count / put_through * NANO_TO_SEC * rank_size
-                get_through = count / get_through* NANO_TO_SEC * rank_size
+                put_through = count / put_through * NANO_TO_SEC #* rank_size
+                get_through = count / get_through* NANO_TO_SEC #* rank_size
 
                 plot_data = plot_data.append({'optime': put_through,
                                               'rank_size':rank_size,
@@ -630,24 +630,6 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
 
 
 
-# +
-def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [131072], op_ratios = [0,5,50]):
-    for vallen in vallens:
-        for op_type in optypes:
-            for op_ratio in op_ratios:
-                #for ratio in ratios:
-                plt.yscale('log')
-                print('Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
-                select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) & (plot_data['op_ratio'] == op_ratio) 
-                if op_type == "put":
-                    select = select & (plot_data['db'] != 'paperless')
-                ax = sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
-                plt.yscale('log')
-                plt.xlabel('Number of ranks')
-                plt.ylabel('KPRS (kilo requests per second')
-                RemoveHuedTitle(ax)
-                plt.show()
-            
 def PlotThroughputStorage(plot_data, optypes = ["update/get", "put"], vallens =  [131072]):
     for vallen in vallens:
         for op_type in optypes:
@@ -674,30 +656,70 @@ storage_experiment = '/throughput_storage_report_n_host'
 dbs = ['paperless', 'papyrus']
 mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100) ]
 
-data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'run', 'mem_table_size', 'db'] )
+storage_data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'run', 'mem_table_size', 'db'] )
 
 for mem_tbl_size in mem_table_sizes:
-    data = GetThroughputDataNew(storage_experiment, dbs=dbs, max_rank = 1, plot_data=data, mem_table_size=mem_tbl_size)
+    storage_data = GetThroughputDataNew(storage_experiment, dbs=dbs, max_rank = 1, plot_data=storage_data, mem_table_size=mem_tbl_size)
 
 #with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
 #    print(data[data['optype'] == 'put'])
-PlotThroughputStorage(data, vallens=[65536])
+
         
 # -
 
 
+PlotThroughputStorage(storage_data, vallens=[65536])
+
+
+def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [131072], op_ratios = [0,5,50]):
+    
+    colors = sns.color_palette()
+    for vallen in vallens:
+        for op_type in optypes:
+            # Uff this is so disgusting.
+            if op_type == 'put':
+                plt.yscale('log')
+                print('Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
+                select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen)
+                if op_type == "put":
+                    select = select & (plot_data['db'] != 'Ipaperless')
+                    palette = colors
+                ax = sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False,
+                                 palette=palette)
+                plt.yscale('log')
+                plt.xlabel('Number of ranks')
+                plt.ylabel('KPRS (kilo requests per second')
+                RemoveHuedTitle(ax)
+                plt.show()
+                
+            else:
+                for op_ratio in op_ratios:
+                    #for ratio in ratios:
+                    plt.yscale('log')
+                    print('Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
+                    select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) & (plot_data['op_ratio'] == op_ratio) 
+                    palette = [colors[2], colors[0], colors[1]]
+                    ax = sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False,
+                                     palette=palette)
+                    plt.yscale('log')
+                    plt.xlabel('Number of ranks')
+                    plt.ylabel('KPRS (kilo requests per second')
+                    RemoveHuedTitle(ax)
+                    plt.show()
 
 
 # +
 NANO_TO_SEC = 1000000000
 experiments = ['/throughput_report_n_host', '/throughput_report_one_host'] 
+thru_datas = []
 
 for experiment in experiments:
-    data = GetThroughputDataNew(experiment, max_rank = 24)
-    print(experiment)
-    PlotThroughput2(data)
+    thru_datas.append(GetThroughputDataNew(experiment, max_rank = 24))
+    print("Something was done")
 # -
-
+for experiment, t_data in zip(experiments, thru_datas):  
+    print(experiment)
+    PlotThroughput2(t_data)
 
 
 
@@ -721,14 +743,20 @@ NANO_TO_SEC = 1000000000
 
 # +
 def plotThroughputsForRelSeq(throughput):
-    plt.title(f'Throughput in single rank per consistency')
+    
+    colors = [sns.color_palette()[0], sns.color_palette("pastel")[0], sns.color_palette()[1], sns.color_palette("pastel")[1]]
+       
+    print(f'Throughput in single rank per consistency')
     ax = sns.boxplot(data=throughput, x='rank_size', y='throughput', hue='mode',
-                meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "black"})
+                     meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "black"},
+                     palette=colors)
     # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
     plt.yscale('log')
     plt.xlabel('Number of ranks')
     plt.ylabel('KPRS (kilo requests per second')
+    
     addGrid(ax)
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.show()
 
 
@@ -758,8 +786,10 @@ class RelSeqBench:
         total_put_t = 0
         for i in range(rank_size):
             with open(f'{p}/put_total{i}.txt') as f:
-                total_put_t = total_put_t + int(f.read())
-        return (rank_size * self.count) / (total_put_t / NANO_TO_SEC)
+                total_put_t = total_put_t + self.count / int(f.read())
+        return  total_put_t * NANO_TO_SEC
+    
+    
 
     # The throughput value is (# of ops)/(sum of per-op timings).
     def readThroughputData(self):
@@ -794,8 +824,8 @@ class RelSeqBench:
 
 
 # +
-benchless = RelSeqBench('seq_vs_rel_2core_report_n_host/', 'paperless', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
-benchyrus = RelSeqBench('seq_vs_rel_2core_report_n_host/', 'papyrus', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
+benchless = RelSeqBench('seq_vs_rel_2core_report_n_host/', 'paperless', rank_sizes=[4, 8, 16, 24], n_runs=8, count=10000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
+benchyrus = RelSeqBench('seq_vs_rel_2core_report_n_host/', 'papyrus', rank_sizes=[4, 8, 16, 24], n_runs=8, count=10000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
 
 plotThroughputsForRelSeq(pd.concat([benchless.throughput, benchyrus.throughput ]))
 # -
