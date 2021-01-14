@@ -73,22 +73,24 @@ def readOpTimes(file_name, ignore_empty=False):
 # ### Operations Over Time
 
 # + pycharm={"is_executing": false}
-rankPostfix = '' # '/run1'
+rankPostfix = '/run1'' # '
 rankPrefix = 'ranks'
+
+def dataPath(experiment_name, ratio, rank_size, run_idx, db):
+        return f"{data_path}/{experiment_name}/{db}/ratio{ratio}/ranks{rank_size}/run{run_idx}"
 
 
 def PlotOperationTimingOverTime(experiment):
     plt.figure(num=None, figsize=(15, 6), dpi=80, facecolor='w', edgecolor='k')
     print("Exoperiment: " + experiment)
-    path = data_path + '/' + experiment + "/"
     for rank in ranks:
 
         print("--------------------------------------")
         print("Plots for ranks n=" + str(rank))
         plt.figure(num=None, figsize=(15, 6 * rank), dpi=80, facecolor='w', edgecolor='k')
         for i in range(min(show_first_n, rank)):
-            gets = readOpTimes(path + rankPrefix + str(rank) + rankPostfix + "/get" + str(i) + ".txt")
-            puts = readOpTimes(path + rankPrefix +str(rank) + rankPostfix + "/put" + str(i) + ".txt")
+            gets = readOpTimes(dataPath(experiment, 0, rank, 1, "paperless") + "/get" + str(i) + ".txt" )
+            puts = readOpTimes(dataPath(experiment, 0, rank, 1, "paperless")  + "/put" + str(i) + ".txt")
 
             # print(f"Rank owners for PUT on {i}/{rank}: {np.unique(puts[1])}")
             # print(f"Rank owners for GET on {i}/{rank}: {np.unique(gets[1])}")
@@ -116,9 +118,9 @@ def PlotOperationTimingOverTime(experiment):
 
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 539} id="9vWxik0KpqO8" outputId="4b83a218-c7db-484c-ac74-14a304f019a0" pycharm={"is_executing": false}
-experiments = ['cache_comp/hash/512ksize512vsize', 'cache_comp/tree/512ksize512vsize']  # 'killPutTaskEuler/paperless', 'PE3', '8MB'] # 'nodePE2', 'nodePE3', '8MB']
-ranks = [8]
-show_first_n = 1
+experiments = ['opt_time_report_n_host']  # 'killPutTaskEuler/paperless', 'PE3', '8MB'] # 'nodePE2', 'nodePE3', '8MB']
+ranks = [16]
+show_first_n = 4
 # experiment = 'localRun'
 # ranks = [8]
 # experiment = 'local-julia'
@@ -132,7 +134,6 @@ for experiment in experiments:
 # ### Single Opearion Time Distribution
 
 # +
-experiment = 'final/artificial_workload'
 ratios = [0, 50, 5]
 rank_sizes = [1, 2, 4, 8, 16, 24]
 dbs = ['paperless', 'papyrus']
@@ -378,7 +379,7 @@ PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_per_rank)
 # # Throughput plots
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 1000} id="pdmV9lquni-5" outputId="03cbd4a8-cf53-4e59-cdcc-b4d39a791bdf" pycharm={"is_executing": false, "name": "#%% \n"}
-
+"""
 # Artificial workload benchmark plots
 
 
@@ -435,11 +436,11 @@ def readThroughputData(experiment_name):
                     }, ignore_index=True)
     return throughputs
 # The throughput value is (# of ops)/(sum of per-op timings).
-
-
+"""
+0
 
 # + pycharm={"metadata": false, "name": "#%%\n", "is_executing": false}
-
+"""
 def plotThroughputs(throughputs, name, per_rank=False):
     for k, ratio in enumerate(ratios):
         select = throughputs['op_ratio'] == ratio
@@ -456,16 +457,18 @@ def plotThroughputs(throughputs, name, per_rank=False):
         plt.ylabel('KPRS (kilo requests per second)')
         plt.savefig(f"./plots/{name}_{ratio}_{'per_rank' if per_rank else 'total'}.png", dpi=600)
         plt.show()
-
+"""
+0
 
 # + pycharm={"is_executing": false, "metadata": false, "name": "#%%#%%\n"}
-
+"""
 single_core_data = readThroughputData('final/artificial_workload')
 two_core_data = readThroughputData('final/artificial_workload_2core')
 
 plotThroughputs(single_core_data)
 plotThroughputs(two_core_data)
-
+"""
+0
 # -
 # # Throughput plots II
 #
@@ -548,6 +551,11 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
    
 
     for db in dbs:
+        
+        db_string = db
+        if db == 'Ipaperless':
+            sb_string = 'IGet paperless'
+        
         for i in range(max_rank):
             if mem_table_size[0] == None:
                 path = data_path + experiment + '/' + db + '/out' + str(i) + '.txt'
@@ -665,11 +673,11 @@ PlotThroughputStorage(data, vallens=[65536])
 
 # +
 NANO_TO_SEC = 1000000000
-experiments = [ '/throughput_report_one_host'] #'/throughput_report_n_host', # data is missing for this.
+experiments = ['/throughput_report_n_host', '/throughput_report_one_host'] 
 
 for experiment in experiments:
-    #GetThroughputDataNew(experiment)
     data = GetThroughputDataNew(experiment, max_rank = 24)
+    print(experiment)
     PlotThroughput2(data)
 # -
 
@@ -695,12 +703,13 @@ NANO_TO_SEC = 1000000000
 
 # I put it into class to not collide with Julia's code.
 class RelSeqBench:
-    def __init__(self, experiment_name, rank_sizes, n_runs, count, mem_table_sizes):
+    def __init__(self, experiment_name, rank_sizes, n_runs, count, mem_table_sizes, merge_mem_tables=False):
         self.experiment_name = experiment_name
         self.rank_sizes = rank_sizes
         self.n_runs = n_runs
         self.count = count
         self.mem_table_sizes = mem_table_sizes
+        self.merge_mem_tables = merge_mem_tables
 
     def dataPathRel(self, rank_size, run_idx, mode, mem_table_size):
         return f"{data_path}/{self.experiment_name}/{mode}/ratio0/ranks{rank_size}/run{run_idx}/mt{mem_table_size}"
@@ -727,14 +736,18 @@ class RelSeqBench:
             for i in range(1, self.n_runs + 1):
                 val = self.throughputForRun(rank_size=rank_size, run_idx=i, mode='seq')
                 throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'mode':'SEQ'}, ignore_index=True)
-        print(mem_table_sizes)
+        
         for (mem_table_size, percent) in self.mem_table_sizes:
             for _, rank_size in enumerate(self.rank_sizes):
                 for i in range(1, self.n_runs + 1):
                     val = self.throughputForRun(rank_size=rank_size, run_idx=i, mode='rel',mem_table_size=mem_table_size)
-                    throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'mode':'REL: ' + str(percent) + '%' }, ignore_index=True)
+                    if self.merge_mem_tables:
+                        mode_string = 'REL'
+                    else:
+                        mode_string = 'REL: ' + str(percent) + '%' 
+                    throughputs = throughputs.append({'throughput':val, 'rank_size':rank_size, 'mode': mode_string}, ignore_index=True)
         
-        
+            
         
         return throughputs
 
@@ -750,10 +763,10 @@ class RelSeqBench:
         plt.show()
 
 
-bench = RelSeqBench('seq_vs_rel_2core_report_one_host/paperless', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)])
+bench = RelSeqBench('seq_vs_rel_2core_report_one_host/paperless', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
 bench.plotThroughputs()
 
-bench = RelSeqBench('seq_vs_rel_2core_report_one_host/papyrus', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)])
+bench = RelSeqBench('seq_vs_rel_2core_report_one_host/papyrus', rank_sizes=[4, 8, 16, 24], n_runs=8, count=1000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
 bench.plotThroughputs()
 
 
