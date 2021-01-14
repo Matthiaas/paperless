@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 import os
 import re
 import inspect
+import collections
 
 # Data Path
 #os.environ['PAPERLESS_KV_DATA_DIR'] = "/home/julia/eth/dphpc/paperless/analytics"
@@ -199,8 +200,8 @@ def OpTimeForRunPerRank(experiment_name, run_idx, plot_data):
 #plot_data_1_core_per_rank = OpTimeForRunPerRank('artificial_workload_1core_final', 2, plot_data_1_core_per_rank)
 
 plot_data_2_core_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
-plot_data_2_core_per_rank = OpTimeForRunPerRank('artificial_workload_2core_final', 1, plot_data_2_core_per_rank)
-plot_data_2_core_per_rank = OpTimeForRunPerRank('artificial_workload_2core_final', 2, plot_data_2_core_per_rank)
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 1, plot_data_2_core_per_rank)
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 2, plot_data_2_core_per_rank)
 
 
 # +
@@ -363,8 +364,13 @@ def PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data, rank=16, lable='Optime 
 
 PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_n_host_per_rank)
 
-PlotSingleOperionTimesPerRank(plot_data_2_core_n_host_per_rank)
-#PlotSingleOperionTimesDist(plot_data_2_core_per_rank)
+
+PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_per_rank)
+
+# +
+#PlotSingleOperionTimesPerRank(plot_data_2_core_n_host_per_rank)
+#
+# -
 
 
 
@@ -538,7 +544,7 @@ for experiment in experiments:
 # +
 from __future__ import with_statement
 
-def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless'], max_rank = 24,  plot_data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'mem_table_size','db']), mem_table_size=(None,0), ):
+def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless'], max_rank = 24,  plot_data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'run', 'mem_table_size','db']), mem_table_size=(None,0), ):
    
 
     for db in dbs:
@@ -551,10 +557,13 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
             try:
                 lines = open(path, 'r').readlines()
             except FileNotFoundError:
-                print('oops file does not exists: ' + path)
+                #print('oops file does not exists: ' + path)
                 continue
             reg = re.compile("rank_count:([0-9]+),keylen:([0-9]+),vallen:([0-9]+),count:([0-9]+),update_ratio:([0-9]+),batch_size:([0-9]+),put_time:([0-9]+),get_update_time:([0-9]+)")
 
+            
+            run_nums = collections.defaultdict(int)
+        
             for line in lines:
                 reg_res = reg.match(line)
                 if reg_res == None or reg_res.group(1) == None:
@@ -565,6 +574,11 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                 count = int(reg_res.group(4))
                 ratio = int(reg_res.group(5))
                 batch_size = int(reg_res.group(6))
+                
+                
+                run = run_nums[rank_size, vallen, count,ratio,batch_size]
+                run_nums[rank_size, vallen, count,ratio,batch_size] = run + 1
+                
                 put_through = int(reg_res.group(7))
                 get_through = int(reg_res.group(8))
 
@@ -577,6 +591,7 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                                               'op_ratio': ratio,
                                               'batch_size': batch_size,
                                               'optype' : "put",
+                                              'run' : run,
                                               'mem_table_size' : mem_table_size[1],
                                               'db': db}, ignore_index=True)
                 plot_data = plot_data.append({'optime': get_through,
@@ -585,27 +600,32 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                                               'op_ratio': ratio,
                                               'batch_size': batch_size,
                                               'optype' : "update/get",
+                                              'run' : run,
                                               'mem_table_size': mem_table_size[1],
                                               'db': db}, ignore_index=True)
                 
-    return plot_data
+    return plot_data.groupby(['rank_size','vallen', 'op_ratio', 'batch_size', 
+                              'optype', 'run', 'mem_table_size', 'db']).sum().reset_index()
+# -
+
 
 
 # +
-def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [131072]):
+def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [131072], op_ratios = [0,5,50]):
     for vallen in vallens:
         for op_type in optypes:
-            #for ratio in ratios:
-            plt.yscale('log')
-            print('Throughput for ' + op_type+ ', with value length ' + str(vallen) + 'B')
-            select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) 
-            if op_type == "put":
-                select = select & (plot_data['db'] != 'paperless')
-            sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
-            plt.yscale('log')
-            plt.xlabel('Number of ranks')
-            plt.ylabel('KPRS (kilo requests per second')
-            plt.show()
+            for op_ratio in op_ratios:
+                #for ratio in ratios:
+                plt.yscale('log')
+                print('Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
+                select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) & (plot_data['op_ratio'] == op_ratio) 
+                if op_type == "put":
+                    select = select & (plot_data['db'] != 'paperless')
+                sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False)
+                plt.yscale('log')
+                plt.xlabel('Number of ranks')
+                plt.ylabel('KPRS (kilo requests per second')
+                plt.show()
             
 def PlotThroughputStorage(plot_data, optypes = ["update/get", "put"], vallens =  [131072]):
     for vallen in vallens:
@@ -632,18 +652,20 @@ storage_experiment = '/throughput_storage_report_n_host'
 dbs = ['paperless', 'papyrus']
 mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100) ]
 
-data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'db'] )
+data = pd.DataFrame(columns=['optime',  'batch_size', 'optype', 'op_ratio', 'vallen' ,'rank_size', 'run', 'mem_table_size', 'db'] )
 
 for mem_tbl_size in mem_table_sizes:
     data = GetThroughputDataNew(storage_experiment, dbs=dbs, max_rank = 1, plot_data=data, mem_table_size=mem_tbl_size)
 
+#with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+#    print(data[data['optype'] == 'put'])
 PlotThroughputStorage(data, vallens=[65536])
         
 
 
 # +
 NANO_TO_SEC = 1000000000
-experiments = ['/throughput_report_n_host', '/throughput_report_one_host']
+experiments = [ '/throughput_report_one_host'] #'/throughput_report_n_host', # data is missing for this.
 
 for experiment in experiments:
     #GetThroughputDataNew(experiment)
