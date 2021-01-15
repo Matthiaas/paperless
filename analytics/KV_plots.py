@@ -56,13 +56,13 @@ def plotToSVG(file_name):
     else:
         print(file_name)
         plt.show()
-    
+
 def addGrid(ax):
     ax.xaxis.set_minor_locator(MultipleLocator(0.5))
     ax.xaxis.grid(True, which='minor', color='black', lw=2)
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles=handles[0:], labels=labels[0:])
-    
+
 def RemoveHuedTitle(ax):
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles=handles[0:], labels=labels[0:])
@@ -225,83 +225,102 @@ def OpTimeForRunPerRank(experiment_name, run_idx, plot_data, dbs = ['paperless',
 
 
 
-def OpTimeForRunPerSize(experiment_name, rank_size, key_size, value_sizes, plot_data, db='', keysize_eq_value_size=False):
-    k_size = key_size
-    for value_size in value_sizes:
-        if keysize_eq_value_size:
-            k_size = value_size
-        print(value_size)
-        for i in range(rank_size):
-
-            p = f"{data_path}/{experiment_name}/{k_size}ksize{value_size}vsize/ranks{rank_size}"
+def ValueSizeComparison():
+    # value_sizes = [8, 32] #, 64, 256, 512, 1024, 2048, 4096]
+    # pretty_value_sizes = ['8B', '32B']
+    value_sizes = [256, 1024, 4096, 16384, 65536, 262144]
+    pretty_value_sizes = ['256B', '1KB', '4KB', '16KB', '64KB', '256KB']
+    key_size = 16
+    num_ranks = 16
+    experiment_name = 'value_size_cmp_report_n_host'
+    num_runs = 10
+    NANO_TO_SEC = 1000000000
+    KILO = 1024
+    def calculateThroughput(vector):
+        if len(vector):
+            return len(vector) / sum(vector) * NANO_TO_SEC / KILO
+        else:
+            return 0
+    
+    def throughputForRun(value_size, run_idx):
+        p = f"{data_path}/{experiment_name}/" \
+             f"{key_size}ksize{value_size}vsize/ranks{num_ranks}/run{run_idx}"
+        allGetTimes = []
+        allPutTimes = []
+        for i in range(num_ranks):
             getPath = f"{p}/get{i}.txt"
-            getTimes, getLabels = readOpTimes(getPath)
+            getTimes, _ = readOpTimes(getPath)
             putPath = f"{p}/put{i}.txt"
-            putTimes, putLables = readOpTimes(putPath)
+            putTimes, _ = readOpTimes(putPath)
+            allGetTimes.append(getTimes)
+            allPutTimes.append(putTimes)    
+        getThroughput = sum(map(calculateThroughput, allGetTimes))
+        putThroughput = sum(map(calculateThroughput, allPutTimes))
+        return getThroughput, putThroughput
+    
+    def readThroughputData():
+        throughputs = pd.DataFrame(columns=['bandwidth', 'throughput', 'operation', 'value_size'])
+        for value_size in value_sizes:
+            for i in range(1, num_runs + 1):
+                getThroughput, putThroughput = throughputForRun(value_size, i)
+                throughputs = throughputs.append({
+                    'throughput': getThroughput,
+                    'bandwidth': getThroughput * value_size,
+                    'operation': 'get',
+                    'value_size': value_size,
+                    }, ignore_index=True)
+                throughputs = throughputs.append({
+                    'throughput': putThroughput,
+                    'bandwidth': putThroughput * value_size / KILO, # KILO requests per second * size
+                    'operation': 'put',
+                    'value_size': value_size,
+                    }, ignore_index=True)
+        return throughputs
+    
+    
+    def plotThroughputs(throughputs):
+        fig, (throughput_axs, bandwidth_axs) = plt.subplots(2, 2, sharey='row', figsize=(10, 7))
+        for col, op in enumerate(['get', 'put']):
+            select = throughputs['operation'] == op
+            
+            ax = throughput_axs[col]
+            ax.set_title(f'{op.upper()} operation')
+            ax.grid(True, linestyle='--')
+            sns.boxplot(data=throughputs[select], x='value_size', y='throughput', ax=ax, color='#c289cc', width=0.75)
+            ax.set_yscale('log')
+            ax.set_xlabel('')
+            ax.set_xticklabels(pretty_value_sizes)
+            if col == 0:
+                ax.set_ylabel('Throughput (KRPS)')
+            else:
+                ax.set_ylabel('')
+            
+            ax = bandwidth_axs[col]
+            ax.grid(True, linestyle='--')
+            sns.boxplot(data=throughputs[select], x='value_size', y='bandwidth', ax=ax, color='#c289cc', width=0.5)
+            ax.set_yscale('log')
+            ax.set_xlabel('Value size (bytes)')            
+            ax.set_xticklabels(pretty_value_sizes)
+            if col == 0:
+                ax.set_ylabel('Bandwidth (MBPS)')
+            else:
+                ax.set_ylabel('')
+            
+        # throughput_axs[1].setp(throughput_axs[1].get_yticklabels(), visible=True)
+        for ax in [throughput_axs[0], throughput_axs[1], bandwidth_axs[0], bandwidth_axs[1]]:
+            for tk in ax.get_yticklabels():
+                tk.set_visible(True)
+        
+        plt.savefig(f"./plots/{experiment_name}.pdf", dpi=600)
+        plt.show()
+    
+    data = readThroughputData()
+    plotThroughputs(data)
 
-            localPuts = GetLocalDataPoints(putTimes, putLables, i)
-            localGets = GetLocalDataPoints(getTimes, getLabels, i)
-
-            remotePuts = GetRemoteDataPoints(putTimes, putLables, i)
-            remoteGets = GetRemoteDataPoints(getTimes, getLabels, i)
-
-            plot_data = plot_data.append(pd.DataFrame({'optime': localPuts,
-                                                       'optype' : np.full(len(localPuts), "localPut"),
-                                                       'value_size': np.full(len(localPuts), value_size),
-                                                       'rank_size':np.full(len(localPuts), rank_size),
-                                                       'db':np.full(len(localPuts), db)}))
-            plot_data = plot_data.append(pd.DataFrame({'optime': localGets,
-                                                       'optype' : np.full(len(localGets), "localGet"),
-                                                       'value_size': np.full(len(localGets), value_size),
-                                                       'rank_size':np.full(len(localGets), rank_size),
-                                                       'db':np.full(len(localGets), db)}))
-
-            plot_data = plot_data.append(pd.DataFrame({'optime': remotePuts,
-                                                       'optype' : np.full(len(remotePuts), "remotePut"),
-                                                       'value_size': np.full(len(remotePuts), value_size),
-                                                       'rank_size':np.full(len(remotePuts), rank_size),
-                                                       'db':np.full(len(remotePuts), db)}))
-            plot_data =  plot_data.append(pd.DataFrame({'optime': remoteGets,
-                                                        'optype' : np.full(len(remoteGets), "remoteGet"),
-                                                        'value_size': np.full(len(remoteGets), value_size),
-                                                        'rank_size':np.full(len(remoteGets), rank_size),
-                                                        'db':np.full(len(remoteGets), db)}))
-
-    return plot_data
+# + pycharm={"is_executing": false}
+ValueSizeComparison()
 
 
-
-# +
-
-value_sizes = [8, 32, 64, 256, 512, 1024, 2048, 4096]
-key_size = 16
-plot_data_1_core_per_size = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
-plot_data_1_core_per_size = OpTimeForRunPerSize('size_compPE1', 16, key_size, value_sizes, plot_data_1_core_per_size)
-
-plot_data_1_core_per_size_k = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
-plot_data_1_core_per_size_k = OpTimeForRunPerSize('size_compPE1', 16, key_size, value_sizes, plot_data_1_core_per_size_k, keysize_eq_value_size=True)
-
-
-# -
-
-def PlotSingleOperionTimesPerSize(plot_data, rank_size, lable):
-    for op_type in ['localPut', 'localGet', 'remotePut', 'remoteGet']:
-        #for ratio in ratios:
-        plt.yscale('log')
-        plt.title(f'Optime for {op_type} with {rank_size} ranks')
-        select = (plot_data['optype'] == op_type) #& (plot_data['op_ratio'] == ratio)
-        sns.boxplot(data=plot_data[select], x='value_size', y='optime', hue='db', showfliers = False)
-        #sns.swarmplot(data=plot_data[select], x='rank_size', y='optime', hue='db')
-        #sns.violinplot(data=plot_data[select],  x='rank_size', y='optime', hue='db', split=True)
-        plt.yscale('log')
-        plt.xlabel(lable)
-        plt.ylabel('Operation time in nanoseconds')
-        plt.ylim((100,30000))
-
-
-
-PlotSingleOperionTimesPerSize(plot_data_1_core_per_size, 16, 'Size of value im Bytes')
-PlotSingleOperionTimesPerSize(plot_data_1_core_per_size, 16, 'Size of value=key im Bytes')
 
 
 def PlotSingleOperionTimesPerRank(plot_data, optypes = ['localPut', 'localGet', 'remotePut', 'remoteGet'], lable='Optime for ', yLable = 'Operation time in nanoseconds'):
@@ -360,9 +379,9 @@ def PlotSingleOperionTimesDist(plot_data, rank=16, optypes = ['localPut', 'local
             
 def PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data, rank=16, lable='Optime for ', yLable = 'Operation time in nanoseconds', hosts=''):
     
-    put_select =  (((plot_data['optype'] == 'localPut') | (plot_data['optype'] == 'remotePut')  ) 
+    put_select =  (((plot_data['optype'] == 'localPut') | (plot_data['optype'] == 'remotePut')  )
                             & (plot_data['rank_size'] == rank))
-    get_select = (((plot_data['optype'] == 'localGet') | (plot_data['optype'] == 'remoteGet')  ) 
+    get_select = (((plot_data['optype'] == 'localGet') | (plot_data['optype'] == 'remoteGet')  )
                             & (plot_data['rank_size'] == rank))
     PlotDist(plot_data[get_select], "get", lable=lable + 'hosts:' + hosts, yLable=yLable)
     PlotDist(plot_data[put_select], "put", lable=lable + 'hosts:' + hosts, yLable=yLable)
@@ -588,17 +607,17 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
    
 
     for db in dbs:
-        
+
         db_string = db
         if db == 'Ipaperless':
             sb_string = 'IGet paperless'
-        
+
         for i in range(max_rank):
             if mem_table_size[0] == None:
                 path = data_path + experiment + '/' + db + '/out' + str(i) + '.txt'
             else:
                 path = data_path + experiment + '/' + db + '_' + str(mem_table_size[0])+ '/out' + str(i) + '.txt'
-            
+
             try:
                 lines = open(path, 'r').readlines()
             except FileNotFoundError:
@@ -606,9 +625,9 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                 continue
             reg = re.compile("rank_count:([0-9]+),keylen:([0-9]+),vallen:([0-9]+),count:([0-9]+),update_ratio:([0-9]+),batch_size:([0-9]+),put_time:([0-9]+),get_update_time:([0-9]+)")
 
-            
+
             run_nums = collections.defaultdict(int)
-        
+
             for line in lines:
                 reg_res = reg.match(line)
                 if reg_res == None or reg_res.group(1) == None:
@@ -619,11 +638,11 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                 count = int(reg_res.group(4))
                 ratio = int(reg_res.group(5))
                 batch_size = int(reg_res.group(6))
-                
-                
+
+
                 run = run_nums[rank_size, vallen, count,ratio,batch_size]
                 run_nums[rank_size, vallen, count,ratio,batch_size] = run + 1
-                
+
                 put_through = int(reg_res.group(7))
                 get_through = int(reg_res.group(8))
 
@@ -648,8 +667,8 @@ def GetThroughputDataNew(experiment, dbs = [ 'papyrus', "paperless", 'Ipaperless
                                               'run' : run,
                                               'mem_table_size': mem_table_size[1],
                                               'db': db}, ignore_index=True)
-                
-    return plot_data.groupby(['rank_size','vallen', 'op_ratio', 'batch_size', 
+
+    return plot_data.groupby(['rank_size','vallen', 'op_ratio', 'batch_size',
                               'optype', 'run', 'mem_table_size', 'db']).sum().reset_index()
 # -
 
@@ -661,13 +680,14 @@ def PlotThroughputStorage(plot_data, optypes = ["update/get", "put"], vallens = 
             #for ratio in ratios:
             plt.yscale('log')
 
-            select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) 
-            
+            select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen)
+
             if(op_type == "put"):
                 ax = sns.boxplot(data=plot_data[select], x='mem_table_size', y='optime', hue='db', showfliers = False)
-            else:            
+            else:
                 ax = sns.boxplot(data=plot_data[select], x='mem_table_size', y='optime', hue='db', showfliers = False)
             plt.title(op_type.replace("update/get", "get"), fontsize=20)
+
             plt.yscale('log')
             plt.xlabel('MTable size in percent of all data')
             plt.ylabel('')
@@ -705,7 +725,7 @@ PlotThroughputStorage(storage_data, vallens=[65536])
 # -
 
 def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [131072], op_ratios = [0,5,50], exp=''):
-    
+
     colors = sns.color_palette()
     for vallen in vallens:
         for op_type in optypes:
@@ -729,7 +749,7 @@ def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [1310
                 RemoveHuedTitle(ax)
                 ax.get_legend().remove()
                 plotToSVG(experiment +'Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
-                
+
             else:
                 for op_ratio in op_ratios:
                     #for ratio in ratios:
@@ -738,7 +758,7 @@ def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [1310
                     plt.title(str(100 - op_ratio)+'% gets',  fontsize=20 )
                     plt.ylim(10000, 400000)
                     print()
-                    select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) & (plot_data['op_ratio'] == op_ratio) 
+                    select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) & (plot_data['op_ratio'] == op_ratio)
                     palette = [colors[2], colors[0], colors[1]]
                     
                     ax = sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False,
@@ -757,12 +777,13 @@ def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [1310
 
 # +
 NANO_TO_SEC = 1000000000
-experiments = ['/throughput_report_n_host', '/throughput_report_one_host'] 
+experiments = ['/throughput_report_n_host', '/throughput_report_one_host']
 thru_datas = []
 
 for experiment in experiments:
     thru_datas.append(GetThroughputDataNew(experiment, max_rank = 24))
     print("Something was done")
+<<<<<<< HEAD
 # +
 #plt.rcParams.update({'font.size': 10})
 
@@ -772,6 +793,10 @@ plt.rc('ytick', labelsize=20)
 plt.rc('legend',fontsize=20) 
 
 for experiment, t_data in zip(experiments, thru_datas):  
+=======
+# -
+for experiment, t_data in zip(experiments, thru_datas):
+>>>>>>> 02d220c452b3dabf394899fac8e8054f7771b417
     print(experiment)
     PlotThroughput2(t_data, exp=experiment)
     break;
@@ -799,9 +824,9 @@ NANO_TO_SEC = 1000000000
 
 # +
 def plotThroughputsForRelSeq(throughput):
-    
+
     colors = [sns.color_palette()[0], sns.color_palette("pastel")[0], sns.color_palette()[1], sns.color_palette("pastel")[1]]
-       
+
 
     ax = sns.boxplot(data=throughput, x='rank_size', y='throughput', hue='mode',
                      meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "black"},
@@ -810,7 +835,11 @@ def plotThroughputsForRelSeq(throughput):
     plt.yscale('log')
     plt.xlabel('Number of ranks')
     plt.ylabel('KPRS (kilo requests per second')
+<<<<<<< HEAD
     plt.ylim(800,100000)
+=======
+
+>>>>>>> 02d220c452b3dabf394899fac8e8054f7771b417
     addGrid(ax)
     #ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.rc('axes', labelsize=12) 
@@ -835,7 +864,7 @@ class RelSeqBench:
 
     def dataPathRel(self, rank_size, run_idx, mode, mem_table_size):
         return f"{data_path}/{self.experiment_name}/{mode}/ratio0/ranks{rank_size}/run{run_idx}/mt{mem_table_size}"
-       
+
     def dataPathSeq(self, rank_size, run_idx, mode):
         return f"{data_path}/{self.experiment_name}/{mode}/ratio0/ranks{rank_size}/run{run_idx}"
 
@@ -849,20 +878,20 @@ class RelSeqBench:
             with open(f'{p}/put_total{i}.txt') as f:
                 total_put_t = total_put_t + self.count / int(f.read())
         return  total_put_t * NANO_TO_SEC
-    
-    
+
+
 
     # The throughput value is (# of ops)/(sum of per-op timings).
     def readThroughputData(self):
         throughputs = pd.DataFrame(columns=['throughput', 'rank_size', 'mode'])
-            
+
         for _, rank_size in enumerate(self.rank_sizes):
             for i in range(1, self.n_runs + 1):
                 val = self.throughputForRun(rank_size=rank_size, run_idx=i, mode='seq')
-                throughputs = throughputs.append({'throughput':val, 
-                                                  'rank_size':rank_size, 
+                throughputs = throughputs.append({'throughput':val,
+                                                  'rank_size':rank_size,
                                                   'mode': self.db +' seq'}, ignore_index=True)
-        
+
         for (mem_table_size, percent) in self.mem_table_sizes:
             for _, rank_size in enumerate(self.rank_sizes):
                 for i in range(1, self.n_runs + 1):
@@ -870,13 +899,13 @@ class RelSeqBench:
                     if self.merge_mem_tables:
                         mode_string = ' rel'
                     else:
-                        mode_string = ' rel: ' + str(percent) + '%' 
-                    throughputs = throughputs.append({'throughput':val, 
-                                                      'rank_size':rank_size, 
+                        mode_string = ' rel: ' + str(percent) + '%'
+                    throughputs = throughputs.append({'throughput':val,
+                                                      'rank_size':rank_size,
                                                       'mode': self.db + mode_string}, ignore_index=True)
-        
-            
-        
+
+
+
         return throughputs
 
 
