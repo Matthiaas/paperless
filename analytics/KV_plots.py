@@ -235,7 +235,7 @@ def ValueSizeComparison():
     experiment_name = 'value_size_cmp_report_n_host'
     num_runs = 10
     NANO_TO_SEC = 1000000000
-    KILO = 1000
+    KILO = 1024
     def calculateThroughput(vector):
         if len(vector):
             return len(vector) / sum(vector) * NANO_TO_SEC / KILO
@@ -271,7 +271,7 @@ def ValueSizeComparison():
                     }, ignore_index=True)
                 throughputs = throughputs.append({
                     'throughput': putThroughput,
-                    'bandwidth': putThroughput * value_size,
+                    'bandwidth': putThroughput * value_size / KILO, # KILO requests per second * size
                     'operation': 'put',
                     'value_size': value_size,
                     }, ignore_index=True)
