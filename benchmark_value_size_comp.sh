@@ -12,10 +12,10 @@ MEGA=$((1024 * KILO))
 GIGA=$((1024 * MEGA))
 
 CONSTLEN=16
-VALLEN=(8 32 64 256 512 1024 2048 4096)
-COUNT=10000
+VALLEN=(256 $KILO $((4 * KILO)) $((16 * KILO)) $((64 * KILO)) $((256 * KILO)) $((MEGA)))
+COUNT=5000
 UPDATE_RATIO=0
-N_RUNS=30
+N_RUNS=10
 RANKS=16
 
 export MAX_LOCAL_MEMTABLE_SIZE=$GIGA
@@ -40,10 +40,10 @@ for k in $(seq $N_RUNS); do
   done
 done
 
-for k in $(seq $N_RUNS); do
-  for j in "${VALLEN[@]}"; do
-    echo "val$j/run$k"
-    echo mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $j $CONSTLEN $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${j}"ksize"${CONSTLEN}"vsize/ranks$RANKS/run$k SEQ
-    mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $j $CONSTLEN $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${j}"ksize"${CONSTLEN}"vsize/ranks$RANKS/run$k SEQ
-  done
-done
+#for k in $(seq $N_RUNS); do
+#  for j in "${VALLEN[@]}"; do
+#    echo "val$j/run$k"
+#    echo mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $j $CONSTLEN $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${j}"ksize"${CONSTLEN}"vsize/ranks$RANKS/run$k SEQ
+#    mpirun --map-by node:PE=2 -np $RANKS ./build/thegreatbenchmark_paperless $j $CONSTLEN $COUNT $UPDATE_RATIO /cluster/scratch/$USER/size_comp/"${j}"ksize"${CONSTLEN}"vsize/ranks$RANKS/run$k SEQ
+#  done
+#done
