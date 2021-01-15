@@ -41,15 +41,21 @@ data_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/data/paperless-data"
 plot_dir_path = os.environ['PAPERLESS_KV_DATA_DIR'] + "/plots/"
 
 
-save_plots = False
+save_plots = True
 
 
 # This method will create a directory for you (dependent on the function name)
 # Just enter the file_name.
 def plotToSVG(file_name):
-    dir_path = plot_dir_path + inspect.stack()[1][3]
-    os.makedirs(dir_path, exist_ok=True)
-    plt.savefig(dir_path + "/" + file_name + ".svg")
+    if save_plots:
+        dir_path = plot_dir_path + inspect.stack()[1][3]
+        os.makedirs(dir_path, exist_ok=True)
+        file_name = file_name.replace("/", "_")
+        plt.savefig(dir_path + "/" + file_name + ".pdf")
+        plt.show()    
+    else:
+        print(file_name)
+        plt.show()
     
 def addGrid(ax):
     ax.xaxis.set_minor_locator(MultipleLocator(0.5))
@@ -323,7 +329,6 @@ def PlotDist(data, name,lable='Optime for ', yLable = 'Operation time in nanosec
     fig, ax = plt.subplots()
     #sns.swarmplot(data=plot_data[select], x='rank_size', y='optime', hue='db')
     #sns.violinplot(data=plot_data[select],  x='rank_size', y='optime', hue='db', split=True)
-    print(lable + name)
     # remove the next two lines to remove te cdf
     ax2 = ax.twinx()
     sns.ecdfplot(data=data, 
@@ -340,10 +345,7 @@ def PlotDist(data, name,lable='Optime for ', yLable = 'Operation time in nanosec
                  element="step")
     ax.set(xlabel='optime in ns')
 
-    if save_plots:
-        plotToSVG(name)
-    else:
-        plt.show()
+    plotToSVG(lable + name)
 
 def PlotSingleOperionTimesDist(plot_data, rank=16, optypes = ['localPut', 'localGet', 'remotePut', 'remoteGet'], lable='Optime for ', yLable = 'Operation time in nanoseconds'):
     for op_type in optypes:
@@ -353,14 +355,14 @@ def PlotSingleOperionTimesDist(plot_data, rank=16, optypes = ['localPut', 'local
         PlotDist(plot_data[select], op_type, lable=lable, yLable=yLable)
 
             
-def PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data, rank=16, lable='Optime for ', yLable = 'Operation time in nanoseconds'):
+def PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data, rank=16, lable='Optime for ', yLable = 'Operation time in nanoseconds', hosts=''):
     
     put_select =  (((plot_data['optype'] == 'localPut') | (plot_data['optype'] == 'remotePut')  ) 
                             & (plot_data['rank_size'] == rank))
     get_select = (((plot_data['optype'] == 'localGet') | (plot_data['optype'] == 'remoteGet')  ) 
                             & (plot_data['rank_size'] == rank))
-    PlotDist(plot_data[get_select], "get", lable=lable, yLable=yLable)
-    PlotDist(plot_data[put_select], "put", lable=lable, yLable=yLable)
+    PlotDist(plot_data[get_select], "get", lable=lable + 'hosts:' + hosts, yLable=yLable)
+    PlotDist(plot_data[put_select], "put", lable=lable + 'hosts:' + hosts, yLable=yLable)
     
 
 
@@ -370,14 +372,14 @@ plot_data_2_core_n_host_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op
 plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 1, plot_data_2_core_n_host_per_rank)
 plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 2, plot_data_2_core_n_host_per_rank)
 
-PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_n_host_per_rank)
+PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_n_host_per_rank, hosts='n')
 
 
 plot_data_2_core_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
 plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 1, plot_data_2_core_per_rank)
 plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 2, plot_data_2_core_per_rank)
 
-PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_per_rank)
+PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_per_rank, hosts='one')
 
 # # 1 vs 2 Core
 #
@@ -635,7 +637,7 @@ def PlotThroughputStorage(plot_data, optypes = ["update/get", "put"], vallens = 
         for op_type in optypes:
             #for ratio in ratios:
             plt.yscale('log')
-            print('Storage throughput for ' + op_type+ ', with value length ' + str(vallen) + 'B')
+
             select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) 
             
             if(op_type == "put"):
@@ -647,7 +649,8 @@ def PlotThroughputStorage(plot_data, optypes = ["update/get", "put"], vallens = 
             plt.xlabel('Memory Table size in percent of all data inserted')
             plt.ylabel('KPRS (kilo requests per second')
             RemoveHuedTitle(ax)
-            plt.show()
+            plotToSVG('Storage throughput for ' + op_type+ ' with value length ' + str(vallen) + 'B')
+            
 
 
 # +
@@ -671,7 +674,7 @@ for mem_tbl_size in mem_table_sizes:
 PlotThroughputStorage(storage_data, vallens=[65536])
 
 
-def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [131072], op_ratios = [0,5,50]):
+def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [131072], op_ratios = [0,5,50], exp=''):
     
     colors = sns.color_palette()
     for vallen in vallens:
@@ -679,7 +682,6 @@ def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [1310
             # Uff this is so disgusting.
             if op_type == 'put':
                 plt.yscale('log')
-                print('Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
                 select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen)
                 if op_type == "put":
                     select = select & (plot_data['db'] != 'Ipaperless')
@@ -690,13 +692,13 @@ def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [1310
                 plt.xlabel('Number of ranks')
                 plt.ylabel('KPRS (kilo requests per second')
                 RemoveHuedTitle(ax)
-                plt.show()
+                plotToSVG(experiment +'Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
                 
             else:
                 for op_ratio in op_ratios:
                     #for ratio in ratios:
                     plt.yscale('log')
-                    print('Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
+                    print()
                     select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) & (plot_data['op_ratio'] == op_ratio) 
                     palette = [colors[2], colors[0], colors[1]]
                     ax = sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False,
@@ -705,7 +707,7 @@ def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [1310
                     plt.xlabel('Number of ranks')
                     plt.ylabel('KPRS (kilo requests per second')
                     RemoveHuedTitle(ax)
-                    plt.show()
+                    plotToSVG(experiment +' Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
 
 
 # +
@@ -719,7 +721,7 @@ for experiment in experiments:
 # -
 for experiment, t_data in zip(experiments, thru_datas):  
     print(experiment)
-    PlotThroughput2(t_data)
+    PlotThroughput2(t_data, exp=experiment)
 
 
 
@@ -746,7 +748,7 @@ def plotThroughputsForRelSeq(throughput):
     
     colors = [sns.color_palette()[0], sns.color_palette("pastel")[0], sns.color_palette()[1], sns.color_palette("pastel")[1]]
        
-    print(f'Throughput in single rank per consistency')
+
     ax = sns.boxplot(data=throughput, x='rank_size', y='throughput', hue='mode',
                      meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "black"},
                      palette=colors)
@@ -757,7 +759,7 @@ def plotThroughputsForRelSeq(throughput):
     
     addGrid(ax)
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.show()
+    plotToSVG(f'Throughput in single rank per consistency')
 
 
 # I put it into class to not collide with Julia's code.
@@ -843,16 +845,16 @@ caches = ['hash', 'tree']
 sizes = [8,32,512,1024,4096]
 # 4096 is stupid since we do HardDisk access then
 sizes = [1024]
-ranks = [1]
+ranks = 1
 
-for rank in ranks:
-    plot_data = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
-    plot_data = OpTimeForRunPerSize(experiment + '/hash', rank, 0, sizes, plot_data, 'hash', keysize_eq_value_size=True)
-    plot_data = OpTimeForRunPerSize(experiment + '/tree', rank, 0, sizes, plot_data, 'tree', keysize_eq_value_size=True)
-    PlotSingleOperionTimesDist(plot_data[plot_data['value_size'] == 1024], rank, ["localGet"], 'HashVSTreeCache')
+cache_data = pd.DataFrame(columns=['optime', 'value_size', 'op_ratio' ,'rank_size', 'db'])
+cache_data = OpTimeForRunPerSize(experiment + '/hash', rank, 0, sizes, cache_data, 'hash', keysize_eq_value_size=True)
+cache_data = OpTimeForRunPerSize(experiment + '/tree', rank, 0, sizes, cache_data, 'tree', keysize_eq_value_size=True)
 
 
 # -
+PlotSingleOperionTimesDist(plot_data[plot_data['value_size'] == 1024], rank, ["localGet"], 'HashVSTreeCache')
+
 
 
 
@@ -876,7 +878,7 @@ def plotCompare(cycles):
 
     plt.xlabel('key_length')
     plt.ylabel('cycles')
-    plt.show()
+    plotToSVG("VectorCMP")
 
 plotCompare(cycles)
 
