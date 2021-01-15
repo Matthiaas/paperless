@@ -51,7 +51,7 @@ def plotToSVG(file_name):
         dir_path = plot_dir_path + inspect.stack()[1][3]
         os.makedirs(dir_path, exist_ok=True)
         file_name = file_name.replace("/", "_")
-        plt.savefig(dir_path + "/" + file_name + ".pdf")
+        plt.savefig(dir_path + "/" + file_name + ".pdf", bbox_inches='tight')
         plt.show()    
     else:
         print(file_name)
@@ -344,6 +344,9 @@ def PlotDist(data, name,lable='Optime for ', yLable = 'Operation time in nanosec
                  ax=ax, 
                  element="step")
     ax.set(xlabel='optime in ns')
+    
+    #RemoveHuedTitle(ax2)
+    #RemoveHuedTitle(ax)
 
     plotToSVG(lable + name)
 
@@ -369,15 +372,35 @@ def PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data, rank=16, lable='Optime 
 # -
 
 plot_data_2_core_n_host_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
-plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 1, plot_data_2_core_n_host_per_rank)
-plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 2, plot_data_2_core_n_host_per_rank)
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 1, plot_data_2_core_n_host_per_rank, rank_sizes=[16])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 2, plot_data_2_core_n_host_per_rank, rank_sizes=[16])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 3, plot_data_2_core_n_host_per_rank, rank_sizes=[16])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 4, plot_data_2_core_n_host_per_rank, rank_sizes=[16])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 5, plot_data_2_core_n_host_per_rank, rank_sizes=[16])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 6, plot_data_2_core_n_host_per_rank, rank_sizes=[16])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 7, plot_data_2_core_n_host_per_rank, rank_sizes=[16])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 8, plot_data_2_core_n_host_per_rank, rank_sizes=[16])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 9, plot_data_2_core_n_host_per_rank, rank_sizes=[16])
+plot_data_2_core_n_host_per_rank = OpTimeForRunPerRank('opt_time_report_n_host', 10, plot_data_2_core_n_host_per_rank, rank_sizes=[16])
 
+plt.rc('axes', labelsize=14) 
+plt.rc('xtick', labelsize=14) 
+plt.rc('ytick', labelsize=14) 
+plt.rc('legend',fontsize=14) 
 PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_n_host_per_rank, hosts='n')
 
 
 plot_data_2_core_per_rank = pd.DataFrame(columns=['optime', 'optype', 'op_ratio' ,'rank_size', 'db'])
-plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 1, plot_data_2_core_per_rank)
-plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 2, plot_data_2_core_per_rank)
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 1, plot_data_2_core_per_rank, rank_sizes=[16])
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 2, plot_data_2_core_per_rank, rank_sizes=[16])
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 3, plot_data_2_core_per_rank, rank_sizes=[16])
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 4, plot_data_2_core_per_rank, rank_sizes=[16])
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 5, plot_data_2_core_per_rank, rank_sizes=[16])
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 6, plot_data_2_core_per_rank, rank_sizes=[16])
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 7, plot_data_2_core_per_rank, rank_sizes=[16])
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 8, plot_data_2_core_per_rank, rank_sizes=[16])
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 9, plot_data_2_core_per_rank, rank_sizes=[16])
+plot_data_2_core_per_rank = OpTimeForRunPerRank('opt_time_report_one_host', 9, plot_data_2_core_per_rank, rank_sizes=[16])
 
 PlotSingleOperionTimesDistOnlyLocaLRemote(plot_data_2_core_per_rank, hosts='one')
 
@@ -644,13 +667,14 @@ def PlotThroughputStorage(plot_data, optypes = ["update/get", "put"], vallens = 
                 ax = sns.boxplot(data=plot_data[select], x='mem_table_size', y='optime', hue='db', showfliers = False)
             else:            
                 ax = sns.boxplot(data=plot_data[select], x='mem_table_size', y='optime', hue='db', showfliers = False)
-            
+            plt.title(op_type.replace("update/get", "get"), fontsize=20)
             plt.yscale('log')
-            plt.xlabel('Memory Table size in percent of all data inserted')
-            plt.ylabel('KPRS (kilo requests per second')
+            plt.xlabel('MTable size in percent of all data')
+            plt.ylabel('')
             RemoveHuedTitle(ax)
+            ax.get_legend().remove() 
             plotToSVG('Storage throughput for ' + op_type+ ' with value length ' + str(vallen) + 'B')
-            
+
 
 
 # +
@@ -667,12 +691,18 @@ for mem_tbl_size in mem_table_sizes:
 #with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
 #    print(data[data['optype'] == 'put'])
 
-        
-# -
+
+# +
+plt.rc('axes', labelsize=20) 
+plt.rc('xtick', labelsize=20) 
+plt.rc('ytick', labelsize=20) 
+plt.rc('legend',fontsize=20) 
 
 
 PlotThroughputStorage(storage_data, vallens=[65536])
 
+
+# -
 
 def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [131072], op_ratios = [0,5,50], exp=''):
     
@@ -682,33 +712,48 @@ def PlotThroughput2(plot_data, optypes = ["update/get", "put"], vallens =  [1310
             # Uff this is so disgusting.
             if op_type == 'put':
                 plt.yscale('log')
+                plt.title('puts',  fontsize=20 )
                 select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen)
                 if op_type == "put":
                     select = select & (plot_data['db'] != 'Ipaperless')
                     palette = colors
+                #plt.rc('axes', labelsize=15) 
+                #plt.rc('xtick', labelsize=15) 
+                #plt.rc('ytick', labelsize=15) 
                 ax = sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False,
                                  palette=palette)
                 plt.yscale('log')
                 plt.xlabel('Number of ranks')
                 plt.ylabel('KPRS (kilo requests per second')
+                plt.ylabel('')
                 RemoveHuedTitle(ax)
+                ax.get_legend().remove()
                 plotToSVG(experiment +'Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
                 
             else:
                 for op_ratio in op_ratios:
                     #for ratio in ratios:
                     plt.yscale('log')
+                    
+                    plt.title(str(100 - op_ratio)+'% gets',  fontsize=20 )
+                    plt.ylim(10000, 400000)
                     print()
                     select = (plot_data['optype'] == op_type) & (plot_data['vallen'] == vallen) & (plot_data['op_ratio'] == op_ratio) 
                     palette = [colors[2], colors[0], colors[1]]
+                    
                     ax = sns.boxplot(data=plot_data[select], x='rank_size', y='optime', hue='db', showfliers = False,
                                      palette=palette)
                     plt.yscale('log')
                     plt.xlabel('Number of ranks')
                     plt.ylabel('KPRS (kilo requests per second')
+                    
+                    
+                    
+                    plt.ylabel('')
                     RemoveHuedTitle(ax)
+                    plt.legend(bbox_to_anchor=(0.5, 1.6),borderaxespad=0)
+                    
                     plotToSVG(experiment +' Throughput for ' + op_type+ ', opratio: ' + str(op_ratio) + ', with value length ' + str(vallen) + 'B')
-
 
 # +
 NANO_TO_SEC = 1000000000
@@ -718,10 +763,19 @@ thru_datas = []
 for experiment in experiments:
     thru_datas.append(GetThroughputDataNew(experiment, max_rank = 24))
     print("Something was done")
-# -
+# +
+#plt.rcParams.update({'font.size': 10})
+
+plt.rc('axes', labelsize=20) 
+plt.rc('xtick', labelsize=20) 
+plt.rc('ytick', labelsize=20) 
+plt.rc('legend',fontsize=20) 
+
 for experiment, t_data in zip(experiments, thru_datas):  
     print(experiment)
     PlotThroughput2(t_data, exp=experiment)
+    break;
+# -
 
 
 
@@ -756,9 +810,14 @@ def plotThroughputsForRelSeq(throughput):
     plt.yscale('log')
     plt.xlabel('Number of ranks')
     plt.ylabel('KPRS (kilo requests per second')
-    
+    plt.ylim(800,100000)
     addGrid(ax)
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    #ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.rc('axes', labelsize=12) 
+    plt.rc('xtick', labelsize=12) 
+    plt.rc('ytick', labelsize=12) 
+    plt.rc('legend',fontsize=12) 
+
     plotToSVG(f'Throughput in single rank per consistency')
 
 
@@ -823,14 +882,14 @@ class RelSeqBench:
 
     def plotThroughputs(self):
         plotThroughputsForRelSeq(self.throughput)
+# -
 
 
-# +
 benchless = RelSeqBench('seq_vs_rel_2core_report_n_host/', 'paperless', rank_sizes=[4, 8, 16, 24], n_runs=8, count=10000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
 benchyrus = RelSeqBench('seq_vs_rel_2core_report_n_host/', 'papyrus', rank_sizes=[4, 8, 16, 24], n_runs=8, count=10000, mem_table_sizes = [(6555200, 1), (173880000,25),(665520000,100)], merge_mem_tables=True)
-
 plotThroughputsForRelSeq(pd.concat([benchless.throughput, benchyrus.throughput ]))
-# -
+
+plotThroughputsForRelSeq(benchless.throughput)
 
 
 
@@ -872,12 +931,20 @@ vector_cycles = pd.read_csv(v_path)
 cycles = pd.concat([memcmp_cycles, vector_cycles])
 
 def plotCompare(cycles):
-    plt.title(f'Cycles operator< (avx2 vs memcmp)')
-    sns.boxplot(data=cycles, x='key_len', y='cycles', hue='bench_name', showfliers=False)
+    #plt.title(f'Cycles operator< (avx2 vs memcmp)')
+    ax = sns.boxplot(data=cycles, x='key_len', y='cycles', hue='bench_name', showfliers=False, 
+               palette=[sns.color_palette()[1],sns.color_palette()[0]])
     # sns.swarmplot(data=throughputs[select], x='rank_size', y='throughput', hue='db')
 
     plt.xlabel('key_length')
     plt.ylabel('cycles')
+    RemoveHuedTitle(ax)
+    plt.rcParams.update({'font.size': 10})
+    
+    plt.rc('axes', labelsize=10) 
+    plt.rc('xtick', labelsize=10) 
+    plt.rc('ytick', labelsize=10) 
+
     plotToSVG("VectorCMP")
 
 plotCompare(cycles)
